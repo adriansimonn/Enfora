@@ -1,3 +1,4 @@
+console.log("CWD:", process.cwd());
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
@@ -12,6 +13,9 @@ app.use(express.json()); // For parsing JSON bodies
 // Routes
 const taskRoutes = require("./routes/taskRoutes");
 app.use("/api/tasks", taskRoutes);
+
+const evidenceRoutes = require("./routes/evidenceRoutes");
+app.use("/api/evidence", evidenceRoutes);
 
 app.get("/", (req, res) => {
   res.send("Enfora backend is running!");
