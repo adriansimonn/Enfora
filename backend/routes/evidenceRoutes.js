@@ -2,20 +2,22 @@
 const express = require("express");
 const path = require("path");
 require("dotenv").config({ path: path.resolve(__dirname, "../.env") });
+
 const multer = require("multer");
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+const { UpdateCommand } = require("@aws-sdk/lib-dynamodb");
 const { v4: uuidv4 } = require("uuid");
+
 const dynamoDB = require("../config/dynamoClient");
+const { validateEvidence } = require("../services/aiValidator");
+const { extractText } = require("../utils/extractText");
 
 const router = express.Router();
 const TABLE_NAME = "EnforaTasks";
 
-// ----- AWS S3 Setup -----
-console.log("AWS REGION:", process.env.AWS_REGION);
-console.log("AWS KEY:", process.env.AWS_ACCESS_KEY_ID ? "Exists" : "Missing");
-console.log("AWS SECRET:", process.env.AWS_SECRET_ACCESS_KEY ? "Exists" : "Missing");
-console.log("BUCKET:", process.env.S3_BUCKET_NAME);
-
+/**
+ * AWS S3 SETUP
+ */
 const s3 = new S3Client({
   region: process.env.AWS_REGION,
   credentials: {
@@ -23,73 +25,119 @@ const s3 = new S3Client({
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   },
 });
+
 const BUCKET_NAME = process.env.S3_BUCKET_NAME;
 
-// ----- Multer Setup -----
+/**
+ * MULTER SETUP (single file only)
+ */
 const storage = multer.memoryStorage();
-const upload = multer({ storage });
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB hard limit
+    files: 1,
+  },
+});
 
-// ----- Mock AI Validator -----
-async function mockValidateEvidence(fileBuffer, fileName) {
-  // Simple mock — randomly approve/reject for now
-  const isValid = Math.random() > 0.2; // 80% chance of success
-  console.log(
-    `Mock validation result for ${fileName}: ${isValid ? "valid" : "invalid"}`
-  );
-  return isValid;
-}
-
-// ----- Upload Route -----
+/**
+ * POST /api/evidence/upload
+ */
 router.post("/upload", upload.single("evidence"), async (req, res) => {
   try {
-    const { taskId, userId } = req.body;
-    if (!taskId || !userId || !req.file) {
-      return res
-        .status(400)
-        .json({ error: "Missing required fields (taskId, userId, or file)" });
+    const { taskId, userId, taskDescription } = req.body;
+    const file = req.file;
+
+    if (!taskId || !userId || !taskDescription || !file) {
+      return res.status(400).json({
+        error: "Missing required fields (taskId, userId, taskDescription, or file)",
+      });
     }
 
-    // Upload to S3
-    const fileKey = `evidence/${userId}/${uuidv4()}-${req.file.originalname}`;
-    const uploadParams = {
-      Bucket: BUCKET_NAME,
-      Key: fileKey,
-      Body: req.file.buffer,
-      ContentType: req.file.mimetype,
-    };
+    /**
+     * 1. Upload evidence to S3
+     */
+    const fileKey = `evidence/${userId}/${uuidv4()}-${file.originalname}`;
 
-    await s3.send(new PutObjectCommand(uploadParams));
-    const evidenceURL = `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileKey}`;
-
-    // Validate evidence (mocked)
-    const isValid = await mockValidateEvidence(
-      req.file.buffer,
-      req.file.originalname
+    await s3.send(
+      new PutObjectCommand({
+        Bucket: BUCKET_NAME,
+        Key: fileKey,
+        Body: file.buffer,
+        ContentType: file.mimetype,
+      })
     );
 
-    // Update task in DynamoDB
+    const evidenceURL = `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileKey}`;
+
+    /**
+     * 2. Extract text for document evidence (if applicable)
+     */
+    let extractedText = null;
+    if (file.originalname.match(/\.(pdf|docx|txt|md)$/i)) {
+      extractedText = await extractText(file.buffer, file.originalname);
+    }
+
+    /**
+     * 3. AI VALIDATION
+     */
+    const validationResult = await validateEvidence({
+      taskDescription,
+      fileBuffer: file.buffer,
+      fileName: file.originalname,
+      extractedText,
+    });
+
+    /**
+     * 4. Map AI decision → task status
+     */
+    let newStatus = "review";
+    if (validationResult.decision === "PASS") {
+      newStatus = "completed";
+    } else if (validationResult.decision === "FAIL") {
+      newStatus = "failed";
+    }
+
+    /**
+     * 5. Update DynamoDB task
+     */
     const updateParams = {
       TableName: TABLE_NAME,
       Key: { taskId },
-      UpdateExpression: "set submittedEvidenceURL = :url, #st = :status",
-      ExpressionAttributeNames: { "#st": "status" },
+      UpdateExpression: `
+        SET submittedEvidenceURL = :url,
+            #st = :status,
+            validationResult = :validation
+      `,
+      ExpressionAttributeNames: {
+        "#st": "status",
+      },
       ExpressionAttributeValues: {
         ":url": evidenceURL,
-        ":status": isValid ? "completed" : "failed",
+        ":status": newStatus,
+        ":validation": validationResult,
       },
       ReturnValues: "UPDATED_NEW",
     };
 
-    await dynamoDB.update(updateParams).promise();
+    const result = await dynamoDB.send(new UpdateCommand(updateParams));
 
-    res.json({
-      message: "Evidence uploaded successfully",
-      validation: isValid ? "Evidence accepted" : "Evidence rejected",
+    /**
+     * 6. Response
+     */
+    return res.status(200).json({
+      message: "Evidence uploaded and validated",
       evidenceURL,
+      status: newStatus,
+      validation: validationResult,
+      updatedAttributes: result.Attributes,
     });
   } catch (error) {
-    console.error("Error uploading evidence:", error);
-    res.status(500).json({ error: "Failed to upload evidence" });
+    console.error("[Evidence Upload Error]", error);
+
+    return res.status(500).json({
+      error: "Failed to upload and validate evidence",
+    });
   }
 });
 

@@ -10,6 +10,13 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json()); // For parsing JSON bodies
 
+// Add request logging middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  console.log("Body:", req.body);
+  next();
+});
+
 // Routes
 const taskRoutes = require("./routes/taskRoutes");
 app.use("/api/tasks", taskRoutes);
@@ -21,11 +28,13 @@ app.get("/", (req, res) => {
   res.send("Enfora backend is running!");
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error("Error caught by middleware:", err);
+  res.status(500).json({ error: err.message });
 });
 
-// Start server
+// Start server (only once!)
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
