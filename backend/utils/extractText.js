@@ -1,11 +1,12 @@
-import pdfParse from "pdf-parse";
-import mammoth from "mammoth";
+const { PDFParse } = require("pdf-parse");
+const mammoth = require("mammoth");
 
-export async function extractText(fileBuffer, fileName) {
+async function extractText(fileBuffer, fileName) {
   const ext = fileName.split(".").pop().toLowerCase();
 
   if (ext === "pdf") {
-    const data = await pdfParse(fileBuffer);
+    const parser = new PDFParse({ data: fileBuffer });
+    const data = await parser.getText();
     return data.text;
   }
 
@@ -20,3 +21,5 @@ export async function extractText(fileBuffer, fileName) {
 
   return null;
 }
+
+module.exports = { extractText };

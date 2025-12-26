@@ -15,10 +15,21 @@
     "@aws-sdk/client-s3": "^3.957.0",
     "@aws-sdk/lib-dynamodb": "^3.957.0",
     "aws-sdk": "^2.1692.0",
+    "axios": "^1.13.2",
+    "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^5.1.0",
-    "multer": "^2.0.2"
+    "express-rate-limit": "^8.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "mammoth": "^1.11.0",
+    "multer": "^2.0.2",
+    "openai": "^6.15.0",
+    "pdf-parse": "^2.4.5",
+    "rate-limit-redis": "^4.3.1",
+    "redis": "^5.10.0",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
