@@ -44,12 +44,18 @@ export async function refresh(req, res) {
   try {
     const refreshToken = req.cookies.refreshToken;
 
-    const { accessToken, refreshToken: newRefreshToken } =
+    const { user, accessToken, refreshToken: newRefreshToken } =
       await refreshSession(refreshToken);
 
     setRefreshTokenCookie(res, newRefreshToken);
 
-    res.json({ accessToken });
+    res.json({
+      accessToken,
+      user: {
+        userId: user.userId,
+        email: user.email
+      }
+    });
   } catch (err) {
     clearRefreshTokenCookie(res);
 
@@ -82,7 +88,7 @@ export async function register(req, res) {
     res.status(201).json({
       accessToken,
       user: {
-        id: user.userId,
+        userId: user.userId,
         email: user.email
       }
     });
@@ -112,7 +118,7 @@ export async function login(req, res) {
     res.json({
       accessToken,
       user: {
-        id: user.userId,
+        userId: user.userId,
         email: user.email
       }
     });

@@ -83,6 +83,7 @@ export async function refreshSession(refreshToken) {
   );
 
   return {
+    user,
     accessToken: newAccessToken,
     refreshToken: newRefreshToken
   };

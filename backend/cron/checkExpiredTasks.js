@@ -1,6 +1,7 @@
+const { ScanCommand, UpdateCommand } = require("@aws-sdk/lib-dynamodb");
 const dynamoDB = require("../config/dynamoClient");
 
-const TABLE_NAME = "EnforaTasks";
+const TABLE_NAME = "Tasks";
 
 async function checkExpiredTasks() {
   console.log("🕐 Cron: Checking for expired tasks...");
@@ -21,14 +22,17 @@ async function checkExpiredTasks() {
   };
 
   try {
-    const result = await dynamoDB.scan(params).promise();
+    const result = await dynamoDB.send(new ScanCommand(params));
 
     const expiredTasks = result.Items || [];
 
     for (const task of expiredTasks) {
       const updateParams = {
         TableName: TABLE_NAME,
-        Key: { taskId: task.taskId },
+        Key: {
+          userId: task.userId,
+          taskId: task.taskId
+        },
         UpdateExpression: "set #status = :failed",
         ExpressionAttributeNames: {
           "#status": "status",
@@ -38,7 +42,7 @@ async function checkExpiredTasks() {
         },
       };
 
-      await dynamoDB.update(updateParams).promise();
+      await dynamoDB.send(new UpdateCommand(updateParams));
       console.log(`❌ Marked task as failed: ${task.taskId}`);
     }
 

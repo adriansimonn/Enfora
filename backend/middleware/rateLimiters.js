@@ -31,7 +31,7 @@ const baseLimiter = (options) =>
 // LOGIN: IP-BASED LIMITING (simpler, no custom key generator)
 export const loginLimiter = baseLimiter({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // 10 attempts per IP per 15 minutes
+  max: 100, // 10 attempts per IP per 15 minutes
   message: "Too many login attempts. Try again later.",
 });
 

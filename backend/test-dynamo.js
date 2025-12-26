@@ -25,8 +25,8 @@ async function testConnection() {
     console.log("✓ Connection successful!");
     console.log("Available tables:", tables.TableNames);
     
-    if (!tables.TableNames.includes("EnforaTasks")) {
-      console.log("\n⚠ WARNING: 'EnforaTasks' table not found in this region/account!");
+    if (!tables.TableNames.includes("Tasks")) {
+      console.log("\n⚠ WARNING: 'Tasks' table not found in this region/account!");
     }
   } catch (error) {
     console.log("✗ Connection failed!");
@@ -47,7 +47,7 @@ async function testPutItem() {
     };
     
     const command = new PutCommand({
-      TableName: "EnforaTasks",
+      TableName: "Tasks",
       Item: testItem,
     });
     

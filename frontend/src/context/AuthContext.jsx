@@ -26,6 +26,10 @@ export function AuthProvider({ children }) {
       refreshAccessToken()
         .then(data => {
           updateAccessToken(data.accessToken)
+          // Update user data from refresh response
+          if (data.user) {
+            setUser(data.user)
+          }
         })
         .catch(() => {
           // Refresh failed, clear auth state
@@ -42,6 +46,10 @@ export function AuthProvider({ children }) {
     refreshAccessToken()
       .then(data => {
         updateAccessToken(data.accessToken)
+        // Set user data from refresh response
+        if (data.user) {
+          setUser(data.user)
+        }
       })
       .catch(() => {
         // No valid session

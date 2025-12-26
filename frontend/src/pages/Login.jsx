@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
+import Navigation from '../components/Navigation'
 
 export default function Login() {
   const [isLogin, setIsLogin] = useState(true)
@@ -28,15 +29,18 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black text-white">
-      <div className="w-full max-w-md p-8 space-y-6 bg-zinc-900 rounded-lg border border-zinc-800">
-        <h1 className="text-2xl font-bold text-center">
+    <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-black to-zinc-900">
+      <Navigation />
+
+      <div className="flex items-center justify-center py-16 px-4">
+        <div className="w-full max-w-md p-8 space-y-6 bg-zinc-900/80 backdrop-blur border border-zinc-800 rounded-xl shadow-2xl">
+        <h1 className="text-2xl font-bold text-center text-white">
           {isLogin ? 'Login' : 'Create Account'}
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium mb-2">
+            <label htmlFor="email" className="block text-sm font-medium mb-2 text-white">
               Email
             </label>
             <input
@@ -45,13 +49,13 @@ export default function Login() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
               placeholder="you@example.com"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium mb-2">
+            <label htmlFor="password" className="block text-sm font-medium mb-2 text-white">
               Password
             </label>
             <input
@@ -60,7 +64,7 @@ export default function Login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
               placeholder="••••••••"
             />
           </div>
@@ -74,7 +78,7 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed rounded-md font-medium transition-colors"
+            className="w-full py-2 px-4 bg-white text-black disabled:bg-zinc-800 disabled:text-gray-500 disabled:cursor-not-allowed rounded-md font-medium"
           >
             {loading ? 'Processing...' : isLogin ? 'Login' : 'Create Account'}
           </button>
@@ -92,6 +96,7 @@ export default function Login() {
               ? "Don't have an account? Sign up"
               : 'Already have an account? Login'}
           </button>
+        </div>
         </div>
       </div>
     </div>

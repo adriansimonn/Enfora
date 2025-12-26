@@ -13,7 +13,7 @@ const { validateEvidence } = require("../services/aiValidator");
 const { extractText } = require("../utils/extractText");
 
 const router = express.Router();
-const TABLE_NAME = "EnforaTasks";
+const TABLE_NAME = "Tasks";
 
 /**
  * AWS S3 SETUP
@@ -45,7 +45,7 @@ const upload = multer({
  */
 router.post("/upload", upload.single("evidence"), async (req, res) => {
   try {
-    const { taskId, userId, taskDescription } = req.body;
+    const { taskId, userId, taskTitle, taskDescription } = req.body;
     const file = req.file;
 
     if (!taskId || !userId || !taskDescription || !file) {
@@ -82,6 +82,7 @@ router.post("/upload", upload.single("evidence"), async (req, res) => {
      * 3. AI VALIDATION
      */
     const validationResult = await validateEvidence({
+      taskTitle,
       taskDescription,
       fileBuffer: file.buffer,
       fileName: file.originalname,
@@ -99,11 +100,14 @@ router.post("/upload", upload.single("evidence"), async (req, res) => {
     }
 
     /**
-     * 5. Update DynamoDB task
+     * 5. Update DynamoDB task (with composite key: userId + taskId)
      */
     const updateParams = {
       TableName: TABLE_NAME,
-      Key: { taskId },
+      Key: {
+        userId: userId,
+        taskId: taskId
+      },
       UpdateExpression: `
         SET submittedEvidenceURL = :url,
             #st = :status,

@@ -24,26 +24,26 @@ export default function DisputeModal({ task, onClose, onSubmit }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-        <h2 className="text-xl font-bold mb-4">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl p-6 max-w-md w-full">
+        <h2 className="text-2xl font-bold mb-6 text-white">
           Dispute Rejection
         </h2>
 
         <div className="mb-4">
-          <h3 className="font-semibold mb-2">Task:</h3>
-          <p className="text-gray-700">{task.title}</p>
+          <h3 className="font-semibold text-gray-300 mb-2">Task:</h3>
+          <p className="text-white">{task.title}</p>
         </div>
 
         <div className="mb-6">
-          <label className="block font-semibold mb-2">
+          <label className="block font-semibold text-gray-300 mb-2">
             Explain why you believe the evidence should be accepted:
           </label>
           <textarea
             value={reasoning}
             onChange={(e) => setReasoning(e.target.value)}
             placeholder="Provide your reasoning here..."
-            className="w-full h-32 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black resize-none"
+            className="w-full h-32 p-4 bg-zinc-800 border border-zinc-700 text-white placeholder-gray-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-all"
             disabled={isSubmitting}
           />
         </div>
@@ -52,16 +52,16 @@ export default function DisputeModal({ task, onClose, onSubmit }) {
           <button
             onClick={onClose}
             disabled={isSubmitting}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-medium rounded-lg transition-colors border border-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Cancel
           </button>
           <button
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="flex-1 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 px-4 py-2.5 bg-white text-black font-semibold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSubmitting ? "Submitting..." : "Submit for Human Review"}
+            {isSubmitting ? "Submitting..." : "Submit for Review"}
           </button>
         </div>
       </div>
