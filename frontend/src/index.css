@@ -1,3 +1,30 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.reliability-score-gradient {
+  background: linear-gradient(
+    90deg,
+    #f093fb 0%,
+    #f5576c 15%,
+    #ffd140 30%,
+    #4facfe 45%,
+    #00f2fe 60%,
+    #43e97b 75%,
+    #f093fb 100%
+  );
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 3s linear infinite;
+}

@@ -14,7 +14,7 @@ async function calculateAnalytics(userId) {
   // Initialize metrics
   const metrics = {
     // Overall metrics
-    elo: 1000, // Placeholder - will implement formula later
+    reliabilityScore: 0,
     disciplineScore: 0,
 
     // Completion metrics
@@ -106,6 +106,30 @@ async function calculateAnalytics(userId) {
 
   // Add pending tasks count for frontend calculations
   metrics.pendingTasksCount = pendingTasks.length + reviewTasks.length;
+
+  // Calculate Enfora Reliability Score (ERS)
+  // Measures long-term consistency and discipline
+  const completionRateDecimal = metrics.completionRate / 100; // Convert percentage to 0-1 range
+  const tasksCompleted = completedTasks.length;
+  const currentStreak = metrics.currentCompletionStreak;
+  const disciplineScore = metrics.disciplineScore;
+
+  if (completionRateDecimal <= 0) {
+    metrics.reliabilityScore = 0;
+  } else {
+    // Prevent negative discipline from inflating score
+    const disciplineTerm = Math.sqrt(Math.max(disciplineScore, 0));
+
+    const completionTerm = Math.pow(completionRateDecimal, 1.5);
+
+    const volumeTerm = Math.log(1 + tasksCompleted);
+
+    const streakBonus = 1 + 0.15 * Math.log(1 + currentStreak);
+
+    const score = 100 * disciplineTerm * completionTerm * volumeTerm * streakBonus;
+
+    metrics.reliabilityScore = Math.round(score);
+  }
 
   return metrics;
 }

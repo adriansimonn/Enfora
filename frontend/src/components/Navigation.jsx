@@ -53,88 +53,68 @@ export default function Navigation() {
 
           {/* Navigation Buttons */}
           <div className="flex items-center space-x-1" ref={dropdownRef}>
-            {/* Dashboard Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => toggleDropdown('dashboard')}
-                className="px-4 py-2 text-gray-300 hover:text-white hover:bg-zinc-800/50 rounded-md transition-all duration-200 font-medium"
-              >
-                Dashboard
-              </button>
-              {activeDropdown === 'dashboard' && (
-                <div className="absolute right-0 mt-2 w-48 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl py-1 z-50">
-                  <button
-                    onClick={() => handleNavigate('/dashboard')}
-                    className="w-full text-left px-4 py-2 text-gray-300 hover:bg-zinc-800 hover:text-white transition-colors"
-                  >
-                    My Tasks
-                  </button>
-                  <button
-                    onClick={() => handleNavigate('/dashboard')}
-                    className="w-full text-left px-4 py-2 text-gray-300 hover:bg-zinc-800 hover:text-white transition-colors"
-                  >
-                    Analytics
-                  </button>
-                </div>
-              )}
-            </div>
+            {user ? (
+              <>
+                {/* Dashboard Button */}
+                <button
+                  onClick={() => handleNavigate('/dashboard')}
+                  className="px-4 py-2 text-gray-300 hover:text-white hover:bg-zinc-800/50 rounded-md transition-all duration-200 font-medium"
+                >
+                  Dashboard
+                </button>
 
-            {/* Payments Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => toggleDropdown('payments')}
-                className="px-4 py-2 text-gray-300 hover:text-white hover:bg-zinc-800/50 rounded-md transition-all duration-200 font-medium"
-              >
-                Payments
-              </button>
-              {activeDropdown === 'payments' && (
-                <div className="absolute right-0 mt-2 w-48 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl py-1 z-50">
+                {/* Payments Dropdown */}
+                <div className="relative">
                   <button
-                    onClick={() => handleNavigate('/payments')}
-                    className="w-full text-left px-4 py-2 text-gray-300 hover:bg-zinc-800 hover:text-white transition-colors"
+                    onClick={() => toggleDropdown('payments')}
+                    className="px-4 py-2 text-gray-300 hover:text-white hover:bg-zinc-800/50 rounded-md transition-all duration-200 font-medium"
                   >
-                    Payment History
+                    Payments
                   </button>
-                  <button
-                    onClick={() => handleNavigate('/payments/methods')}
-                    className="w-full text-left px-4 py-2 text-gray-300 hover:bg-zinc-800 hover:text-white transition-colors"
-                  >
-                    Payment Methods
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Account Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => toggleDropdown('account')}
-                className="px-4 py-2 text-gray-300 hover:text-white hover:bg-zinc-800/50 rounded-md transition-all duration-200 font-medium"
-              >
-                Account
-              </button>
-              {activeDropdown === 'account' && (
-                <div className="absolute right-0 mt-2 w-56 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl py-1 z-50">
-                  {user && (
-                    <div className="px-4 py-2 border-b border-zinc-700">
-                      <p className="text-xs text-gray-500">Signed in as</p>
-                      <p className="text-sm text-gray-300 truncate">{user.email}</p>
+                  {activeDropdown === 'payments' && (
+                    <div className="absolute right-0 mt-2 w-48 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl py-1 z-50">
+                      <button
+                        onClick={() => handleNavigate('/payments')}
+                        className="w-full text-left px-4 py-2 text-gray-300 hover:bg-zinc-800 hover:text-white transition-colors"
+                      >
+                        Payment History
+                      </button>
+                      <button
+                        onClick={() => handleNavigate('/payments/methods')}
+                        className="w-full text-left px-4 py-2 text-gray-300 hover:bg-zinc-800 hover:text-white transition-colors"
+                      >
+                        Payment Methods
+                      </button>
                     </div>
                   )}
+                </div>
+
+                {/* Account Dropdown */}
+                <div className="relative">
                   <button
-                    onClick={() => handleNavigate('/account/settings')}
-                    className="w-full text-left px-4 py-2 text-gray-300 hover:bg-zinc-800 hover:text-white transition-colors"
+                    onClick={() => toggleDropdown('account')}
+                    className="px-4 py-2 text-gray-300 hover:text-white hover:bg-zinc-800/50 rounded-md transition-all duration-200 font-medium"
                   >
-                    Settings
+                    Account
                   </button>
-                  <button
-                    onClick={() => handleNavigate('/account/profile')}
-                    className="w-full text-left px-4 py-2 text-gray-300 hover:bg-zinc-800 hover:text-white transition-colors"
-                  >
-                    Profile
-                  </button>
-                  {user && (
-                    <>
+                  {activeDropdown === 'account' && (
+                    <div className="absolute right-0 mt-2 w-56 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl py-1 z-50">
+                      <div className="px-4 py-2 border-b border-zinc-700">
+                        <p className="text-xs text-gray-500">Signed in as</p>
+                        <p className="text-sm text-gray-300 truncate">{user.email}</p>
+                      </div>
+                      <button
+                        onClick={() => handleNavigate('/account/settings')}
+                        className="w-full text-left px-4 py-2 text-gray-300 hover:bg-zinc-800 hover:text-white transition-colors"
+                      >
+                        Settings
+                      </button>
+                      <button
+                        onClick={() => handleNavigate('/account/profile')}
+                        className="w-full text-left px-4 py-2 text-gray-300 hover:bg-zinc-800 hover:text-white transition-colors"
+                      >
+                        Profile
+                      </button>
                       <div className="border-t border-zinc-700 my-1"></div>
                       <button
                         onClick={handleLogout}
@@ -142,19 +122,29 @@ export default function Navigation() {
                       >
                         Logout
                       </button>
-                    </>
-                  )}
-                  {!user && (
-                    <button
-                      onClick={() => handleNavigate('/login')}
-                      className="w-full text-left px-4 py-2 text-blue-400 hover:bg-zinc-800 hover:text-blue-300 transition-colors"
-                    >
-                      Login
-                    </button>
+                    </div>
                   )}
                 </div>
-              )}
-            </div>
+              </>
+            ) : (
+              <>
+                {/* Sign Up Button */}
+                <button
+                  onClick={() => handleNavigate('/signup')}
+                  className="px-4 py-2 text-gray-200 hover:text-white hover:bg-zinc-800/50 rounded-md transition-all duration-200 font-medium"
+                >
+                  Sign Up
+                </button>
+
+                {/* Log In Button */}
+                <button
+                  onClick={() => handleNavigate('/login')}
+                  className="px-4 py-2 text-gray-200 hover:text-blue-200 hover:bg-zinc-800/50 rounded-md transition-all duration-200 font-medium"
+                >
+                  Log In
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>

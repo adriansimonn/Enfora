@@ -98,8 +98,10 @@ export default function Analytics() {
   // Color definitions (RGB values)
   const colors = {
     red: { r: 248, g: 113, b: 113 },      // red-400
+    orange: { r: 251, g: 146, b: 60 },    // orange-400
     yellow: { r: 250, g: 204, b: 21 },    // yellow-400
     green: { r: 74, g: 222, b: 128 },     // green-400
+    blue: { r: 96, g: 165, b: 250 },      // blue-400
     white: { r: 255, g: 255, b: 255 },    // white
   };
 
@@ -127,6 +129,11 @@ export default function Analytics() {
   const getStreakColor = (streak) => {
     // 0 (white) to 100 (green)
     return interpolateColor(streak, 0, 50, 100, colors.white, colors.green, colors.green);
+  };
+
+  const getCompletedTasksColor = (completedCount) => {
+    // 0 (white) to 100+ (green)
+    return interpolateColor(completedCount, 0, 50, 100, colors.white, colors.green, colors.green);
   };
 
   const getStakeLostColor = (totalLost, avgStake, finishedCount) => {
@@ -160,6 +167,35 @@ export default function Analytics() {
       // ratio < 1 means betting less than average - keep white
       return 'rgb(255, 255, 255)';
     }
+  };
+
+  const getReliabilityScoreColor = (score) => {
+    // 3000+: Special gradient (handled separately)
+    if (score >= 3000) {
+      return null; // Will use gradient class instead
+    }
+
+    // 2000-3000: Blue (no interpolation)
+    if (score >= 2000) {
+      return 'rgb(96, 165, 250)'; // blue-400
+    }
+
+    // 0-1000: Red -> Orange -> Yellow -> Green
+    if (score < 1000) {
+      if (score <= 300) {
+        // 0 (red) to 300 (orange)
+        return interpolateColor(score, 0, 150, 300, colors.red, colors.red, colors.orange);
+      } else if (score <= 600) {
+        // 300 (orange) to 600 (yellow)
+        return interpolateColor(score, 300, 450, 600, colors.orange, colors.orange, colors.yellow);
+      } else {
+        // 600 (yellow) to 1000 (green)
+        return interpolateColor(score, 600, 800, 1000, colors.yellow, colors.yellow, colors.green);
+      }
+    }
+
+    // 1000-2000: Green to Blue
+    return interpolateColor(score, 1000, 1500, 2000, colors.green, colors.green, colors.blue);
   };
 
   const MetricCard = ({ title, value, subtitle, icon, color = "white", style = {} }) => {
@@ -196,17 +232,25 @@ export default function Analytics() {
       <div className="mb-6">
         <h3 className="text-lg font-semibold text-white mb-3">Overall</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <MetricCard
-            title="ELO Rating"
-            value={analytics.elo}
-            subtitle="Overall performance metric"
-            color="rgb(250, 204, 21)"
-            icon={
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-              </svg>
-            }
-          />
+          <div className="bg-zinc-800/50 border border-zinc-700 rounded-lg p-4 hover:border-zinc-600 transition-colors">
+            <div className="flex items-start justify-between mb-2">
+              <div className="flex-1">
+                <p className="text-sm text-gray-400 mb-1">Reliability Score</p>
+                <p
+                  className={`text-2xl font-bold ${analytics.reliabilityScore >= 3000 ? 'reliability-score-gradient' : ''}`}
+                  style={analytics.reliabilityScore >= 3000 ? {} : { color: getReliabilityScoreColor(analytics.reliabilityScore) }}
+                >
+                  {analytics.reliabilityScore}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">Consistency and discipline metric</p>
+              </div>
+              <div className="text-gray-500 ml-2">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+              </div>
+            </div>
+          </div>
           <MetricCard
             title="Discipline Score"
             value={analytics.disciplineScore}
@@ -224,7 +268,18 @@ export default function Analytics() {
       {/* Completion Metrics */}
       <div className="mb-6">
         <h3 className="text-lg font-semibold text-white mb-3">Completion Metrics</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <MetricCard
+            title="Completed Tasks"
+            value={Math.round(analytics.finishedTasksCount * (analytics.completionRate / 100))}
+            subtitle="Tasks successfully completed"
+            color={getCompletedTasksColor(Math.round(analytics.finishedTasksCount * (analytics.completionRate / 100)))}
+            icon={
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            }
+          />
           <MetricCard
             title="Completion Rate"
             value={formatPercentage(analytics.completionRate)}
