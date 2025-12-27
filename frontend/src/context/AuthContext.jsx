@@ -43,15 +43,18 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     // Try to refresh token on mount
+    console.log('AuthContext: Attempting to refresh token on mount...')
     refreshAccessToken()
       .then(data => {
+        console.log('AuthContext: Refresh successful', data)
         updateAccessToken(data.accessToken)
         // Set user data from refresh response
         if (data.user) {
           setUser(data.user)
         }
       })
-      .catch(() => {
+      .catch((err) => {
+        console.log('AuthContext: Refresh failed', err.message)
         // No valid session
       })
       .finally(() => {

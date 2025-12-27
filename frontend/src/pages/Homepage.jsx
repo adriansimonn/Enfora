@@ -53,8 +53,8 @@ export default function Homepage() {
               {motto}
             </h1>
             <p className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto font-light">
-              A powerful platform for task management and evidence-based verification.
-              Track, validate, and enforce accountability with cutting-edge technology.
+              Create tasks and goals with a deadline, and set an amount of money.
+              Complete your tasks and submit proof, or lose your stake.
             </p>
 
             {/* CTA Buttons */}
@@ -63,13 +63,13 @@ export default function Homepage() {
                 <>
                   <button
                     onClick={() => navigate('/login')}
-                    className="px-8 py-4 bg-white text-black font-semibold rounded-lg"
+                    className="px-8 py-2 bg-white text-black font-normal rounded-lg"
                   >
                     Get Started
                   </button>
                   <button
                     onClick={() => navigate('/login')}
-                    className="px-8 py-4 bg-zinc-800 text-white font-semibold rounded-lg border border-zinc-700"
+                    className="px-8 py-2 bg-zinc-800 text-white font-normal rounded-lg border border-zinc-700"
                   >
                     Login
                   </button>
@@ -77,7 +77,7 @@ export default function Homepage() {
               ) : (
                 <button
                   onClick={() => navigate('/dashboard')}
-                  className="px-8 py-4 bg-white text-black font-semibold rounded-lg"
+                  className="px-8 py-2 bg-white text-black font-normal rounded-lg"
                 >
                   Go to Dashboard
                 </button>

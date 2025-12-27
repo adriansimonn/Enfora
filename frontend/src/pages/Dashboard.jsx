@@ -9,6 +9,7 @@ import CreateTaskModal from "../components/CreateTaskModal";
 import EditTaskModal from "../components/EditTaskModal";
 import LoadingModal from "../components/LoadingModal";
 import TaskDetailsModal from "../components/TaskDetailsModal";
+import ConfirmationModal from "../components/ConfirmationModal";
 import { fetchTasks, createTask, updateTask, deleteTask, submitDispute } from "../services/api";
 
 export default function Dashboard() {
@@ -23,6 +24,9 @@ export default function Dashboard() {
   const [editingTask, setEditingTask] = useState(null);
   const [detailsTask, setDetailsTask] = useState(null);
   const [uploadStatus, setUploadStatus] = useState(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
 
   useEffect(() => {
     loadTasks();
@@ -174,10 +178,12 @@ export default function Dashboard() {
         )
       );
 
-      alert("Your dispute has been submitted for human review.");
+      setModalMessage("Your dispute has been submitted for human review.");
+      setShowSuccessModal(true);
     } catch (error) {
       console.error("Failed to submit dispute:", error);
-      alert("Failed to submit dispute. Please try again.");
+      setModalMessage("Failed to submit dispute. Please try again.");
+      setShowErrorModal(true);
       throw error;
     }
   };
@@ -317,6 +323,41 @@ export default function Dashboard() {
           stage={uploadStatus.stage}
         />
       )}
+
+      {/* Success Modal */}
+      <ConfirmationModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        onConfirm={() => setShowSuccessModal(false)}
+        title="Success"
+        message={modalMessage}
+        confirmText="OK"
+        cancelText="Close"
+        confirmButtonClass="bg-green-600 hover:bg-green-700"
+        icon={
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        }
+      />
+
+      {/* Error Modal */}
+      <ConfirmationModal
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        onConfirm={() => setShowErrorModal(false)}
+        title="Error"
+        message={modalMessage}
+        confirmText="OK"
+        cancelText="Close"
+        confirmButtonClass="bg-blue-600 hover:bg-blue-700"
+        isDestructive={true}
+        icon={
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        }
+      />
     </div>
   );
 }

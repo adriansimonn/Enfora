@@ -1,6 +1,11 @@
+import { useState } from "react";
 import StatusBadge from "./StatusBadge";
+import ConfirmationModal from "./ConfirmationModal";
 
 export default function TaskDetailsModal({ task, onClose, onDelete }) {
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -89,7 +94,7 @@ export default function TaskDetailsModal({ task, onClose, onDelete }) {
               {task.validationResult?.rationale && (
                 <div>
                   <label className="block text-sm font-semibold text-gray-300 mb-2">
-                    Initial AI Rejection Reason
+                    Initial Rejection Reason
                   </label>
                   <div className="p-4 bg-zinc-800 border border-zinc-700 rounded-lg">
                     <p className="text-gray-300 text-sm">
@@ -129,16 +134,7 @@ export default function TaskDetailsModal({ task, onClose, onDelete }) {
           </button>
           {onDelete && (
             <button
-              onClick={async () => {
-                if (window.confirm('Are you sure you want to delete this task? This action cannot be undone.')) {
-                  try {
-                    await onDelete(task);
-                    onClose();
-                  } catch (error) {
-                    alert('Failed to delete task. Please try again.');
-                  }
-                }
-              }}
+              onClick={() => setShowDeleteConfirm(true)}
               className="flex-1 px-4 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors"
             >
               Delete Task
@@ -146,6 +142,48 @@ export default function TaskDetailsModal({ task, onClose, onDelete }) {
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={async () => {
+          try {
+            await onDelete(task);
+            onClose();
+          } catch (error) {
+            setErrorMessage('Failed to delete task. Please try again.');
+            setShowErrorModal(true);
+          }
+        }}
+        title="Delete Task"
+        message="Are you sure you want to delete this task? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        isDestructive={true}
+        icon={
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        }
+      />
+
+      {/* Error Modal */}
+      <ConfirmationModal
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        onConfirm={() => setShowErrorModal(false)}
+        title="Error"
+        message={errorMessage}
+        confirmText="OK"
+        cancelText="Close"
+        confirmButtonClass="bg-blue-600 hover:bg-blue-700"
+        icon={
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        }
+      />
     </div>
   );
 }

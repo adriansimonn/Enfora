@@ -1,12 +1,16 @@
 import { useState } from "react";
+import ConfirmationModal from "./ConfirmationModal";
 
 export default function DisputeModal({ task, onClose, onSubmit }) {
   const [reasoning, setReasoning] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleSubmit = async () => {
     if (!reasoning.trim()) {
-      alert("Please provide your reasoning for the dispute.");
+      setErrorMessage("Please provide your reasoning for the dispute.");
+      setShowErrorModal(true);
       return;
     }
 
@@ -17,7 +21,8 @@ export default function DisputeModal({ task, onClose, onSubmit }) {
       onClose();
     } catch (error) {
       console.error("Failed to submit dispute:", error);
-      alert("Failed to submit dispute. Please try again.");
+      setErrorMessage("Failed to submit dispute. Please try again.");
+      setShowErrorModal(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -65,6 +70,23 @@ export default function DisputeModal({ task, onClose, onSubmit }) {
           </button>
         </div>
       </div>
+
+      {/* Error Modal */}
+      <ConfirmationModal
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        onConfirm={() => setShowErrorModal(false)}
+        title="Error"
+        message={errorMessage}
+        confirmText="OK"
+        cancelText="Close"
+        confirmButtonClass="bg-blue-600 hover:bg-blue-700"
+        icon={
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        }
+      />
     </div>
   );
 }

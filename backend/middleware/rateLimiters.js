@@ -44,7 +44,7 @@ export const registerLimiter = baseLimiter({
 
 export const refreshLimiter = baseLimiter({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: process.env.NODE_ENV === "production" ? 20 : 1000, // Higher limit in dev
   message: "Too many refresh attempts.",
 });
 
