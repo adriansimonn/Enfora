@@ -32,18 +32,43 @@ const BUCKET_NAME = process.env.S3_BUCKET_NAME;
  * MULTER SETUP (single file only)
  */
 const storage = multer.memoryStorage();
+
+// File filter to only allow specific formats
+const fileFilter = (_req, file, cb) => {
+  const allowedImageFormats = ['.png', '.jpg', '.jpeg'];
+  const allowedDocumentFormats = ['.pdf', '.docx', '.txt', '.md'];
+  const ext = path.extname(file.originalname).toLowerCase();
+
+  // Check if it's an allowed image or document format
+  if (allowedImageFormats.includes(ext) || allowedDocumentFormats.includes(ext)) {
+    cb(null, true);
+  } else {
+    cb(new Error(`Unsupported file format: ${ext}. Only PNG, JPEG, JPG, PDF, DOCX, TXT, and MD files are allowed.`), false);
+  }
+};
+
 const upload = multer({
   storage,
   limits: {
     fileSize: 10 * 1024 * 1024, // 10MB hard limit
     files: 1,
   },
+  fileFilter,
 });
 
 /**
  * POST /api/evidence/upload
  */
-router.post("/upload", upload.single("evidence"), async (req, res) => {
+router.post("/upload", (req, res, next) => {
+  upload.single("evidence")(req, res, (err) => {
+    if (err instanceof multer.MulterError) {
+      return res.status(400).json({ error: `Upload error: ${err.message}` });
+    } else if (err) {
+      return res.status(400).json({ error: err.message });
+    }
+    next();
+  });
+}, async (req, res) => {
   try {
     const { taskId, userId, taskTitle, taskDescription } = req.body;
     const file = req.file;
@@ -111,9 +136,9 @@ router.post("/upload", upload.single("evidence"), async (req, res) => {
       expressionAttributeValues[":completedAt"] = currentTimestamp;
       expressionAttributeValues[":status"] = newStatus;
     } else if (validationResult.decision === "FAIL") {
-      newStatus = "failed";
-      updateExpressionParts.push("failedAt = :failedAt");
-      expressionAttributeValues[":failedAt"] = currentTimestamp;
+      newStatus = "rejected";
+      updateExpressionParts.push("rejectedAt = :rejectedAt");
+      expressionAttributeValues[":rejectedAt"] = currentTimestamp;
       expressionAttributeValues[":status"] = newStatus;
     }
 

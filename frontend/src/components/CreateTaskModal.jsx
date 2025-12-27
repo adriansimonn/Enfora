@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import CustomRecurrenceModal from './CustomRecurrenceModal';
 
 export default function CreateTaskModal({ onClose, onSubmit }) {
   const [title, setTitle] = useState('');
@@ -8,6 +9,41 @@ export default function CreateTaskModal({ onClose, onSubmit }) {
   const [stakeDestination, setStakeDestination] = useState('Charity');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [recurrenceType, setRecurrenceType] = useState('does-not-repeat');
+  const [customRecurrenceRule, setCustomRecurrenceRule] = useState(null);
+  const [showCustomRecurrence, setShowCustomRecurrence] = useState(false);
+
+  const getRecurrenceRule = () => {
+    const deadlineDate = new Date(deadline);
+    const dayOfWeek = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'][deadlineDate.getDay()];
+
+    switch (recurrenceType) {
+      case 'does-not-repeat':
+        return null;
+      case 'daily':
+        return { frequency: 'days', interval: 1 };
+      case 'weekly':
+        return { frequency: 'weeks', interval: 1, byWeekday: [dayOfWeek] };
+      case 'weekdays':
+        return { frequency: 'weeks', interval: 1, byWeekday: ['MO', 'TU', 'WE', 'TH', 'FR'] };
+      case 'custom':
+        return customRecurrenceRule;
+      default:
+        return null;
+    }
+  };
+
+  const handleRecurrenceChange = (value) => {
+    setRecurrenceType(value);
+    if (value === 'custom') {
+      setShowCustomRecurrence(true);
+    }
+  };
+
+  const handleCustomRecurrenceSave = (rule) => {
+    setCustomRecurrenceRule(rule);
+    setRecurrenceType('custom');
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -15,12 +51,15 @@ export default function CreateTaskModal({ onClose, onSubmit }) {
     setLoading(true);
 
     try {
+      const recurrenceRule = getRecurrenceRule();
       await onSubmit({
         title,
         description,
         deadline,
         stakeAmount: parseFloat(stakeAmount),
-        stakeDestination
+        stakeDestination,
+        recurrenceRule,
+        isRecurring: recurrenceRule !== null
       });
       onClose();
     } catch (err) {
@@ -126,6 +165,26 @@ export default function CreateTaskModal({ onClose, onSubmit }) {
             </select>
           </div>
 
+          <div>
+            <label htmlFor="recurrence" className="block text-sm font-medium text-gray-300 mb-2">
+              Recurrence
+            </label>
+            <select
+              id="recurrence"
+              value={recurrenceType}
+              onChange={(e) => handleRecurrenceChange(e.target.value)}
+              className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            >
+              <option value="does-not-repeat">Does not repeat</option>
+              <option value="daily">Daily</option>
+              <option value="weekly">
+                Weekly on {deadline ? new Date(deadline).toLocaleDateString('en-US', { weekday: 'long' }) : '...'}
+              </option>
+              <option value="weekdays">Every weekday (Monday to Friday)</option>
+              <option value="custom">Custom...</option>
+            </select>
+          </div>
+
           {error && (
             <div className="p-4 bg-red-500/10 border border-red-500/50 rounded-lg">
               <p className="text-red-400 text-sm">{error}</p>
@@ -151,6 +210,14 @@ export default function CreateTaskModal({ onClose, onSubmit }) {
           </div>
         </form>
       </div>
+
+      {showCustomRecurrence && (
+        <CustomRecurrenceModal
+          onClose={() => setShowCustomRecurrence(false)}
+          onSave={handleCustomRecurrenceSave}
+          initialRule={customRecurrenceRule}
+        />
+      )}
     </div>
   );
 }

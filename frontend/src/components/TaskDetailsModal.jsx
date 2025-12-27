@@ -132,13 +132,21 @@ export default function TaskDetailsModal({ task, onClose, onDelete }) {
           >
             Close
           </button>
-          {onDelete && (
+          {onDelete && task.status !== 'COMPLETED' && task.status !== 'FAILED' && (
             <button
               onClick={() => setShowDeleteConfirm(true)}
               className="flex-1 px-4 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors"
             >
               Delete Task
             </button>
+          )}
+          {onDelete && (task.status === 'COMPLETED' || task.status === 'FAILED') && (
+            <div
+              className="flex-1 px-4 py-3 bg-zinc-800/50 text-gray-500 font-semibold rounded-lg cursor-not-allowed border border-zinc-700 text-center"
+              title="Completed and failed tasks cannot be deleted to maintain metric integrity"
+            >
+              Delete Task
+            </div>
           )}
         </div>
       </div>

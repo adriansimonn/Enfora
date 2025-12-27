@@ -47,7 +47,10 @@ export default function Dashboard() {
         status: task.status.toUpperCase() // Convert to uppercase for consistency
       }));
 
-      setTasks(mappedTasks);
+      // Filter to show only the next recurring instance for each series
+      const filteredTasks = filterRecurringTasks(mappedTasks);
+
+      setTasks(filteredTasks);
     } catch (err) {
       console.error('Failed to load tasks:', err);
       setError('Failed to load tasks');
@@ -56,8 +59,59 @@ export default function Dashboard() {
     }
   };
 
-  const handleTaskAction = (task) => {
-    if (task.status === "PENDING") {
+  // Filter recurring task instances to show parent task, all completed/failed instances, and next incomplete instance
+  const filterRecurringTasks = (tasks) => {
+    // Separate parent recurring tasks from instances and non-recurring tasks
+    const parentRecurringTasks = [];
+    const recurringInstances = new Map(); // Map of parentTaskId -> instances
+    const nonRecurringTasks = [];
+
+    tasks.forEach(task => {
+      // If task has a parentTaskId, it's a recurring instance
+      if (task.parentTaskId) {
+        if (!recurringInstances.has(task.parentTaskId)) {
+          recurringInstances.set(task.parentTaskId, []);
+        }
+        recurringInstances.get(task.parentTaskId).push(task);
+      }
+      // If task isRecurring, it's the parent recurring task
+      else if (task.isRecurring) {
+        parentRecurringTasks.push(task);
+      }
+      // Otherwise it's a regular non-recurring task
+      else {
+        nonRecurringTasks.push(task);
+      }
+    });
+
+    // For each recurring group, show:
+    // 1. All completed/failed instances
+    // 2. Only the next incomplete instance (earliest deadline)
+    const instancesToShow = [];
+    recurringInstances.forEach((instances, parentId) => {
+      // Separate completed/failed from incomplete
+      const completedOrFailedInstances = instances.filter(
+        t => t.status === 'COMPLETED' || t.status === 'FAILED'
+      );
+      const incompleteInstances = instances.filter(
+        t => t.status !== 'COMPLETED' && t.status !== 'FAILED'
+      );
+
+      // Add all completed/failed instances
+      instancesToShow.push(...completedOrFailedInstances);
+
+      // Add only the next incomplete instance
+      if (incompleteInstances.length > 0) {
+        incompleteInstances.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
+        instancesToShow.push(incompleteInstances[0]);
+      }
+    });
+
+    return [...nonRecurringTasks, ...parentRecurringTasks, ...instancesToShow];
+  };
+
+  const handleTaskAction = (task, isRetry = false) => {
+    if (task.status === "PENDING" || isRetry) {
       setSelectedTask(task);
     } else if (task.status === "REJECTED") {
       setRejectionDetailsTask(task);
@@ -99,7 +153,7 @@ export default function Dashboard() {
       const statusMap = {
         "completed": "COMPLETED",
         "review": "REVIEW",
-        "failed": "REJECTED"
+        "rejected": "REJECTED"
       };
 
       setTasks(prev =>
@@ -197,7 +251,9 @@ export default function Dashboard() {
       deadline: taskData.deadline,
       stakeAmount: taskData.stakeAmount,
       stakeDestination: taskData.stakeDestination,
-      userId: user.userId
+      userId: user.userId,
+      recurrenceRule: taskData.recurrenceRule,
+      isRecurring: taskData.isRecurring
     });
 
     // Add the new task to the list
@@ -222,7 +278,7 @@ export default function Dashboard() {
         return tasksCopy.sort((a, b) => b.stakeAmount - a.stakeAmount);
 
       case "status":
-        const statusOrder = { "PENDING": 0, "REVIEW": 1, "COMPLETED": 2, "REJECTED": 3, "FAILED": 3 };
+        const statusOrder = { "PENDING": 0, "REJECTED": 1, "REVIEW": 2, "COMPLETED": 3, "FAILED": 4 };
         return tasksCopy.sort((a, b) => statusOrder[a.status] - statusOrder[b.status]);
 
       default:

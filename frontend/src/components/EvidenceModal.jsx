@@ -48,11 +48,14 @@ export default function EvidenceModal({ task, onClose, onSubmit }) {
           </label>
           <input
             type="file"
-            accept="image/*,.pdf"
+            accept=".png,.jpg,.jpeg,.pdf,.docx,.txt,.md"
             disabled={loading}
             onChange={(e) => setFile(e.target.files[0])}
             className="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-white file:text-black file:cursor-pointer cursor-pointer"
           />
+          <p className="text-xs text-gray-500 mt-2">
+            Accepted formats: PNG, JPEG, JPG, PDF, DOCX, TXT, MD (Max 10MB)
+          </p>
         </div>
 
         {file && (

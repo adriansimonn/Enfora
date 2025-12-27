@@ -5,6 +5,7 @@ export default function Analytics() {
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showReliabilityModal, setShowReliabilityModal] = useState(false);
 
   useEffect(() => {
     loadAnalytics();
@@ -198,9 +199,12 @@ export default function Analytics() {
     return interpolateColor(score, 1000, 1500, 2000, colors.green, colors.green, colors.blue);
   };
 
-  const MetricCard = ({ title, value, subtitle, icon, color = "white", style = {} }) => {
+  const MetricCard = ({ title, value, subtitle, icon, color = "white", style = {}, onClick }) => {
     return (
-      <div className="bg-zinc-800/50 border border-zinc-700 rounded-lg p-4 hover:border-zinc-600 transition-colors">
+      <div
+        className={`bg-zinc-800/50 border border-zinc-700 rounded-lg p-4 hover:border-zinc-600 transition-colors ${onClick ? 'cursor-pointer' : ''}`}
+        onClick={onClick}
+      >
         <div className="flex items-start justify-between mb-2">
           <div className="flex-1">
             <p className="text-sm text-gray-400 mb-1">{title}</p>
@@ -208,6 +212,125 @@ export default function Analytics() {
             {subtitle && <p className="text-xs text-gray-500 mt-1">{subtitle}</p>}
           </div>
           {icon && <div className="text-gray-500 ml-2">{icon}</div>}
+        </div>
+      </div>
+    );
+  };
+
+  const ReliabilityScoreModal = ({ score, onClose }) => {
+    useEffect(() => {
+      const handleEscape = (e) => {
+        if (e.key === 'Escape') {
+          onClose();
+        }
+      };
+
+      document.addEventListener('keydown', handleEscape);
+      return () => document.removeEventListener('keydown', handleEscape);
+    }, [onClose]);
+
+    const getTierInfo = (score) => {
+      if (score >= 3000) return { name: "Platinum User", range: "3000+", color: "from-purple-400 via-pink-400 to-purple-400" };
+      if (score >= 1500) return { name: "Elite", range: "1500-3000", color: "from-blue-400 to-blue-500" };
+      if (score >= 600) return { name: "Reliable", range: "600-1500", color: "from-green-400 to-green-500" };
+      if (score >= 200) return { name: "Building Discipline", range: "200-600", color: "from-yellow-400 to-yellow-500" };
+      return { name: "Inconsistent or Beginner", range: "<200", color: "from-red-400 to-red-500" };
+    };
+
+    const currentTier = getTierInfo(score);
+
+    const tiers = [
+      { name: "Inconsistent or Beginner", range: "<200", color: "from-red-400 to-red-500", isCurrent: score < 200 },
+      { name: "Building Discipline", range: "200-600", color: "from-yellow-400 to-yellow-500", isCurrent: score >= 200 && score < 600 },
+      { name: "Reliable", range: "600-1500", color: "from-green-400 to-green-500", isCurrent: score >= 600 && score < 1500 },
+      { name: "Elite", range: "1500-3000", color: "from-blue-400 to-blue-500", isCurrent: score >= 1500 && score < 3000 },
+      { name: "Platinum User", range: "3000+", color: "from-purple-400 via-white-400 to-blue-400", isCurrent: score >= 3000 },
+    ];
+
+    return (
+      <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl max-w-lg w-full max-h-[85vh] flex flex-col">
+          {/* Header */}
+          <div className="flex items-center justify-between p-4 border-b border-zinc-800 flex-shrink-0">
+            <h2 className="text-xl font-bold text-white">Reliability Score</h2>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-white transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Content */}
+          <div className="p-4 space-y-4 overflow-y-auto flex-1">
+            {/* Description */}
+            <div>
+              <p className="text-sm text-gray-300 mb-3">
+                The Reliability Score is Enfora's flagship metric that measures your consistency and discipline
+                in creating and completing tasks.
+              </p>
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-sm text-gray-400">Your current score:</span>
+                <span
+                  className={`text-2xl font-bold ${score >= 3000 ? 'bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent' : ''}`}
+                  style={score >= 3000 ? {} : { color: getReliabilityScoreColor(score) }}
+                >
+                  {score}
+                </span>
+                <span className={`px-2 py-0.5 rounded-full text-xs font-semibold bg-gradient-to-r ${currentTier.color} text-white`}>
+                  {currentTier.name}
+                </span>
+              </div>
+            </div>
+
+            {/* Tiers */}
+            <div>
+              <h3 className="text-base font-semibold text-white mb-3">Score Tiers</h3>
+              <div className="space-y-2">
+                {tiers.map((tier, index) => (
+                  <div
+                    key={index}
+                    className={`border rounded-lg p-3 transition-all ${
+                      tier.isCurrent
+                        ? 'border-zinc-500 bg-zinc-800/70'
+                        : 'border-zinc-700 bg-zinc-800/30'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 flex-1">
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                          tier.name === "Platinum User"
+                            ? 'platinum-badge-gradient border-2 border-transparent'
+                            : `bg-gradient-to-r ${tier.color}`
+                        }`}>
+                          {tier.isCurrent && (
+                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h4 className={`text-sm font-semibold ${
+                              tier.name === "Platinum User"
+                                ? 'platinum-text-gradient font-black'
+                                : 'text-white'
+                            }`}>{tier.name}</h4>
+                            {tier.isCurrent && (
+                              <span className="text-xs text-green-400 font-medium">Current</span>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-400">{tier.range} points</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -232,20 +355,28 @@ export default function Analytics() {
       <div className="mb-6">
         <h3 className="text-lg font-semibold text-white mb-3">Overall</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-zinc-800/50 border border-zinc-700 rounded-lg p-4 hover:border-zinc-600 transition-colors">
+          <div
+            className="bg-gradient-to-br from-zinc-800/70 to-zinc-800/50 border-2 border-zinc-600 rounded-xl p-6 hover:border-zinc-500 transition-all cursor-pointer shadow-lg hover:shadow-xl"
+            onClick={() => setShowReliabilityModal(true)}
+          >
             <div className="flex items-start justify-between mb-2">
               <div className="flex-1">
-                <p className="text-sm text-gray-400 mb-1">Reliability Score</p>
+                <div className="flex items-center gap-2 mb-2">
+                  <p className="text-base font-semibold text-gray-300">Reliability Score</p>
+                  <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 text-xs font-medium rounded-full">
+                    Critical
+                  </span>
+                </div>
                 <p
-                  className={`text-2xl font-bold ${analytics.reliabilityScore >= 3000 ? 'reliability-score-gradient' : ''}`}
+                  className={`text-4xl font-bold mb-2 ${analytics.reliabilityScore >= 3000 ? 'reliability-score-gradient' : ''}`}
                   style={analytics.reliabilityScore >= 3000 ? {} : { color: getReliabilityScoreColor(analytics.reliabilityScore) }}
                 >
                   {analytics.reliabilityScore}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">Consistency and discipline metric</p>
+                <p className="text-xs text-gray-400">Click to learn more</p>
               </div>
-              <div className="text-gray-500 ml-2">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="text-gray-400 ml-2">
+                <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                 </svg>
               </div>
@@ -254,7 +385,7 @@ export default function Analytics() {
           <MetricCard
             title="Discipline Score"
             value={analytics.disciplineScore}
-            subtitle={`${analytics.disciplineScore >= 0 ? '+' : ''}${analytics.disciplineScore} from baseline`}
+            subtitle={`${analytics.disciplineScore >= 0 ? '+' : ''}${analytics.disciplineScore} from baseline.`}
             color={getDisciplineColor(analytics.disciplineScore)}
             icon={
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -370,6 +501,14 @@ export default function Analytics() {
           />
         </div>
       </div>
+
+      {/* Reliability Score Modal */}
+      {showReliabilityModal && (
+        <ReliabilityScoreModal
+          score={analytics.reliabilityScore}
+          onClose={() => setShowReliabilityModal(false)}
+        />
+      )}
     </div>
   );
 }

@@ -11,6 +11,15 @@
   }
 }
 
+@keyframes shimmer-diagonal {
+  0% {
+    background-position: -200% 200%;
+  }
+  100% {
+    background-position: 200% -200%;
+  }
+}
+
 .reliability-score-gradient {
   background: linear-gradient(
     90deg,
@@ -27,4 +36,31 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: shimmer 3s linear infinite;
+}
+
+.platinum-badge-gradient {
+  background: linear-gradient(
+    90deg,
+    #ffffff 0%,
+    #aff3ff 40%,
+    #f9c3ff 60%,
+    #ffffff 100%
+  );
+  background-size: 200% auto;
+  animation: shimmer 5s linear infinite;
+}
+
+.platinum-text-gradient {
+  background: linear-gradient(
+    90deg,
+    #ffffff 0%,
+    #aff3ff 40%,
+    #f9c3ff 60%,
+    #ffffff 100%
+  );
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 5s linear infinite;
 }

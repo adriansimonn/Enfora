@@ -32,13 +32,14 @@ async function calculateAnalytics(userId) {
   // Categorize tasks
   const completedTasks = tasks.filter(t => t.status === "completed");
   const failedTasks = tasks.filter(t => t.status === "failed");
+  const rejectedTasks = tasks.filter(t => t.status === "rejected");
   const pendingTasks = tasks.filter(t => t.status === "pending");
   const reviewTasks = tasks.filter(t => t.status === "review");
 
   // Calculate discipline score
   metrics.disciplineScore = completedTasks.length - failedTasks.length;
 
-  // Calculate completion rate (only completed and failed tasks)
+  // Calculate completion rate (only completed and failed tasks - rejected tasks don't count)
   const finishedTasks = completedTasks.length + failedTasks.length;
   if (finishedTasks > 0) {
     metrics.completionRate = (completedTasks.length / finishedTasks) * 100;
@@ -87,8 +88,8 @@ async function calculateAnalytics(userId) {
   // Total stake lost (from all failed tasks)
   metrics.totalStakeLost = failedTasks.reduce((sum, task) => sum + (task.stakeAmount || 0), 0);
 
-  // Total stake at risk (from pending and review tasks)
-  metrics.totalStakeAtRisk = [...pendingTasks, ...reviewTasks].reduce((sum, task) => sum + (task.stakeAmount || 0), 0);
+  // Total stake at risk (from pending, review, and rejected tasks)
+  metrics.totalStakeAtRisk = [...pendingTasks, ...reviewTasks, ...rejectedTasks].reduce((sum, task) => sum + (task.stakeAmount || 0), 0);
 
   // Average stake per task
   if (tasks.length > 0) {
@@ -104,8 +105,8 @@ async function calculateAnalytics(userId) {
   // Add finished tasks count for frontend calculations
   metrics.finishedTasksCount = finishedTasks;
 
-  // Add pending tasks count for frontend calculations
-  metrics.pendingTasksCount = pendingTasks.length + reviewTasks.length;
+  // Add pending tasks count for frontend calculations (includes rejected since they can be retried)
+  metrics.pendingTasksCount = pendingTasks.length + reviewTasks.length + rejectedTasks.length;
 
   // Calculate Enfora Reliability Score (ERS)
   // Measures long-term consistency and discipline

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import CustomRecurrenceModal from './CustomRecurrenceModal';
 
 export default function EditTaskModal({ task, onClose, onSave, onDelete }) {
   const [title, setTitle] = useState(task.title || '');
@@ -10,19 +11,73 @@ export default function EditTaskModal({ task, onClose, onSave, onDelete }) {
   const [error, setError] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
+  // Recurrence states
+  const [recurrenceType, setRecurrenceType] = useState(() => {
+    if (!task.isRecurring || !task.recurrenceRule) return 'does-not-repeat';
+    const { frequency, interval, byWeekday } = task.recurrenceRule;
+
+    if (frequency === 'days' && interval === 1) return 'daily';
+    if (frequency === 'weeks' && interval === 1) {
+      if (byWeekday?.length === 5 && ['MO', 'TU', 'WE', 'TH', 'FR'].every(d => byWeekday.includes(d))) {
+        return 'weekdays';
+      }
+      if (byWeekday?.length === 1) return 'weekly';
+    }
+    return 'custom';
+  });
+  const [customRecurrenceRule, setCustomRecurrenceRule] = useState(
+    task.recurrenceRule && recurrenceType === 'custom' ? task.recurrenceRule : null
+  );
+  const [showCustomRecurrence, setShowCustomRecurrence] = useState(false);
+
+  const getRecurrenceRule = () => {
+    const deadlineDate = new Date(deadline);
+    const dayOfWeek = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'][deadlineDate.getDay()];
+
+    switch (recurrenceType) {
+      case 'does-not-repeat':
+        return null;
+      case 'daily':
+        return { frequency: 'days', interval: 1 };
+      case 'weekly':
+        return { frequency: 'weeks', interval: 1, byWeekday: [dayOfWeek] };
+      case 'weekdays':
+        return { frequency: 'weeks', interval: 1, byWeekday: ['MO', 'TU', 'WE', 'TH', 'FR'] };
+      case 'custom':
+        return customRecurrenceRule;
+      default:
+        return null;
+    }
+  };
+
+  const handleRecurrenceChange = (value) => {
+    setRecurrenceType(value);
+    if (value === 'custom') {
+      setShowCustomRecurrence(true);
+    }
+  };
+
+  const handleCustomRecurrenceSave = (rule) => {
+    setCustomRecurrenceRule(rule);
+    setRecurrenceType('custom');
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     try {
+      const recurrenceRule = getRecurrenceRule();
       await onSave({
         ...task,
         title,
         description,
         deadline,
         stakeAmount: parseFloat(stakeAmount),
-        stakeDestination
+        stakeDestination,
+        recurrenceRule,
+        isRecurring: recurrenceRule !== null
       });
       onClose();
     } catch (err) {
@@ -139,6 +194,36 @@ export default function EditTaskModal({ task, onClose, onSave, onDelete }) {
               </select>
             </div>
 
+            {!task.parentTaskId && (
+              <div>
+                <label htmlFor="recurrence" className="block text-sm font-medium text-gray-300 mb-2">
+                  Recurrence
+                </label>
+                <select
+                  id="recurrence"
+                  value={recurrenceType}
+                  onChange={(e) => handleRecurrenceChange(e.target.value)}
+                  className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                >
+                  <option value="does-not-repeat">Does not repeat</option>
+                  <option value="daily">Daily</option>
+                  <option value="weekly">
+                    Weekly on {deadline ? new Date(deadline).toLocaleDateString('en-US', { weekday: 'long' }) : '...'}
+                  </option>
+                  <option value="weekdays">Every weekday (Monday to Friday)</option>
+                  <option value="custom">Custom...</option>
+                </select>
+              </div>
+            )}
+
+            {task.parentTaskId && (
+              <div className="p-4 bg-purple-500/10 border border-purple-500/50 rounded-lg">
+                <p className="text-purple-400 text-sm">
+                  This is a recurring task instance. Recurrence settings cannot be edited for individual instances.
+                </p>
+              </div>
+            )}
+
             {error && (
               <div className="p-4 bg-red-500/10 border border-red-500/50 rounded-lg">
                 <p className="text-red-400 text-sm">{error}</p>
@@ -147,13 +232,19 @@ export default function EditTaskModal({ task, onClose, onSave, onDelete }) {
 
             {/* Actions */}
             <div className="flex gap-3 pt-4">
-              <button
-                type="button"
-                onClick={() => setShowDeleteConfirm(true)}
-                className="px-4 py-3 bg-red-600/10 hover:bg-red-600/20 text-red-400 font-medium rounded-lg transition-colors border border-red-600/50"
-              >
-                Delete Task
-              </button>
+              {task.status !== 'COMPLETED' && task.status !== 'FAILED' ? (
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="px-4 py-3 bg-red-600/10 hover:bg-red-600/20 text-red-400 font-medium rounded-lg transition-colors border border-red-600/50"
+                >
+                  Delete Task
+                </button>
+              ) : (
+                <div className="px-4 py-3 bg-zinc-800/50 text-gray-500 font-medium rounded-lg border border-zinc-700 cursor-not-allowed" title="Completed and failed tasks cannot be deleted to maintain metric integrity">
+                  Delete Task
+                </div>
+              )}
               <div className="flex-1"></div>
               <button
                 type="button"
@@ -205,6 +296,14 @@ export default function EditTaskModal({ task, onClose, onSave, onDelete }) {
           </div>
         )}
       </div>
+
+      {showCustomRecurrence && (
+        <CustomRecurrenceModal
+          onClose={() => setShowCustomRecurrence(false)}
+          onSave={handleCustomRecurrenceSave}
+          initialRule={customRecurrenceRule}
+        />
+      )}
     </div>
   );
 }
