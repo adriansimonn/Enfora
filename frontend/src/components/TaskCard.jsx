@@ -32,13 +32,19 @@ export default function TaskCard({ task, onAction, onEdit }) {
         </button>
       )}
 
-      <div className="flex justify-between items-start pr-8">
+      <div className={`flex justify-between items-start ${task.status !== "COMPLETED" && task.status !== "REVIEW" ? "pr-8" : ""}`}>
         <h3 className="font-semibold text-lg text-white">{task.title}</h3>
         <StatusBadge status={task.status} />
       </div>
 
       <div className="text-sm text-gray-400">
-        Due: {new Date(task.deadline).toLocaleString()}
+        Due: {new Date(task.deadline).toLocaleString(undefined, {
+          year: 'numeric',
+          month: 'numeric',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: 'numeric'
+        })}
       </div>
 
       <div className="font-medium text-gray-300">

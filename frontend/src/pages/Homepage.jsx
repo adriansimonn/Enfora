@@ -54,7 +54,7 @@ export default function Homepage() {
             </h1>
             <p className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto font-light">
               Create tasks and goals with a deadline, and set an amount of money.
-              Complete your tasks and submit proof, or lose your stake.
+              Complete your tasks and submit proof of completion, or lose your stake.
             </p>
 
             {/* CTA Buttons */}

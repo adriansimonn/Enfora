@@ -27,6 +27,7 @@ export default function Dashboard() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
+  const [sortBy, setSortBy] = useState("status"); // dueDate, stakeAmount, status
 
   useEffect(() => {
     loadTasks();
@@ -208,27 +209,64 @@ export default function Dashboard() {
     setTasks(prev => [newTask, ...prev]);
   };
 
+  // Sort tasks based on selected criteria
+  const getSortedTasks = () => {
+    const tasksCopy = [...tasks];
+
+    switch (sortBy) {
+      case "dueDate":
+        return tasksCopy.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
+
+      case "stakeAmount":
+        return tasksCopy.sort((a, b) => b.stakeAmount - a.stakeAmount);
+
+      case "status":
+        const statusOrder = { "PENDING": 0, "REVIEW": 1, "COMPLETED": 2, "REJECTED": 3, "FAILED": 3 };
+        return tasksCopy.sort((a, b) => statusOrder[a.status] - statusOrder[b.status]);
+
+      default:
+        return tasksCopy;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-black to-zinc-900">
       <Navigation />
 
       <div className="p-6 max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-white mb-2">
-              Your Tasks
-            </h1>
-            <p className="text-gray-400">Manage and track your task completion</p>
+        <div className="mb-8">
+          <div className="flex justify-between items-center mb-4">
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-2">
+                Your Tasks
+              </h1>
+              <p className="text-gray-400">Manage and track your task completion, tasks that are pending are yet to be completed.</p>
+            </div>
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="px-6 py-3 bg-white text-black font-semibold rounded-lg flex items-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Create Task
+            </button>
           </div>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="px-6 py-3 bg-white text-black font-semibold rounded-lg flex items-center gap-2"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            Create Task
-          </button>
+          <div className="flex justify-end">
+            <div className="flex items-center gap-2">
+              <label htmlFor="sortBy" className="text-sm text-gray-400">Sort by:</label>
+              <select
+                id="sortBy"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="px-4 py-2 bg-zinc-800 text-white border border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/20"
+              >
+                <option value="status">Status</option>
+                <option value="dueDate">Due Date</option>
+                <option value="stakeAmount">Stake Amount</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         {loading && (
@@ -257,7 +295,7 @@ export default function Dashboard() {
 
         {!loading && !error && tasks.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {tasks.map(task => (
+            {getSortedTasks().map(task => (
               <TaskCard
                 key={task.id}
                 task={task}
