@@ -93,10 +93,28 @@ router.post("/upload", upload.single("evidence"), async (req, res) => {
      * 4. Map AI decision → task status
      */
     let newStatus = "review";
+    const currentTimestamp = new Date().toISOString();
+    const updateExpressionParts = [
+      "submittedEvidenceURL = :url",
+      "#st = :status",
+      "validationResult = :validation"
+    ];
+    const expressionAttributeValues = {
+      ":url": evidenceURL,
+      ":status": newStatus,
+      ":validation": validationResult,
+    };
+
     if (validationResult.decision === "PASS") {
       newStatus = "completed";
+      updateExpressionParts.push("completedAt = :completedAt");
+      expressionAttributeValues[":completedAt"] = currentTimestamp;
+      expressionAttributeValues[":status"] = newStatus;
     } else if (validationResult.decision === "FAIL") {
       newStatus = "failed";
+      updateExpressionParts.push("failedAt = :failedAt");
+      expressionAttributeValues[":failedAt"] = currentTimestamp;
+      expressionAttributeValues[":status"] = newStatus;
     }
 
     /**
@@ -108,19 +126,11 @@ router.post("/upload", upload.single("evidence"), async (req, res) => {
         userId: userId,
         taskId: taskId
       },
-      UpdateExpression: `
-        SET submittedEvidenceURL = :url,
-            #st = :status,
-            validationResult = :validation
-      `,
+      UpdateExpression: `SET ${updateExpressionParts.join(", ")}`,
       ExpressionAttributeNames: {
         "#st": "status",
       },
-      ExpressionAttributeValues: {
-        ":url": evidenceURL,
-        ":status": newStatus,
-        ":validation": validationResult,
-      },
+      ExpressionAttributeValues: expressionAttributeValues,
       ReturnValues: "UPDATED_NEW",
     };
 

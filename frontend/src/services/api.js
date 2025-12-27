@@ -79,3 +79,21 @@ export async function submitDispute(taskId, disputeReasoning) {
   }
   return res.json()
 }
+
+export async function fetchAnalytics() {
+  const res = await fetchWithAuth(`${API_BASE}/analytics`)
+  if (!res.ok) {
+    throw new Error('Failed to fetch analytics')
+  }
+  return res.json()
+}
+
+export async function refreshAnalytics() {
+  const res = await fetchWithAuth(`${API_BASE}/analytics/refresh`, {
+    method: 'POST'
+  })
+  if (!res.ok) {
+    throw new Error('Failed to refresh analytics')
+  }
+  return res.json()
+}

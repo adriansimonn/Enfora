@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import Navigation from "../components/Navigation";
+import Analytics from "../components/Analytics";
 import TaskCard from "../components/TaskCard";
 import EvidenceModal from "../components/EvidenceModal";
 import RejectionDetailsModal from "../components/RejectionDetailsModal";
@@ -294,7 +295,7 @@ export default function Dashboard() {
         )}
 
         {!loading && !error && tasks.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             {getSortedTasks().map(task => (
               <TaskCard
                 key={task.id}
@@ -305,6 +306,9 @@ export default function Dashboard() {
             ))}
           </div>
         )}
+
+        {/* Analytics Section */}
+        <Analytics />
       </div>
 
       {selectedTask && (

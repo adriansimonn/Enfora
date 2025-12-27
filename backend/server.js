@@ -35,6 +35,9 @@ app.use("/api/tasks", taskRoutes);
 const evidenceRoutes = require("./routes/evidenceRoutes");
 app.use("/api/evidence", evidenceRoutes);
 
+const analyticsRoutes = require("./routes/analyticsRoutes");
+app.use("/api/analytics", analyticsRoutes);
+
 app.get("/", (req, res) => {
   res.send("Enfora backend is running!");
 });

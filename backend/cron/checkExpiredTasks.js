@@ -33,12 +33,13 @@ async function checkExpiredTasks() {
           userId: task.userId,
           taskId: task.taskId
         },
-        UpdateExpression: "set #status = :failed",
+        UpdateExpression: "set #status = :failed, failedAt = :failedAt",
         ExpressionAttributeNames: {
           "#status": "status",
         },
         ExpressionAttributeValues: {
           ":failed": "failed",
+          ":failedAt": now,
         },
       };
 
