@@ -1,9 +1,20 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function EvidenceModal({ task, onClose, onSubmit }) {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [onClose]);
 
   const handleSubmit = async () => {
     if (!file) return;
@@ -12,6 +23,23 @@ export default function EvidenceModal({ task, onClose, onSubmit }) {
     setError(null);
 
     try {
+      // Check if task deadline has passed
+      const now = new Date();
+      const deadline = new Date(task.deadline);
+
+      if (now > deadline) {
+        setError("This task has expired. You can no longer submit evidence.");
+        setLoading(false);
+
+        // Call onSubmit with expired flag to trigger backend update
+        try {
+          await onSubmit(task, null, true);
+        } catch (expiredErr) {
+          console.error("Failed to update expired task:", expiredErr);
+        }
+        return;
+      }
+
       await onSubmit(task, file);
     } catch (err) {
       setError("Upload failed. Please try again.");

@@ -23,6 +23,9 @@ export default function Homepage() {
   const [motto, setMotto] = useState('');
 
   useEffect(() => {
+    // Set page title
+    document.title = 'Enfora';
+
     // Pick a random motto on component mount
     const randomMotto = MOTTOS[Math.floor(Math.random() * MOTTOS.length)];
     setMotto(randomMotto);

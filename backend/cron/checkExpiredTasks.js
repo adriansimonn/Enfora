@@ -8,15 +8,18 @@ async function checkExpiredTasks() {
 
   const now = new Date().toISOString();
 
+  // Only expire pending and rejected tasks
+  // Review tasks are NOT expired even if deadline passes (human reviewers may need more time)
   const params = {
     TableName: TABLE_NAME,
-    FilterExpression: "#status = :pending AND #deadline < :now",
+    FilterExpression: "(#status = :pending OR #status = :rejected) AND #deadline < :now",
     ExpressionAttributeNames: {
       "#status": "status",
       "#deadline": "deadline",
     },
     ExpressionAttributeValues: {
       ":pending": "pending",
+      ":rejected": "rejected",
       ":now": now,
     },
   };

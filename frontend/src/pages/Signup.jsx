@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import Navigation from '../components/Navigation'
@@ -11,6 +11,10 @@ export default function Signup() {
   const [loading, setLoading] = useState(false)
   const { register } = useAuth()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    document.title = 'Enfora | Sign Up';
+  }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()

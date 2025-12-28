@@ -31,6 +31,7 @@ export default function Dashboard() {
   const [sortBy, setSortBy] = useState("status"); // dueDate, stakeAmount, status
 
   useEffect(() => {
+    document.title = 'Enfora | Dashboard';
     loadTasks();
   }, []);
 
@@ -115,14 +116,50 @@ export default function Dashboard() {
       setSelectedTask(task);
     } else if (task.status === "REJECTED") {
       setRejectionDetailsTask(task);
-    } else if (task.status === "COMPLETED" || task.status === "REVIEW") {
+    } else if (task.status === "COMPLETED" || task.status === "REVIEW" || task.status === "FAILED") {
       setDetailsTask(task);
     }
   };
 
-  const handleSubmitEvidence = async (task, file) => {
+  const handleSubmitEvidence = async (task, file, isExpired = false) => {
     // Close evidence modal and show loading modal
     setSelectedTask(null);
+
+    // If task is expired, update it to failed state
+    if (isExpired) {
+      try {
+        const formData = new FormData();
+        formData.append("taskId", task.taskId || task.id);
+        formData.append("userId", task.userId);
+        formData.append("taskTitle", task.title);
+        formData.append("taskDescription", task.description);
+        formData.append("isExpiredCheck", "true");
+
+        const response = await fetch("http://localhost:3000/api/evidence/upload", {
+          method: "POST",
+          body: formData,
+          credentials: 'include'
+        });
+
+        await response.json();
+
+        // Update task to failed status
+        setTasks(prev =>
+          prev.map(t =>
+            t.id === task.id
+              ? {
+                  ...t,
+                  status: "FAILED",
+                }
+              : t
+          )
+        );
+      } catch (err) {
+        console.error("Failed to update expired task:", err);
+      }
+      return;
+    }
+
     setUploadStatus({ message: 'Uploading Evidence', stage: 'Preparing upload...' });
 
     try {
@@ -141,13 +178,31 @@ export default function Dashboard() {
         credentials: 'include'
       });
 
+      const data = await response.json();
+
+      // Check if backend detected task expiration
+      if (data.isExpired) {
+        setUploadStatus(null);
+        setTasks(prev =>
+          prev.map(t =>
+            t.id === task.id
+              ? {
+                  ...t,
+                  status: "FAILED",
+                }
+              : t
+          )
+        );
+        setModalMessage("Task deadline has passed. Evidence cannot be submitted.");
+        setShowErrorModal(true);
+        return;
+      }
+
       if (!response.ok) {
         throw new Error("Upload failed");
       }
 
       setUploadStatus({ message: 'Processing Evidence', stage: 'Validating your submission...' });
-
-      const data = await response.json();
 
       // Update task with the status returned from backend
       const statusMap = {

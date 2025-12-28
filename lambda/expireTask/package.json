@@ -1,0 +1,9 @@
+{
+  "name": "expire-task-lambda",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Lambda function to expire tasks when deadline is reached",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.957.0"
+  }
+}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import CustomRecurrenceModal from './CustomRecurrenceModal';
 
 export default function EditTaskModal({ task, onClose, onSave, onDelete }) {
@@ -9,6 +9,17 @@ export default function EditTaskModal({ task, onClose, onSave, onDelete }) {
   const [stakeDestination, setStakeDestination] = useState(task.stakeDestination || 'Charity');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [onClose]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Recurrence states

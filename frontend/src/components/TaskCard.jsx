@@ -1,7 +1,7 @@
 import StatusBadge from "./StatusBadge";
 
 export default function TaskCard({ task, onAction, onEdit }) {
-  const isActionDisabled = task.status === "FAILED";
+  const isActionDisabled = false; // All tasks should be clickable
   const isRejected = task.status === "REJECTED";
 
   const buttonLabel =
@@ -12,6 +12,8 @@ export default function TaskCard({ task, onAction, onEdit }) {
       : task.status === "REJECTED"
       ? "View Details"
       : task.status === "COMPLETED"
+      ? "View Details"
+      : task.status === "FAILED"
       ? "View Details"
       : "View Details";
 
@@ -56,8 +58,8 @@ export default function TaskCard({ task, onAction, onEdit }) {
 
   return (
     <div className="rounded-xl border border-zinc-700 p-5 shadow-lg bg-zinc-900/80 backdrop-blur flex flex-col gap-3 hover:border-zinc-600 transition-all duration-300 hover:transform hover:scale-105 relative h-full">
-      {/* Edit Button - hidden for completed and review tasks */}
-      {task.status !== "COMPLETED" && task.status !== "REVIEW" && (
+      {/* Edit Button - hidden for completed, review, and failed tasks */}
+      {task.status !== "COMPLETED" && task.status !== "REVIEW" && task.status !== "FAILED" && (
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -72,7 +74,7 @@ export default function TaskCard({ task, onAction, onEdit }) {
         </button>
       )}
 
-      <div className={`flex justify-between items-start ${task.status !== "COMPLETED" && task.status !== "REVIEW" ? "pr-8" : ""}`}>
+      <div className={`flex justify-between items-start ${task.status !== "COMPLETED" && task.status !== "REVIEW" && task.status !== "FAILED" ? "pr-8" : ""}`}>
         <h3 className="font-semibold text-lg text-white">{task.title}</h3>
         <StatusBadge status={task.status} />
       </div>

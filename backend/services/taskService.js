@@ -2,6 +2,7 @@ const { v4: uuidv4 } = require("uuid");
 const { PutCommand, QueryCommand, UpdateCommand, DeleteCommand, GetCommand, BatchWriteCommand } = require("@aws-sdk/lib-dynamodb");
 const dynamoDB = require("../config/dynamoClient");
 const { generateTaskInstances } = require("../utils/recurrenceHelper");
+const { createTaskExpirationSchedule, deleteTaskExpirationSchedule } = require("./schedulerService");
 
 const TABLE_NAME = "Tasks";
 
@@ -32,6 +33,40 @@ exports.createTask = async (task) => {
       await createRecurringTaskInstances(taskItem);
     }
 
+    // Create EventBridge schedule for task expiration
+    if (taskItem.deadline && taskItem.userId && taskItem.taskId) {
+      try {
+        await createTaskExpirationSchedule(taskItem.userId, taskItem.taskId, taskItem.deadline);
+        console.log(`EventBridge schedule created for task ${taskItem.taskId}`);
+      } catch (scheduleError) {
+        // If deadline is in the past, immediately mark task as failed
+        if (scheduleError.isPastDeadline) {
+          console.log(`Marking task ${taskItem.taskId} as failed due to past deadline`);
+          const updateParams = {
+            TableName: TABLE_NAME,
+            Key: {
+              userId: taskItem.userId,
+              taskId: taskItem.taskId,
+            },
+            UpdateExpression: "SET #st = :status, failedAt = :failedAt",
+            ExpressionAttributeNames: {
+              "#st": "status",
+            },
+            ExpressionAttributeValues: {
+              ":status": "failed",
+              ":failedAt": new Date().toISOString(),
+            },
+          };
+          await dynamoDB.send(new UpdateCommand(updateParams));
+          taskItem.status = "failed";
+          taskItem.failedAt = new Date().toISOString();
+        } else {
+          console.error("Failed to create EventBridge schedule:", scheduleError);
+          // Don't fail task creation if schedule creation fails for other reasons
+        }
+      }
+    }
+
     return taskItem;
   } catch (error) {
     console.error("DynamoDB Error:", error);
@@ -58,13 +93,15 @@ async function createRecurringTaskInstances(parentTask) {
   for (let i = 0; i < instances.length; i += batchSize) {
     const batch = instances.slice(i, i + batchSize);
 
-    const writeRequests = batch.map(instance => ({
+    const instancesWithIds = batch.map(instance => ({
+      ...instance,
+      taskId: uuidv4(), // Generate unique ID for each instance
+      status: "pending",
+    }));
+
+    const writeRequests = instancesWithIds.map(instance => ({
       PutRequest: {
-        Item: {
-          ...instance,
-          taskId: uuidv4(), // Generate unique ID for each instance
-          status: "pending",
-        }
+        Item: instance
       }
     }));
 
@@ -77,6 +114,40 @@ async function createRecurringTaskInstances(parentTask) {
     try {
       await dynamoDB.send(new BatchWriteCommand(batchParams));
       console.log(`Created batch of ${batch.length} recurring task instances`);
+
+      // Create EventBridge schedules for each instance
+      for (const instance of instancesWithIds) {
+        if (instance.deadline && instance.userId && instance.taskId) {
+          try {
+            await createTaskExpirationSchedule(instance.userId, instance.taskId, instance.deadline);
+            console.log(`EventBridge schedule created for recurring task instance ${instance.taskId}`);
+          } catch (scheduleError) {
+            // If deadline is in the past, immediately mark instance as failed
+            if (scheduleError.isPastDeadline) {
+              console.log(`Marking recurring instance ${instance.taskId} as failed due to past deadline`);
+              const updateParams = {
+                TableName: TABLE_NAME,
+                Key: {
+                  userId: instance.userId,
+                  taskId: instance.taskId,
+                },
+                UpdateExpression: "SET #st = :status, failedAt = :failedAt",
+                ExpressionAttributeNames: {
+                  "#st": "status",
+                },
+                ExpressionAttributeValues: {
+                  ":status": "failed",
+                  ":failedAt": new Date().toISOString(),
+                },
+              };
+              await dynamoDB.send(new UpdateCommand(updateParams));
+            } else {
+              console.error(`Failed to create schedule for instance ${instance.taskId}:`, scheduleError);
+              // Continue with other instances even if one fails
+            }
+          }
+        }
+      }
     } catch (error) {
       console.error("Error creating recurring task instances:", error);
       // Continue with next batch even if one fails
@@ -154,6 +225,19 @@ exports.updateTask = async (taskId, userId, updates) => {
   };
 
   const result = await dynamoDB.send(new UpdateCommand(params));
+
+  // Delete EventBridge schedule if task is completed or failed
+  // Note: Keep schedule for rejected/review status - user can resubmit evidence
+  if (updates.status === "completed" || updates.status === "failed") {
+    try {
+      await deleteTaskExpirationSchedule(userId, taskId);
+      console.log(`EventBridge schedule deleted for task ${taskId} with status ${updates.status}`);
+    } catch (scheduleError) {
+      console.error("Failed to delete EventBridge schedule:", scheduleError);
+      // Don't fail the update if schedule deletion fails
+    }
+  }
+
   return result.Attributes;
 };
 
@@ -167,5 +251,15 @@ exports.deleteTask = async (taskId, userId) => {
   };
 
   await dynamoDB.send(new DeleteCommand(params));
+
+  // Delete EventBridge schedule when task is deleted
+  try {
+    await deleteTaskExpirationSchedule(userId, taskId);
+    console.log(`EventBridge schedule deleted for task ${taskId}`);
+  } catch (scheduleError) {
+    console.error("Failed to delete EventBridge schedule:", scheduleError);
+    // Don't fail the deletion if schedule deletion fails
+  }
+
   return { success: true };
 };

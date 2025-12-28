@@ -5,12 +5,13 @@ require("dotenv").config({ path: path.resolve(__dirname, "../.env") });
 
 const multer = require("multer");
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
-const { UpdateCommand } = require("@aws-sdk/lib-dynamodb");
+const { UpdateCommand, GetCommand } = require("@aws-sdk/lib-dynamodb");
 const { v4: uuidv4 } = require("uuid");
 
 const dynamoDB = require("../config/dynamoClient");
 const { validateEvidence } = require("../services/aiValidator");
 const { extractText } = require("../utils/extractText");
+const { deleteTaskExpirationSchedule } = require("../services/schedulerService");
 
 const router = express.Router();
 const TABLE_NAME = "Tasks";
@@ -70,17 +71,107 @@ router.post("/upload", (req, res, next) => {
   });
 }, async (req, res) => {
   try {
-    const { taskId, userId, taskTitle, taskDescription } = req.body;
+    const { taskId, userId, taskTitle, taskDescription, isExpiredCheck } = req.body;
     const file = req.file;
 
-    if (!taskId || !userId || !taskDescription || !file) {
+    if (!taskId || !userId || !taskDescription) {
       return res.status(400).json({
-        error: "Missing required fields (taskId, userId, taskDescription, or file)",
+        error: "Missing required fields (taskId, userId, taskDescription)",
+      });
+    }
+
+    // If this is an expired check request (frontend detected expiry)
+    if (isExpiredCheck === 'true') {
+      const currentTimestamp = new Date().toISOString();
+
+      const updateParams = {
+        TableName: TABLE_NAME,
+        Key: {
+          userId: userId,
+          taskId: taskId
+        },
+        UpdateExpression: "SET #st = :status, failedAt = :failedAt",
+        ExpressionAttributeNames: {
+          "#st": "status",
+        },
+        ExpressionAttributeValues: {
+          ":status": "failed",
+          ":failedAt": currentTimestamp,
+        },
+        ReturnValues: "ALL_NEW",
+      };
+
+      await dynamoDB.send(new UpdateCommand(updateParams));
+
+      return res.status(200).json({
+        message: "Task marked as failed due to expiration",
+        status: "failed",
+        isExpired: true,
+      });
+    }
+
+    if (!file) {
+      return res.status(400).json({
+        error: "Missing required file",
       });
     }
 
     /**
-     * 1. Upload evidence to S3
+     * 1. Fetch task from database to verify deadline
+     */
+    const getParams = {
+      TableName: TABLE_NAME,
+      Key: {
+        userId: userId,
+        taskId: taskId
+      }
+    };
+
+    const taskResult = await dynamoDB.send(new GetCommand(getParams));
+    const task = taskResult.Item;
+
+    if (!task) {
+      return res.status(404).json({
+        error: "Task not found",
+      });
+    }
+
+    // Check if task deadline has passed
+    const now = new Date().toISOString();
+    const deadline = new Date(task.deadline).toISOString();
+
+    if (now > deadline) {
+      // Task has expired, update status to failed
+      const currentTimestamp = new Date().toISOString();
+
+      const updateParams = {
+        TableName: TABLE_NAME,
+        Key: {
+          userId: userId,
+          taskId: taskId
+        },
+        UpdateExpression: "SET #st = :status, failedAt = :failedAt",
+        ExpressionAttributeNames: {
+          "#st": "status",
+        },
+        ExpressionAttributeValues: {
+          ":status": "failed",
+          ":failedAt": currentTimestamp,
+        },
+        ReturnValues: "ALL_NEW",
+      };
+
+      await dynamoDB.send(new UpdateCommand(updateParams));
+
+      return res.status(400).json({
+        error: "Task deadline has passed. Evidence cannot be submitted.",
+        status: "failed",
+        isExpired: true,
+      });
+    }
+
+    /**
+     * 2. Upload evidence to S3
      */
     const fileKey = `evidence/${userId}/${uuidv4()}-${file.originalname}`;
 
@@ -96,7 +187,7 @@ router.post("/upload", (req, res, next) => {
     const evidenceURL = `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileKey}`;
 
     /**
-     * 2. Extract text for document evidence (if applicable)
+     * 3. Extract text for document evidence (if applicable)
      */
     let extractedText = null;
     if (file.originalname.match(/\.(pdf|docx|txt|md)$/i)) {
@@ -104,7 +195,7 @@ router.post("/upload", (req, res, next) => {
     }
 
     /**
-     * 3. AI VALIDATION
+     * 4. AI VALIDATION
      */
     const validationResult = await validateEvidence({
       taskTitle,
@@ -115,7 +206,7 @@ router.post("/upload", (req, res, next) => {
     });
 
     /**
-     * 4. Map AI decision → task status
+     * 5. Map AI decision → task status
      */
     let newStatus = "review";
     const currentTimestamp = new Date().toISOString();
@@ -143,7 +234,7 @@ router.post("/upload", (req, res, next) => {
     }
 
     /**
-     * 5. Update DynamoDB task (with composite key: userId + taskId)
+     * 6. Update DynamoDB task (with composite key: userId + taskId)
      */
     const updateParams = {
       TableName: TABLE_NAME,
@@ -162,7 +253,21 @@ router.post("/upload", (req, res, next) => {
     const result = await dynamoDB.send(new UpdateCommand(updateParams));
 
     /**
-     * 6. Response
+     * 7. Delete EventBridge schedule if task is completed
+     * Note: Keep schedule for rejected/review status - user can resubmit evidence
+     */
+    if (newStatus === "completed") {
+      try {
+        await deleteTaskExpirationSchedule(userId, taskId);
+        console.log(`EventBridge schedule deleted for completed task ${taskId}`);
+      } catch (scheduleError) {
+        console.error("Failed to delete EventBridge schedule:", scheduleError);
+        // Don't fail the response if schedule deletion fails
+      }
+    }
+
+    /**
+     * 8. Response
      */
     return res.status(200).json({
       message: "Evidence uploaded and validated",

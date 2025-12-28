@@ -112,8 +112,8 @@ export default function Analytics() {
       // From 0 (yellow) to 50+ (green)
       return interpolateColor(score, 0, 25, 50, colors.yellow, colors.yellow, colors.green);
     } else {
-      // From 0 (yellow) to -10 and below (red)
-      return interpolateColor(score, -10, -5, 0, colors.red, colors.red, colors.yellow);
+      // Any score less than 0 is red
+      return 'rgb(248, 113, 113)'; // red-400
     }
   };
 
@@ -313,10 +313,10 @@ export default function Analytics() {
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
-                            <h4 className={`text-sm font-semibold ${
+                            <h4 className={`text-sm ${
                               tier.name === "Platinum User"
                                 ? 'platinum-text-gradient font-black'
-                                : 'text-white'
+                                : 'text-white font-semibold'
                             }`}>{tier.name}</h4>
                             {tier.isCurrent && (
                               <span className="text-xs text-green-400 font-medium">Current</span>
