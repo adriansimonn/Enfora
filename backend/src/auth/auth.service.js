@@ -3,6 +3,7 @@ import crypto from "crypto";
 import { hashPassword, verifyPassword } from "../utils/password.js";
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from "../utils/jwt.js";
 import * as usersRepo from "../db/users.repo.js";
+import * as profilesRepo from "../db/profiles.repo.js";
 
 /**
  * Hash refresh token before storing
@@ -74,6 +75,12 @@ export async function refreshSession(refreshToken) {
   // Token is valid → rotate
   const user = await usersRepo.findUserById(userId);
 
+  // Get user's profile to include username
+  const profile = await profilesRepo.findProfileByUserId(user.userId);
+  if (profile) {
+    user.username = profile.username;
+  }
+
   const newAccessToken = signAccessToken(user);
   const newRefreshToken = signRefreshToken(user);
 
@@ -89,10 +96,22 @@ export async function refreshSession(refreshToken) {
   };
 }
 
-export async function registerUser({ email, password }) {
+export async function registerUser({ email, password, username, displayName }) {
   const existing = await usersRepo.findUserByEmail(email);
   if (existing) {
     throw new Error("EMAIL_ALREADY_EXISTS");
+  }
+
+  // Validate username format (alphanumeric, underscores, hyphens, 3-30 chars)
+  const usernameRegex = /^[a-zA-Z0-9_-]{3,30}$/;
+  if (!username || !usernameRegex.test(username)) {
+    throw new Error("INVALID_USERNAME_FORMAT");
+  }
+
+  // Check if username is available
+  const existingProfile = await profilesRepo.findProfileByUsername(username);
+  if (existingProfile) {
+    throw new Error("USERNAME_TAKEN");
   }
 
   const passwordHash = await hashPassword(password);
@@ -108,6 +127,14 @@ export async function registerUser({ email, password }) {
 
   await usersRepo.createUser(user);
 
+  // Create user profile
+  await profilesRepo.createProfile({
+    username: username.toLowerCase(),
+    userId: user.userId,
+    displayName: displayName || username,
+    bio: "",
+  });
+
   const accessToken = signAccessToken(user);
   const refreshToken = signRefreshToken(user);
 
@@ -115,6 +142,9 @@ export async function registerUser({ email, password }) {
     user.userId,
     hashRefreshToken(refreshToken)
   );
+
+  // Add username to user object for response
+  user.username = username.toLowerCase();
 
   return { user, accessToken, refreshToken };
 }
@@ -128,6 +158,12 @@ export async function loginUser({ email, password }) {
   const valid = await verifyPassword(password, user.passwordHash);
   if (!valid) {
     throw new Error("INVALID_CREDENTIALS");
+  }
+
+  // Get user's profile to include username
+  const profile = await profilesRepo.findProfileByUserId(user.userId);
+  if (profile) {
+    user.username = profile.username;
   }
 
   const accessToken = signAccessToken(user);

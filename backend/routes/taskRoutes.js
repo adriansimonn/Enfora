@@ -20,7 +20,7 @@ router.post("/", async (req, res) => {
     try {
       const taskData = {
         ...req.body,
-        userId: req.user.sub // Get userId from JWT 'sub' field
+        userId: req.user.userId
       };
       const task = await taskService.createTask(taskData);
       res.json(task);
@@ -40,7 +40,7 @@ router.get("/", async (req, res) => {
 
   requireAuth(req, res, async () => {
     try {
-      const tasks = await taskService.getTasksByUser(req.user.sub);
+      const tasks = await taskService.getTasksByUser(req.user.userId);
       res.json(tasks);
     } catch (error) {
       console.error("Error fetching tasks:", error);
@@ -58,7 +58,7 @@ router.put("/:taskId", async (req, res) => {
   requireAuth(req, res, async () => {
     try {
       const { taskId } = req.params;
-      const updatedTask = await taskService.updateTask(taskId, req.user.sub, req.body);
+      const updatedTask = await taskService.updateTask(taskId, req.user.userId, req.body);
       res.json(updatedTask);
     } catch (error) {
       console.error("Error updating task:", error);
@@ -76,7 +76,7 @@ router.delete("/:taskId", async (req, res) => {
   requireAuth(req, res, async () => {
     try {
       const { taskId } = req.params;
-      await taskService.deleteTask(taskId, req.user.sub);
+      await taskService.deleteTask(taskId, req.user.userId);
       res.json({ message: "Task deleted successfully" });
     } catch (error) {
       console.error("Error deleting task:", error);
@@ -101,7 +101,7 @@ router.post("/:taskId/dispute", async (req, res) => {
       }
 
       // Update task with dispute information and set status to review
-      const updatedTask = await taskService.updateTask(taskId, req.user.sub, {
+      const updatedTask = await taskService.updateTask(taskId, req.user.userId, {
         status: "review",
         disputeReasoning,
         disputedAt: new Date().toISOString()

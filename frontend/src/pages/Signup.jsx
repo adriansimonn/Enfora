@@ -7,6 +7,8 @@ export default function Signup() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [username, setUsername] = useState('')
+  const [displayName, setDisplayName] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const { register } = useAuth()
@@ -25,10 +27,16 @@ export default function Signup() {
       return
     }
 
+    if (!username || username.trim().length < 3) {
+      setError('Username must be at least 3 characters')
+      return
+    }
+
     setLoading(true)
 
     try {
-      await register(email, password)
+      await register(email, password, username.trim(), displayName.trim() || username.trim())
+      navigate('/dashboard')
     } catch (err) {
       setError(err.message)
     } finally {
@@ -47,6 +55,39 @@ export default function Signup() {
           </h1>
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="username" className="block text-sm font-medium mb-2 text-white">
+                Username
+              </label>
+              <input
+                id="username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+                placeholder="exampleusername123"
+                pattern="[a-zA-Z0-9_-]{3,30}"
+                title="3-30 characters: letters, numbers, hyphens, underscores only"
+              />
+              <p className="mt-1 text-xs text-gray-400">3-30 characters: letters, numbers, hyphens, underscores</p>
+            </div>
+
+            <div>
+              <label htmlFor="displayName" className="block text-sm font-medium mb-2 text-white">
+                Display Name
+              </label>
+              <input
+                id="displayName"
+                type="text"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+                placeholder="Your Name (optional)"
+              />
+              <p className="mt-1 text-xs text-gray-400">Defaults to username if not provided</p>
+            </div>
+
             <div>
               <label htmlFor="email" className="block text-sm font-medium mb-2 text-white">
                 Email

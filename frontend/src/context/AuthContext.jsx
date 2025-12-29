@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, useRef } from 'react'
 import { login as loginAPI, register as registerAPI, logout as logoutAPI, refreshAccessToken } from '../services/auth'
 import { setAccessToken as setApiAccessToken } from '../services/api'
-import { useNavigate } from 'react-router-dom'
+import emblemLogo from '../assets/logos/emblem_logo_t.png'
 
 const AuthContext = createContext(null)
 
@@ -9,7 +9,6 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [accessToken, setAccessToken] = useState(null)
   const [loading, setLoading] = useState(true)
-  const navigate = useNavigate()
   const refreshTimerRef = useRef(null)
 
   const updateAccessToken = (token) => {
@@ -36,7 +35,6 @@ export function AuthProvider({ children }) {
           setAccessToken(null)
           setApiAccessToken(null)
           setUser(null)
-          navigate('/login')
         })
     }, 14 * 60 * 1000) // Refresh after 14 minutes
   }
@@ -72,14 +70,14 @@ export function AuthProvider({ children }) {
     const data = await loginAPI(email, password)
     updateAccessToken(data.accessToken)
     setUser(data.user)
-    navigate('/')
+    return data
   }
 
-  const register = async (email, password) => {
-    const data = await registerAPI(email, password)
+  const register = async (email, password, username, displayName) => {
+    const data = await registerAPI(email, password, username, displayName)
     updateAccessToken(data.accessToken)
     setUser(data.user)
-    navigate('/')
+    return data
   }
 
   const logout = async () => {
@@ -90,7 +88,6 @@ export function AuthProvider({ children }) {
     setAccessToken(null)
     setApiAccessToken(null)
     setUser(null)
-    navigate('/login')
   }
 
   const value = {
@@ -114,7 +111,7 @@ export function AuthProvider({ children }) {
             </div>
             {/* Logo */}
             <img
-              src="/src/assets/logos/emblem_logo_t.png"
+              src={emblemLogo}
               alt="Enfora Logo"
               className="w-32 h-32 relative z-10 animate-pulse"
             />

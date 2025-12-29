@@ -1,11 +1,11 @@
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
 
-export async function register(email, password) {
+export async function register(email, password, username, displayName) {
   const res = await fetch(`${API_BASE}/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
-    body: JSON.stringify({ email, password })
+    body: JSON.stringify({ email, password, username, displayName })
   })
 
   if (!res.ok) {

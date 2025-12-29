@@ -110,7 +110,7 @@ export default function Navigation() {
                         Settings
                       </button>
                       <button
-                        onClick={() => handleNavigate('/account/profile')}
+                        onClick={() => handleNavigate(user.username ? `/profile/${user.username}` : '/account/profile')}
                         className="w-full text-left px-4 py-2 text-gray-300 hover:bg-zinc-800 hover:text-white transition-colors"
                       >
                         Profile

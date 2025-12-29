@@ -38,7 +38,7 @@ export const loginLimiter = baseLimiter({
 // Other limiters unchanged
 export const registerLimiter = baseLimiter({
   windowMs: 60 * 60 * 1000,
-  max: 3,
+  max: 5,
   message: "Too many accounts created from this IP.",
 });
 

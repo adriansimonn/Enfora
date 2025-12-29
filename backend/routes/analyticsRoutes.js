@@ -17,13 +17,25 @@ router.get("/", async (req, res) => {
 
   requireAuth(req, res, async () => {
     try {
-      const analytics = await analyticsService.getUserAnalytics(req.user.sub);
+      const analytics = await analyticsService.getUserAnalytics(req.user.userId);
       res.json(analytics);
     } catch (error) {
       console.error("Error fetching analytics:", error);
       res.status(500).json({ error: "Failed to fetch analytics" });
     }
   });
+});
+
+// Get analytics for any user by userId (public route)
+router.get("/user/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const analytics = await analyticsService.getUserAnalytics(userId);
+    res.json(analytics);
+  } catch (error) {
+    console.error("Error fetching analytics:", error);
+    res.status(500).json({ error: "Failed to fetch analytics" });
+  }
 });
 
 // Refresh analytics for authenticated user
@@ -34,7 +46,7 @@ router.post("/refresh", async (req, res) => {
 
   requireAuth(req, res, async () => {
     try {
-      const analytics = await analyticsService.refreshUserAnalytics(req.user.sub);
+      const analytics = await analyticsService.refreshUserAnalytics(req.user.userId);
       res.json(analytics);
     } catch (error) {
       console.error("Error refreshing analytics:", error);

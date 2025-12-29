@@ -53,7 +53,8 @@ export async function refresh(req, res) {
       accessToken,
       user: {
         userId: user.userId,
-        email: user.email
+        email: user.email,
+        username: user.username
       }
     });
   } catch (err) {
@@ -74,14 +75,14 @@ export async function refresh(req, res) {
 
 export async function register(req, res) {
   try {
-    const { email, password } = req.body;
+    const { email, password, username, displayName } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ error: "Missing fields" });
+    if (!email || !password || !username) {
+      return res.status(400).json({ error: "Missing required fields" });
     }
 
     const { user, accessToken, refreshToken } =
-      await authService.registerUser({ email, password });
+      await authService.registerUser({ email, password, username, displayName });
 
     setRefreshTokenCookie(res, refreshToken);
 
@@ -89,12 +90,21 @@ export async function register(req, res) {
       accessToken,
       user: {
         userId: user.userId,
-        email: user.email
+        email: user.email,
+        username: user.username
       }
     });
   } catch (err) {
     if (err.message === "EMAIL_ALREADY_EXISTS") {
       return res.status(409).json({ error: "Email already in use" });
+    }
+    if (err.message === "USERNAME_TAKEN") {
+      return res.status(409).json({ error: "Username already taken" });
+    }
+    if (err.message === "INVALID_USERNAME_FORMAT") {
+      return res.status(400).json({
+        error: "Invalid username format. Use 3-30 characters: letters, numbers, hyphens, underscores only"
+      });
     }
 
     console.error(err);
@@ -119,7 +129,8 @@ export async function login(req, res) {
       accessToken,
       user: {
         userId: user.userId,
-        email: user.email
+        email: user.email,
+        username: user.username
       }
     });
   } catch (err) {

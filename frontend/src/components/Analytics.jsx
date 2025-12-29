@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { fetchAnalytics } from "../services/api";
+import { fetchAnalytics, fetchAnalyticsByUserId } from "../services/api";
 
-export default function Analytics() {
+export default function Analytics({ userId }) {
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -9,13 +9,13 @@ export default function Analytics() {
 
   useEffect(() => {
     loadAnalytics();
-  }, []);
+  }, [userId]);
 
   const loadAnalytics = async () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await fetchAnalytics();
+      const data = userId ? await fetchAnalyticsByUserId(userId) : await fetchAnalytics();
       setAnalytics(data);
     } catch (err) {
       console.error("Failed to load analytics:", err);
@@ -230,7 +230,7 @@ export default function Analytics() {
     }, [onClose]);
 
     const getTierInfo = (score) => {
-      if (score >= 3000) return { name: "Platinum User", range: "3000+", color: "from-purple-400 via-pink-400 to-purple-400" };
+      if (score >= 3000) return { name: "Platinum", range: "3000+", color: "from-purple-400 via-pink-400 to-purple-400" };
       if (score >= 1500) return { name: "Elite", range: "1500-3000", color: "from-blue-400 to-blue-500" };
       if (score >= 600) return { name: "Reliable", range: "600-1500", color: "from-green-400 to-green-500" };
       if (score >= 200) return { name: "Building Discipline", range: "200-600", color: "from-yellow-400 to-yellow-500" };
@@ -244,7 +244,7 @@ export default function Analytics() {
       { name: "Building Discipline", range: "200-600", color: "from-yellow-400 to-yellow-500", isCurrent: score >= 200 && score < 600 },
       { name: "Reliable", range: "600-1500", color: "from-green-400 to-green-500", isCurrent: score >= 600 && score < 1500 },
       { name: "Elite", range: "1500-3000", color: "from-blue-400 to-blue-500", isCurrent: score >= 1500 && score < 3000 },
-      { name: "Platinum User", range: "3000+", color: "from-purple-400 via-white-400 to-blue-400", isCurrent: score >= 3000 },
+      { name: "Platinum", range: "3000+", color: "from-purple-400 via-white-400 to-blue-400", isCurrent: score >= 3000 },
     ];
 
     return (
@@ -272,7 +272,7 @@ export default function Analytics() {
                 in creating and completing tasks.
               </p>
               <div className="flex items-center gap-2 mb-4">
-                <span className="text-sm text-gray-400">Your current score:</span>
+                <span className="text-sm text-gray-400">Current score:</span>
                 <span
                   className={`text-2xl font-bold ${score >= 3000 ? 'bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent' : ''}`}
                   style={score >= 3000 ? {} : { color: getReliabilityScoreColor(score) }}
@@ -301,7 +301,7 @@ export default function Analytics() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 flex-1">
                         <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                          tier.name === "Platinum User"
+                          tier.name === "Platinum"
                             ? 'platinum-badge-gradient border-2 border-transparent'
                             : `bg-gradient-to-r ${tier.color}`
                         }`}>
@@ -314,7 +314,7 @@ export default function Analytics() {
                         <div>
                           <div className="flex items-center gap-2">
                             <h4 className={`text-sm ${
-                              tier.name === "Platinum User"
+                              tier.name === "Platinum"
                                 ? 'platinum-text-gradient font-black'
                                 : 'text-white font-semibold'
                             }`}>{tier.name}</h4>
@@ -338,18 +338,20 @@ export default function Analytics() {
 
   return (
     <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 mb-8">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-white">Your Analytics</h2>
-        <button
-          onClick={loadAnalytics}
-          className="px-4 py-2 bg-zinc-800 text-white rounded-lg hover:bg-zinc-700 transition-colors text-sm flex items-center gap-2"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-          Refresh
-        </button>
-      </div>
+      {!userId && (
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-white">Your Analytics</h2>
+          <button
+            onClick={loadAnalytics}
+            className="px-4 py-2 bg-zinc-800 text-white rounded-lg hover:bg-zinc-700 transition-colors text-sm flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Refresh
+          </button>
+        </div>
+      )}
 
       {/* Overall Metrics */}
       <div className="mb-6">
@@ -364,7 +366,7 @@ export default function Analytics() {
                 <div className="flex items-center gap-2 mb-2">
                   <p className="text-base font-semibold text-gray-300">Reliability Score</p>
                   <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 text-xs font-medium rounded-full">
-                    Critical
+                    Critical Metric
                   </span>
                 </div>
                 <p
@@ -385,7 +387,7 @@ export default function Analytics() {
           <MetricCard
             title="Discipline Score"
             value={analytics.disciplineScore}
-            subtitle={`${analytics.disciplineScore >= 0 ? '+' : ''}${analytics.disciplineScore} from baseline.`}
+            subtitle={`Completions minus failures over time`}
             color={getDisciplineColor(analytics.disciplineScore)}
             icon={
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -414,7 +416,7 @@ export default function Analytics() {
           <MetricCard
             title="Completion Rate"
             value={formatPercentage(analytics.completionRate)}
-            subtitle="Of all finished tasks"
+            subtitle="Of all past tasks"
             color={getCompletionRateColor(analytics.completionRate)}
             icon={
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

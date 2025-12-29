@@ -88,6 +88,14 @@ export async function fetchAnalytics() {
   return res.json()
 }
 
+export async function fetchAnalyticsByUserId(userId) {
+  const res = await fetch(`${API_BASE}/analytics/user/${userId}`)
+  if (!res.ok) {
+    throw new Error('Failed to fetch analytics')
+  }
+  return res.json()
+}
+
 export async function refreshAnalytics() {
   const res = await fetchWithAuth(`${API_BASE}/analytics/refresh`, {
     method: 'POST'
