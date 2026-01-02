@@ -80,8 +80,9 @@ export default function Homepage() {
               {motto}
             </h1>
             <p className="text-lg text-gray-400 mb-12 max-w-2xl mx-auto font-light leading-[1.6]">
-              Enfora lets you create tasks and goals, set a deadline, and set a stake.
-              Complete your tasks and submit proof of completion, or lose your stake.
+              Enfora is a productivity platform that actually holds you accountable.
+              Failure to complete your tasks in time results in an automatic charge that goes
+              towards charity, a friend, or elsewhere.
             </p>
 
             {/* CTA Buttons */}
@@ -126,7 +127,7 @@ export default function Homepage() {
               <div className="grid md:grid-cols-2 gap-4">
                 <InteractiveGradientBox
                   className="rounded-2xl p-7 relative overflow-hidden transition-all duration-200 shadow-lg"
-                  gradientColors={['rgb(229, 229, 229)', 'rgb(212, 212, 212)', 'rgb(163, 163, 163)']}
+                  gradientColors={['rgba(250, 250, 250, 1)', 'rgba(235, 235, 235, 1)', 'rgba(220, 220, 220, 1)']}
                 >
                   <div className="text-red-600 mb-2.5 text-lg font-light relative z-10">✗</div>
                   <p className="text-black font-normal mb-1.5 text-[15px] relative z-10">Motivation is unreliable</p>
@@ -134,7 +135,7 @@ export default function Homepage() {
                 </InteractiveGradientBox>
                 <InteractiveGradientBox
                   className="rounded-2xl p-7 relative overflow-hidden transition-all duration-200 shadow-lg"
-                  gradientColors={['rgb(229, 229, 229)', 'rgb(212, 212, 212)', 'rgb(163, 163, 163)']}
+                  gradientColors={['rgba(250, 250, 250, 1)', 'rgba(235, 235, 235, 1)', 'rgba(220, 220, 220, 1)']}
                 >
                   <div className="text-red-600 mb-2.5 text-lg font-light relative z-10">✗</div>
                   <p className="text-black font-normal mb-1.5 text-[15px] relative z-10">To-do lists don't enforce anything</p>
@@ -142,7 +143,7 @@ export default function Homepage() {
                 </InteractiveGradientBox>
                 <InteractiveGradientBox
                   className="rounded-2xl p-7 relative overflow-hidden transition-all duration-200 shadow-lg"
-                  gradientColors={['rgb(229, 229, 229)', 'rgb(212, 212, 212)', 'rgb(163, 163, 163)']}
+                  gradientColors={['rgba(250, 250, 250, 1)', 'rgba(235, 235, 235, 1)', 'rgba(220, 220, 220, 1)']}
                 >
                   <div className="text-red-600 mb-2.5 text-lg font-light relative z-10">✗</div>
                   <p className="text-black font-normal mb-1.5 text-[15px] relative z-10">Deadlines have no consequences</p>
@@ -150,7 +151,7 @@ export default function Homepage() {
                 </InteractiveGradientBox>
                 <InteractiveGradientBox
                   className="rounded-2xl p-7 relative overflow-hidden transition-all duration-200 shadow-lg"
-                  gradientColors={['rgb(229, 229, 229)', 'rgb(212, 212, 212)', 'rgb(163, 163, 163)']}
+                  gradientColors={['rgba(250, 250, 250, 1)', 'rgba(235, 235, 235, 1)', 'rgba(220, 220, 220, 1)']}
                 >
                   <div className="text-red-600 mb-2.5 text-lg font-light relative z-10">✗</div>
                   <p className="text-black font-normal mb-1.5 text-[15px] relative z-10">No accountability</p>
@@ -262,7 +263,7 @@ export default function Homepage() {
                 </div>
               </div>
               <p className="text-[16px] text-white text-center font-light">
-                When failure costs you something, success becomes non-negotiable.
+                When failure has an immediate cost, success becomes non-negotiable.
               </p>
             </div>
           </div>
@@ -275,7 +276,8 @@ export default function Homepage() {
               Who Enfora Is For
             </h2>
             <p className="text-[15px] text-gray-400 mb-14 text-center max-w-2xl mx-auto font-light">
-              Enfora isn't for everyone. It's brute-force accountability designed for those who want to better themselves the most.
+              Enfora is <span className="text-white font-normal">not</span> for everyone. It is a system of brute-force accountability, transparency, and competition.
+              Designed for those who are willing to take drastic action to see self improvement.
             </p>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="bg-white/[0.015] border border-white/[0.06] rounded-2xl p-7 hover:bg-white/[0.025] hover:border-white/[0.09] transition-all duration-300 backdrop-blur-sm">
@@ -305,7 +307,7 @@ export default function Homepage() {
               <div className="bg-white/[0.015] border border-white/[0.06] rounded-2xl p-7 hover:bg-white/[0.025] hover:border-white/[0.09] transition-all duration-300 backdrop-blur-sm md:col-span-2 lg:col-span-2">
                 <div className="text-2xl mb-3">🎯</div>
                 <h3 className="text-[16px] font-normal text-white mb-2">Anyone tired of quitting on themselves</h3>
-                <p className="text-gray-400 text-[13px] leading-relaxed font-light">If you've ever said "I'll do it tomorrow," Enfora is for you.</p>
+                <p className="text-gray-400 text-[13px] leading-relaxed font-light">If you've made promises that you haven't lived up to and want to change. Enfora is for you.</p>
               </div>
             </div>
           </div>

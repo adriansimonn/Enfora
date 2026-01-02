@@ -36,7 +36,7 @@ export default function Navigation() {
   };
 
   return (
-    <nav className="bg-zinc-950 border-b border-zinc-800 shadow-lg">
+    <nav className="bg-black border-b border-white/[0.06]">
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -58,7 +58,7 @@ export default function Navigation() {
                 {/* Dashboard Button */}
                 <button
                   onClick={() => handleNavigate('/dashboard')}
-                  className="px-4 py-2 text-gray-300 hover:text-white hover:bg-zinc-800/50 rounded-md transition-all duration-200 font-medium"
+                  className="px-4 py-2 text-gray-300 hover:text-white hover:bg-white/[0.06] rounded-lg transition-all duration-200 font-normal"
                 >
                   Dashboard
                 </button>
@@ -67,21 +67,21 @@ export default function Navigation() {
                 <div className="relative">
                   <button
                     onClick={() => toggleDropdown('payments')}
-                    className="px-4 py-2 text-gray-300 hover:text-white hover:bg-zinc-800/50 rounded-md transition-all duration-200 font-medium"
+                    className="px-4 py-2 text-gray-300 hover:text-white hover:bg-white/[0.06] rounded-lg transition-all duration-200 font-normal"
                   >
                     Payments
                   </button>
                   {activeDropdown === 'payments' && (
-                    <div className="absolute right-0 mt-2 w-48 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl py-1 z-50">
+                    <div className="absolute right-0 mt-2 w-48 bg-black border border-white/[0.1] rounded-xl py-1.5 z-50">
                       <button
                         onClick={() => handleNavigate('/payments')}
-                        className="w-full text-left px-4 py-2 text-gray-300 hover:bg-zinc-800 hover:text-white transition-colors"
+                        className="w-full text-left px-4 py-2.5 text-gray-300 hover:bg-white/[0.06] hover:text-white transition-all duration-200 font-light rounded-lg mx-1 my-0.5"
                       >
                         Payment History
                       </button>
                       <button
                         onClick={() => handleNavigate('/payments/methods')}
-                        className="w-full text-left px-4 py-2 text-gray-300 hover:bg-zinc-800 hover:text-white transition-colors"
+                        className="w-full text-left px-4 py-2.5 text-gray-300 hover:bg-white/[0.06] hover:text-white transition-all duration-200 font-light rounded-lg mx-1 my-0.5"
                       >
                         Payment Methods
                       </button>
@@ -93,32 +93,32 @@ export default function Navigation() {
                 <div className="relative">
                   <button
                     onClick={() => toggleDropdown('account')}
-                    className="px-4 py-2 text-gray-300 hover:text-white hover:bg-zinc-800/50 rounded-md transition-all duration-200 font-medium"
+                    className="px-4 py-2 text-gray-300 hover:text-white hover:bg-white/[0.06] rounded-lg transition-all duration-200 font-normal"
                   >
                     Account
                   </button>
                   {activeDropdown === 'account' && (
-                    <div className="absolute right-0 mt-2 w-56 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl py-1 z-50">
-                      <div className="px-4 py-2 border-b border-zinc-700">
-                        <p className="text-xs text-gray-500">Signed in as</p>
-                        <p className="text-sm text-gray-300 truncate">{user.email}</p>
+                    <div className="absolute right-0 mt-2 w-56 bg-black border border-white/[0.1] rounded-xl py-1.5 z-50">
+                      <div className="px-4 py-2.5 border-b border-white/[0.06] mx-1">
+                        <p className="text-xs text-gray-500 font-light">Signed in as</p>
+                        <p className="text-sm text-gray-300 truncate font-light">{user.email}</p>
                       </div>
                       <button
                         onClick={() => handleNavigate('/account/settings')}
-                        className="w-full text-left px-4 py-2 text-gray-300 hover:bg-zinc-800 hover:text-white transition-colors"
+                        className="w-full text-left px-4 py-2.5 text-gray-300 hover:bg-white/[0.06] hover:text-white transition-all duration-200 font-light rounded-lg mx-1 my-0.5"
                       >
                         Settings
                       </button>
                       <button
                         onClick={() => handleNavigate(user.username ? `/profile/${user.username}` : '/account/profile')}
-                        className="w-full text-left px-4 py-2 text-gray-300 hover:bg-zinc-800 hover:text-white transition-colors"
+                        className="w-full text-left px-4 py-2.5 text-gray-300 hover:bg-white/[0.06] hover:text-white transition-all duration-200 font-light rounded-lg mx-1 my-0.5"
                       >
                         Profile
                       </button>
-                      <div className="border-t border-zinc-700 my-1"></div>
+                      <div className="border-t border-white/[0.06] my-1.5 mx-1"></div>
                       <button
                         onClick={handleLogout}
-                        className="w-full text-left px-4 py-2 text-red-400 hover:bg-zinc-800 hover:text-red-300 transition-colors"
+                        className="w-full text-left px-4 py-2.5 text-red-400 hover:bg-white/[0.06] hover:text-red-300 transition-all duration-200 font-light rounded-lg mx-1 my-0.5"
                       >
                         Logout
                       </button>
@@ -131,7 +131,7 @@ export default function Navigation() {
                 {/* Sign Up Button */}
                 <button
                   onClick={() => handleNavigate('/signup')}
-                  className="px-4 py-2 text-gray-200 hover:text-white hover:bg-zinc-800/50 rounded-md transition-all duration-200 font-medium"
+                  className="px-4 py-2 text-gray-200 hover:text-white hover:bg-white/[0.06] rounded-lg transition-all duration-200 font-normal"
                 >
                   Sign Up
                 </button>
@@ -139,7 +139,7 @@ export default function Navigation() {
                 {/* Log In Button */}
                 <button
                   onClick={() => handleNavigate('/login')}
-                  className="px-4 py-2 text-gray-200 hover:text-blue-200 hover:bg-zinc-800/50 rounded-md transition-all duration-200 font-medium"
+                  className="px-4 py-2 text-gray-200 hover:text-white hover:bg-white/[0.06] rounded-lg transition-all duration-200 font-normal"
                 >
                   Log In
                 </button>

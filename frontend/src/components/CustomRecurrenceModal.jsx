@@ -50,13 +50,13 @@ export default function CustomRecurrenceModal({ onClose, onSave, initialRule = n
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
-      <div className="bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl max-w-md w-full">
+      <div className="bg-black border border-white/[0.06] rounded-2xl shadow-2xl max-w-md w-full">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-zinc-800">
-          <h2 className="text-xl font-bold text-white">Custom Recurrence</h2>
+        <div className="flex items-center justify-between p-6 border-b border-white/[0.06]">
+          <h2 className="text-xl font-light text-white tracking-[-0.01em]">Custom Recurrence</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors"
+            className="text-gray-400 hover:text-white transition-all duration-200 p-1.5 hover:bg-white/[0.06] rounded-xl"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -68,7 +68,7 @@ export default function CustomRecurrenceModal({ onClose, onSave, initialRule = n
         <div className="p-6 space-y-6">
           {/* Repeat Every */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-normal text-white mb-2">
               Repeat every
             </label>
             <div className="flex gap-2">
@@ -77,12 +77,12 @@ export default function CustomRecurrenceModal({ onClose, onSave, initialRule = n
                 min="1"
                 value={interval}
                 onChange={(e) => setInterval(e.target.value)}
-                className="w-20 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-20 px-3 py-2 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/[0.12]"
               />
               <select
                 value={frequency}
                 onChange={(e) => setFrequency(e.target.value)}
-                className="flex-1 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 px-3 py-2 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/[0.12]"
               >
                 <option value="days">{interval == 1 ? 'day' : 'days'}</option>
                 <option value="weeks">{interval == 1 ? 'week' : 'weeks'}</option>
@@ -93,7 +93,7 @@ export default function CustomRecurrenceModal({ onClose, onSave, initialRule = n
           {/* Repeat On (for weeks only) */}
           {frequency === 'weeks' && (
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-3">
+              <label className="block text-sm font-normal text-white mb-3">
                 Repeat on
               </label>
               <div className="flex gap-2">
@@ -118,7 +118,7 @@ export default function CustomRecurrenceModal({ onClose, onSave, initialRule = n
 
           {/* Ends */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-3">
+            <label className="block text-sm font-normal text-white mb-3">
               Ends
             </label>
             <div className="space-y-3">
@@ -157,7 +157,7 @@ export default function CustomRecurrenceModal({ onClose, onSave, initialRule = n
                     setEndDate(e.target.value);
                     setEndType('date');
                   }}
-                  className="flex-1 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 px-3 py-2 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/[0.12]"
                 />
               </label>
 
@@ -182,7 +182,7 @@ export default function CustomRecurrenceModal({ onClose, onSave, initialRule = n
                     setEndCount(e.target.value);
                     setEndType('count');
                   }}
-                  className="w-20 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-20 px-3 py-2 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/[0.12]"
                 />
                 <span className="text-gray-300 group-hover:text-white transition-colors">
                   occurrences
@@ -197,14 +197,14 @@ export default function CustomRecurrenceModal({ onClose, onSave, initialRule = n
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 px-4 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-medium rounded-lg transition-colors border border-zinc-700"
+            className="flex-1 px-4 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-medium rounded-xl transition-colors border border-zinc-700"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={handleSave}
-            className="flex-1 px-4 py-3 bg-white text-black font-medium rounded-lg hover:bg-gray-100 transition-colors"
+            className="flex-1 px-4 py-2.5 bg-white text-black font-medium hover:bg-gray-100 transition-all duration-200 font-medium rounded-xl hover:bg-gray-100 transition-colors"
           >
             Done
           </button>

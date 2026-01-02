@@ -30,7 +30,7 @@ export default function DisputeModal({ task, onClose, onSubmit }) {
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl p-6 max-w-md w-full">
+      <div className="bg-black border border-white/[0.06] rounded-2xl shadow-2xl p-6 max-w-md w-full">
         <h2 className="text-2xl font-bold mb-6 text-white">
           Dispute Rejection
         </h2>
@@ -48,7 +48,7 @@ export default function DisputeModal({ task, onClose, onSubmit }) {
             value={reasoning}
             onChange={(e) => setReasoning(e.target.value)}
             placeholder="Provide your reasoning here..."
-            className="w-full h-32 p-4 bg-zinc-800 border border-zinc-700 text-white placeholder-gray-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-all"
+            className="w-full h-32 p-4 bg-white/[0.03] border border-white/[0.08] text-white placeholder-gray-500 font-light rounded-xl focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/[0.12] focus:border-transparent resize-none transition-all"
             disabled={isSubmitting}
           />
         </div>
@@ -57,14 +57,14 @@ export default function DisputeModal({ task, onClose, onSubmit }) {
           <button
             onClick={onClose}
             disabled={isSubmitting}
-            className="flex-1 px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-medium rounded-lg transition-colors border border-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-medium rounded-xl transition-colors border border-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Cancel
           </button>
           <button
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="flex-1 px-4 py-2.5 bg-white text-black font-semibold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 px-4 py-2.5 bg-white text-black font-semibold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? "Submitting..." : "Submit for Review"}
           </button>

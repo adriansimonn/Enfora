@@ -20,13 +20,13 @@ export default function TaskDetailsModal({ task, onClose, onDelete }) {
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-black border border-white/[0.06] rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-zinc-800">
-          <h2 className="text-2xl font-bold text-white">Task Details</h2>
+        <div className="flex items-center justify-between p-6 border-b border-white/[0.06]">
+          <h2 className="text-2xl font-light text-white tracking-[-0.01em]">Task Details</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors"
+            className="text-gray-400 hover:text-white transition-all duration-200 p-1.5 hover:bg-white/[0.06] rounded-xl"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -40,7 +40,7 @@ export default function TaskDetailsModal({ task, onClose, onDelete }) {
           <div>
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
-                <h3 className="text-2xl font-bold text-white mb-2">{task.title}</h3>
+                <h3 className="text-2xl font-light text-white tracking-[-0.01em] mb-2">{task.title}</h3>
                 <StatusBadge status={task.status} />
               </div>
             </div>
@@ -51,7 +51,7 @@ export default function TaskDetailsModal({ task, onClose, onDelete }) {
             <label className="block text-sm font-semibold text-gray-300 mb-2">
               Description
             </label>
-            <div className="p-4 bg-zinc-800 border border-zinc-700 rounded-lg text-gray-300">
+            <div className="p-4 bg-white/[0.03] border border-white/[0.08] rounded-xl text-gray-300">
               {task.description}
             </div>
           </div>
@@ -61,7 +61,7 @@ export default function TaskDetailsModal({ task, onClose, onDelete }) {
             <label className="block text-sm font-semibold text-gray-300 mb-2">
               Deadline
             </label>
-            <div className="p-4 bg-zinc-800 border border-zinc-700 rounded-lg text-gray-300">
+            <div className="p-4 bg-white/[0.03] border border-white/[0.08] rounded-xl text-gray-300">
               {new Date(task.deadline).toLocaleString()}
             </div>
           </div>
@@ -72,7 +72,7 @@ export default function TaskDetailsModal({ task, onClose, onDelete }) {
               <label className="block text-sm font-semibold text-gray-300 mb-2">
                 Stake Amount
               </label>
-              <div className="p-4 bg-zinc-800 border border-zinc-700 rounded-lg text-gray-300">
+              <div className="p-4 bg-white/[0.03] border border-white/[0.08] rounded-xl text-gray-300">
                 ${task.stakeAmount}
               </div>
             </div>
@@ -80,7 +80,7 @@ export default function TaskDetailsModal({ task, onClose, onDelete }) {
               <label className="block text-sm font-semibold text-gray-300 mb-2">
                 Stake Destination
               </label>
-              <div className="p-4 bg-zinc-800 border border-zinc-700 rounded-lg text-gray-300">
+              <div className="p-4 bg-white/[0.03] border border-white/[0.08] rounded-xl text-gray-300">
                 {task.stakeDestination || 'Not specified'}
               </div>
             </div>
@@ -92,7 +92,7 @@ export default function TaskDetailsModal({ task, onClose, onDelete }) {
               <label className="block text-sm font-semibold text-gray-300 mb-2">
                 Rejection Reason
               </label>
-              <div className="p-4 bg-zinc-800 border border-zinc-700 rounded-lg">
+              <div className="p-4 bg-white/[0.03] border border-white/[0.08] rounded-xl">
                 <p className="text-gray-300 text-sm">
                   {task.validationResult.rationale}
                 </p>
@@ -108,7 +108,7 @@ export default function TaskDetailsModal({ task, onClose, onDelete }) {
                   <label className="block text-sm font-semibold text-gray-300 mb-2">
                     Initial Rejection Reason
                   </label>
-                  <div className="p-4 bg-zinc-800 border border-zinc-700 rounded-lg">
+                  <div className="p-4 bg-white/[0.03] border border-white/[0.08] rounded-xl">
                     <p className="text-gray-300 text-sm">
                       {task.validationResult.rationale}
                     </p>
@@ -120,14 +120,14 @@ export default function TaskDetailsModal({ task, onClose, onDelete }) {
                   <label className="block text-sm font-semibold text-gray-300 mb-2">
                     Your Dispute Reasoning
                   </label>
-                  <div className="p-4 bg-zinc-800 border border-zinc-700 rounded-lg">
+                  <div className="p-4 bg-white/[0.03] border border-white/[0.08] rounded-xl">
                     <p className="text-gray-300 text-sm">
                       {task.disputeReasoning}
                     </p>
                   </div>
                 </div>
               )}
-              <div className="p-4 bg-blue-900/20 border border-blue-700/50 rounded-lg">
+              <div className="p-4 bg-blue-900/20 border border-blue-700/50 rounded-xl">
                 <p className="text-blue-300 text-sm">
                   This task is currently under human review. You will not be charged until a decision has been made.
                 </p>
@@ -140,21 +140,21 @@ export default function TaskDetailsModal({ task, onClose, onDelete }) {
         <div className="p-6 border-t border-zinc-800 flex gap-3">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-3 bg-zinc-800 text-white font-semibold rounded-lg hover:bg-zinc-700 transition-colors"
+            className="flex-1 px-4 py-3 bg-zinc-800 text-white font-semibold rounded-xl hover:bg-zinc-700 transition-colors"
           >
             Close
           </button>
           {onDelete && task.status !== 'COMPLETED' && task.status !== 'FAILED' && (
             <button
               onClick={() => setShowDeleteConfirm(true)}
-              className="flex-1 px-4 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors"
+              className="flex-1 px-4 py-2.5 bg-red-600 font-medium transition-all duration-200 text-white font-semibold rounded-xl hover:bg-red-700 transition-colors"
             >
               Delete Task
             </button>
           )}
           {onDelete && (task.status === 'COMPLETED' || task.status === 'FAILED') && (
             <div
-              className="flex-1 px-4 py-3 bg-zinc-800/50 text-gray-500 font-semibold rounded-lg cursor-not-allowed border border-zinc-700 text-center"
+              className="flex-1 px-4 py-3 bg-zinc-800/50 text-gray-500 font-semibold rounded-xl cursor-not-allowed border border-zinc-700 text-center"
               title="Completed and failed tasks cannot be deleted to maintain metric integrity"
             >
               Delete Task
