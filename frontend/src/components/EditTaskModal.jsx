@@ -6,7 +6,6 @@ export default function EditTaskModal({ task, onClose, onSave, onDelete }) {
   const [description, setDescription] = useState(task.description || '');
   const [deadline, setDeadline] = useState(task.deadline || '');
   const [stakeAmount, setStakeAmount] = useState(task.stakeAmount?.toString() || '');
-  const [stakeDestination, setStakeDestination] = useState(task.stakeDestination || 'Charity');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -86,7 +85,6 @@ export default function EditTaskModal({ task, onClose, onSave, onDelete }) {
         description,
         deadline,
         stakeAmount: parseFloat(stakeAmount),
-        stakeDestination,
         recurrenceRule,
         isRecurring: recurrenceRule !== null
       });
@@ -186,23 +184,9 @@ export default function EditTaskModal({ task, onClose, onSave, onDelete }) {
                 className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white placeholder-gray-500 font-light focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/[0.12] focus:border-transparent transition-all"
                 placeholder="0.00"
               />
-            </div>
-
-            <div>
-              <label htmlFor="stakeDestination" className="block text-sm font-normal text-white mb-2">
-                Where should the money go if you fail?
-              </label>
-              <select
-                id="stakeDestination"
-                value={stakeDestination}
-                onChange={(e) => setStakeDestination(e.target.value)}
-                required
-                className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/[0.12] focus:border-transparent transition-all"
-              >
-                <option value="Charity">Charity</option>
-                <option value="A Friend">A Friend</option>
-                <option value="Donate to Enfora">Donate to Enfora</option>
-              </select>
+              <p className="text-gray-500 text-xs mt-2">
+                If you fail to complete this task, you'll be charged this amount.
+              </p>
             </div>
 
             {!task.parentTaskId && (

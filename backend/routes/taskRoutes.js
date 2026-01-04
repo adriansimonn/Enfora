@@ -18,6 +18,21 @@ router.post("/", async (req, res) => {
 
   requireAuth(req, res, async () => {
     try {
+      const { stakeAmount } = req.body;
+
+      // Check if payment method is required
+      if (stakeAmount && stakeAmount > 0) {
+        const paymentService = require("../services/paymentService");
+        const hasPayment = await paymentService.hasPaymentMethod(req.user.userId);
+
+        if (!hasPayment) {
+          return res.status(400).json({
+            error: "PAYMENT_METHOD_REQUIRED",
+            message: "Please add a payment method before creating tasks with stake amounts"
+          });
+        }
+      }
+
       const taskData = {
         ...req.body,
         userId: req.user.userId

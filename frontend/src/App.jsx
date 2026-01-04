@@ -4,6 +4,8 @@ import Dashboard from './pages/Dashboard'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Profile from './pages/Profile'
+import PaymentMethods from './pages/PaymentMethods'
+import PaymentHistory from './pages/PaymentHistory'
 import ProtectedRoute from './components/ProtectedRoute'
 
 export default function App() {
@@ -18,6 +20,22 @@ export default function App() {
         element={
           <ProtectedRoute>
             <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/payments/methods"
+        element={
+          <ProtectedRoute>
+            <PaymentMethods />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/payments"
+        element={
+          <ProtectedRoute>
+            <PaymentHistory />
           </ProtectedRoute>
         }
       />

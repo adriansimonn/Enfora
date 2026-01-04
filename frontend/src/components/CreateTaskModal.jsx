@@ -1,17 +1,38 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import CustomRecurrenceModal from './CustomRecurrenceModal';
+import PaymentMethodRequired from './PaymentMethodRequired';
+import AddPaymentMethodModal from './AddPaymentMethodModal';
+import { getPaymentMethod } from '../services/payment';
 
 export default function CreateTaskModal({ onClose, onSubmit }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [deadline, setDeadline] = useState('');
   const [stakeAmount, setStakeAmount] = useState('');
-  const [stakeDestination, setStakeDestination] = useState('Charity');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [recurrenceType, setRecurrenceType] = useState('does-not-repeat');
   const [customRecurrenceRule, setCustomRecurrenceRule] = useState(null);
   const [showCustomRecurrence, setShowCustomRecurrence] = useState(false);
+  const [hasPaymentMethod, setHasPaymentMethod] = useState(false);
+  const [checkingPayment, setCheckingPayment] = useState(true);
+  const [showPaymentRequired, setShowPaymentRequired] = useState(false);
+  const [showAddPayment, setShowAddPayment] = useState(false);
+
+  useEffect(() => {
+    checkPaymentMethod();
+  }, []);
+
+  const checkPaymentMethod = async () => {
+    try {
+      const method = await getPaymentMethod();
+      setHasPaymentMethod(!!method);
+    } catch (error) {
+      console.error('Failed to check payment method:', error);
+    } finally {
+      setCheckingPayment(false);
+    }
+  };
 
   const getRecurrenceRule = () => {
     const deadlineDate = new Date(deadline);
@@ -48,6 +69,13 @@ export default function CreateTaskModal({ onClose, onSubmit }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    // Check if payment method is required
+    if (parseFloat(stakeAmount) > 0 && !hasPaymentMethod) {
+      setShowPaymentRequired(true);
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -57,7 +85,6 @@ export default function CreateTaskModal({ onClose, onSubmit }) {
         description,
         deadline,
         stakeAmount: parseFloat(stakeAmount),
-        stakeDestination,
         recurrenceRule,
         isRecurring: recurrenceRule !== null
       });
@@ -146,23 +173,9 @@ export default function CreateTaskModal({ onClose, onSubmit }) {
               className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white placeholder-gray-500 font-light focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/[0.12] focus:border-transparent transition-all"
               placeholder="0.00"
             />
-          </div>
-
-          <div>
-            <label htmlFor="stakeDestination" className="block text-sm font-normal text-white mb-2">
-              Where should the money go if you fail?
-            </label>
-            <select
-              id="stakeDestination"
-              value={stakeDestination}
-              onChange={(e) => setStakeDestination(e.target.value)}
-              required
-              className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/[0.12] focus:border-transparent transition-all"
-            >
-              <option value="Charity">Charity</option>
-              <option value="A Friend">A Friend</option>
-              <option value="Donate to Enfora">Donate to Enfora</option>
-            </select>
+            <p className="text-gray-500 text-xs mt-2">
+              If you fail to complete this task, you'll be charged this amount.
+            </p>
           </div>
 
           <div>
@@ -216,6 +229,26 @@ export default function CreateTaskModal({ onClose, onSubmit }) {
           onClose={() => setShowCustomRecurrence(false)}
           onSave={handleCustomRecurrenceSave}
           initialRule={customRecurrenceRule}
+        />
+      )}
+
+      {showPaymentRequired && (
+        <PaymentMethodRequired
+          onAddPayment={() => {
+            setShowPaymentRequired(false);
+            setShowAddPayment(true);
+          }}
+          onCancel={() => setShowPaymentRequired(false)}
+        />
+      )}
+
+      {showAddPayment && (
+        <AddPaymentMethodModal
+          onClose={() => setShowAddPayment(false)}
+          onSuccess={() => {
+            setShowAddPayment(false);
+            setHasPaymentMethod(true);
+          }}
         />
       )}
     </div>

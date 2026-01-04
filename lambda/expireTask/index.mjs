@@ -69,6 +69,42 @@ export const handler = async (event) => {
       })
     );
     console.log(`Task ${taskId} marked as failed`);
+
+    // Check if task has stake amount and trigger payment
+    if (getResult.Item.stakeAmount?.N && parseFloat(getResult.Item.stakeAmount.N) > 0) {
+      try {
+        const backendUrl = process.env.BACKEND_URL || 'http://localhost:3000';
+        const paymentApiKey = process.env.PAYMENT_API_KEY;
+
+        if (!paymentApiKey) {
+          console.error('PAYMENT_API_KEY not configured, skipping payment charge');
+        } else {
+          const response = await fetch(`${backendUrl}/api/payments/charge`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': paymentApiKey
+            },
+            body: JSON.stringify({
+              userId,
+              taskId,
+              amount: parseFloat(getResult.Item.stakeAmount.N)
+            })
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            console.log(`Payment charged for task ${taskId}:`, result);
+          } else {
+            const error = await response.text();
+            console.error(`Payment charge failed for task ${taskId}:`, error);
+          }
+        }
+      } catch (paymentError) {
+        console.error(`Failed to charge payment for task ${taskId}:`, paymentError);
+        // Don't fail task expiration if payment fails, just log for manual review
+      }
+    }
   } catch (err) {
     // ConditionalCheckFailedException = task already updated
     // Safe to ignore

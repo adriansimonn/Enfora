@@ -12,6 +12,12 @@ app.use(cors({
   origin: process.env.FRONTEND_URL || "http://localhost:5173",
   credentials: true
 }));
+
+// CRITICAL: Mount webhook routes BEFORE express.json() to preserve raw body for signature verification
+const webhookRoutes = require("./routes/webhookRoutes");
+app.use("/api/webhooks", webhookRoutes);
+
+// Now add JSON middleware for all other routes
 app.use(express.json()); // For parsing JSON bodies
 app.use(cookieParser()); // For parsing cookies
 app.use(express.urlencoded({ extended: true }));
@@ -43,6 +49,9 @@ async function initializeServer() {
   const analyticsRoutes = require("./routes/analyticsRoutes");
   app.use("/api/analytics", analyticsRoutes);
 
+  const paymentRoutes = require("./routes/paymentRoutes");
+  app.use("/api/payments", paymentRoutes);
+
   app.get("/", (req, res) => {
     res.send("Enfora backend is running!");
   });
@@ -57,9 +66,6 @@ async function initializeServer() {
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
   });
-
-  const checkExpiredTasks = require("./cron/checkExpiredTasks");
-  setInterval(checkExpiredTasks, 60 * 60 * 1000); // Every hour
 }
 
 // Initialize the server

@@ -146,3 +146,34 @@ export async function linkGoogleAccount(userId, googleId) {
     })
   );
 }
+
+/**
+ * Update user's Stripe customer ID
+ */
+export async function updateStripeCustomerId(userId, stripeCustomerId) {
+  await dynamoDB.send(
+    new UpdateCommand({
+      TableName: USERS_TABLE,
+      Key: { userId },
+      UpdateExpression: "SET stripeCustomerId = :customerId",
+      ExpressionAttributeValues: {
+        ":customerId": stripeCustomerId,
+      },
+    })
+  );
+}
+
+/**
+ * Get user's Stripe customer ID
+ */
+export async function getStripeCustomerId(userId) {
+  const result = await dynamoDB.send(
+    new GetCommand({
+      TableName: USERS_TABLE,
+      Key: { userId },
+      ProjectionExpression: "stripeCustomerId",
+    })
+  );
+
+  return result.Item?.stripeCustomerId || null;
+}
