@@ -2,6 +2,8 @@
 const express = require("express");
 const router = express.Router();
 const taskService = require("../services/taskService");
+const emailService = require("../services/emailService");
+const { findProfileByUserId } = require("../src/db/profiles.repo.js");
 
 // Import auth middleware (dynamic import for ES module)
 let requireAuth;
@@ -121,6 +123,36 @@ router.post("/:taskId/dispute", async (req, res) => {
         disputeReasoning,
         disputedAt: new Date().toISOString()
       });
+
+      // Send email notification to reviewers
+      try {
+        // Get user profile information
+        const userProfile = await findProfileByUserId(req.user.userId);
+
+        // Extract AI rejection reason from validation result
+        const aiRejectionReason = updatedTask.validationResult?.rationale || "No rejection reason available";
+
+        // Prepare email data
+        const emailData = {
+          taskId: updatedTask.taskId,
+          taskName: updatedTask.title,
+          taskDescription: updatedTask.description,
+          userId: req.user.userId,
+          username: userProfile?.username || "unknown",
+          displayName: userProfile?.displayName || userProfile?.username || "Unknown User",
+          aiRejectionReason: aiRejectionReason,
+          disputeReasoning: disputeReasoning,
+          disputedAt: updatedTask.disputedAt,
+          evidenceURL: updatedTask.submittedEvidenceURL || "No evidence URL available",
+        };
+
+        await emailService.sendTaskReviewNotification(emailData);
+        console.log(`Review notification email sent for task ${taskId}`);
+      } catch (emailError) {
+        // Log email error but don't fail the dispute submission
+        console.error("Failed to send review notification email:", emailError);
+        // Continue with response even if email fails
+      }
 
       res.json(updatedTask);
     } catch (error) {
