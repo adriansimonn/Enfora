@@ -129,8 +129,8 @@ export default function PaymentMethods() {
 
             {/* Security Notice */}
             <div className="mt-8 p-4 bg-white/[0.02] border border-white/[0.04] rounded-xl">
-              <p className="text-gray-400 text-sm">
-                <span className="font-medium text-white">🔒 Secure payments:</span> Your payment information is securely processed by Stripe. We never store your full card details.
+              <p className="text-gray-400 text-sm text-center">
+                <span className="font-medium text-white">Your payment information is securely processed by <a href="https://stripe.com" target="_blank">Stripe</a>. We never store your full card details.</span>
               </p>
             </div>
           </>

@@ -1,0 +1,11 @@
+{
+  "name": "refresh-leaderboard",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Lambda function to refresh Enfora leaderboard cache",
+  "main": "index.mjs",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.0.0",
+    "@aws-sdk/util-dynamodb": "^3.0.0"
+  }
+}

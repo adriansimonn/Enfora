@@ -49,6 +49,9 @@ async function initializeServer() {
   const analyticsRoutes = require("./routes/analyticsRoutes");
   app.use("/api/analytics", analyticsRoutes);
 
+  const leaderboardRoutes = require("./routes/leaderboardRoutes");
+  app.use("/api/leaderboard", leaderboardRoutes);
+
   const paymentRoutes = require("./routes/paymentRoutes");
   app.use("/api/payments", paymentRoutes);
 

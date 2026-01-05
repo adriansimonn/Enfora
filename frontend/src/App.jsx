@@ -4,6 +4,7 @@ import Dashboard from './pages/Dashboard'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Profile from './pages/Profile'
+import Leaderboard from './pages/Leaderboard'
 import PaymentMethods from './pages/PaymentMethods'
 import PaymentHistory from './pages/PaymentHistory'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -15,6 +16,7 @@ export default function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/profile/:username" element={<Profile />} />
+      <Route path="/leaderboard" element={<Leaderboard />} />
       <Route
         path="/dashboard"
         element={

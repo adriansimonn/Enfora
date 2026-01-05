@@ -1,0 +1,21 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:Scan",
+        "dynamodb:Query",
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:BatchWriteItem"
+      ],
+      "Resource": [
+        "arn:aws:dynamodb:us-west-1:585768181436:table/UserAnalytics",
+        "arn:aws:dynamodb:us-west-1:585768181436:table/UserProfiles",
+        "arn:aws:dynamodb:us-west-1:585768181436:table/UserProfiles/index/userId-index",
+        "arn:aws:dynamodb:us-west-1:585768181436:table/LeaderboardCache"
+      ]
+    }
+  ]
+}

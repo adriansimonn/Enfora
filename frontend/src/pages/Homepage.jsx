@@ -81,8 +81,7 @@ export default function Homepage() {
             </h1>
             <p className="text-lg text-gray-400 mb-12 max-w-2xl mx-auto font-light leading-[1.6]">
               Enfora is a productivity platform that actually holds you accountable.
-              Failure to complete your tasks in time results in an automatic charge that goes
-              towards charity, a friend, or elsewhere.
+              Failure to complete your tasks in time results in an automatic charge.
             </p>
 
             {/* CTA Buttons */}

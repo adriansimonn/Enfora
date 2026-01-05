@@ -67,22 +67,12 @@ export default function TaskDetailsModal({ task, onClose, onDelete }) {
           </div>
 
           {/* Stake Information */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-300 mb-2">
-                Stake Amount
-              </label>
-              <div className="p-4 bg-white/[0.03] border border-white/[0.08] rounded-xl text-gray-300">
-                ${task.stakeAmount}
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-300 mb-2">
-                Stake Destination
-              </label>
-              <div className="p-4 bg-white/[0.03] border border-white/[0.08] rounded-xl text-gray-300">
-                {task.stakeDestination || 'Not specified'}
-              </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-300 mb-2">
+              Stake Amount
+            </label>
+            <div className="p-4 bg-white/[0.03] border border-white/[0.08] rounded-xl text-gray-300">
+              ${task.stakeAmount}
             </div>
           </div>
 

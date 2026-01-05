@@ -194,8 +194,34 @@ async function getTransactionsByUserId(userId, limit = 20, lastKey = null) {
 
     const result = await dynamoDB.send(new QueryCommand(params));
 
+    // Enrich transactions with task titles
+    const transactions = result.Items || [];
+    const enrichedTransactions = await Promise.all(
+      transactions.map(async (transaction) => {
+        if (transaction.taskId) {
+          try {
+            // Fetch task details to get the title
+            const taskResult = await dynamoDB.send(new GetCommand({
+              TableName: 'Tasks',
+              Key: { taskId: transaction.taskId },
+            }));
+
+            if (taskResult.Item) {
+              return {
+                ...transaction,
+                taskTitle: taskResult.Item.title,
+              };
+            }
+          } catch (error) {
+            console.error(`Error fetching task ${transaction.taskId}:`, error);
+          }
+        }
+        return transaction;
+      })
+    );
+
     return {
-      transactions: result.Items || [],
+      transactions: enrichedTransactions,
       lastKey: result.LastEvaluatedKey || null,
       hasMore: !!result.LastEvaluatedKey,
     };

@@ -98,9 +98,9 @@ export default function PaymentHistory() {
                           {formatDate(txn.createdAt)}
                         </p>
 
-                        {txn.taskId && (
-                          <p className="text-gray-500 text-xs">
-                            Task ID: {txn.taskId.slice(0, 8)}...
+                        {txn.taskTitle && (
+                          <p className="text-gray-400 text-sm font-normal">
+                            {txn.taskTitle}
                           </p>
                         )}
 

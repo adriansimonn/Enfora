@@ -307,7 +307,6 @@ export default function Dashboard() {
       description: taskData.description,
       deadline: taskData.deadline,
       stakeAmount: taskData.stakeAmount,
-      stakeDestination: taskData.stakeDestination,
       userId: user.userId,
       recurrenceRule: taskData.recurrenceRule,
       isRecurring: taskData.isRecurring

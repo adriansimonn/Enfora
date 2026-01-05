@@ -66,3 +66,51 @@
   -webkit-text-fill-color: transparent;
   animation: shimmer 5s linear infinite;
 }
+
+.rank-gold-gradient {
+  background: linear-gradient(
+    135deg,
+    #ffd700 0%,
+    #ffed4e 25%,
+    #ffaa00 50%,
+    #ffd700 75%,
+    #ffed4e 100%
+  );
+  background-size: 200% 200%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer-diagonal 3s ease infinite;
+}
+
+.rank-silver-gradient {
+  background: linear-gradient(
+    135deg,
+    #c0c0c0 0%,
+    #e8e8e8 25%,
+    #a8a8a8 50%,
+    #d4d4d4 75%,
+    #c0c0c0 100%
+  );
+  background-size: 200% 200%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer-diagonal 3s ease infinite;
+}
+
+.rank-bronze-gradient {
+  background: linear-gradient(
+    135deg,
+    #cd7f32 0%,
+    #e8a87c 25%,
+    #b8722d 50%,
+    #d89968 75%,
+    #cd7f32 100%
+  );
+  background-size: 200% 200%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer-diagonal 3s ease infinite;
+}

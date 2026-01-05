@@ -25,8 +25,7 @@ async function calculateAnalytics(userId) {
     // Financial metrics
     totalStakeLost: 0,
     totalStakeAtRisk: 0,
-    averageStakePerTask: 0,
-    totalMoneyToCharity: 0
+    averageStakePerTask: 0
   };
 
   // Categorize tasks
@@ -96,11 +95,6 @@ async function calculateAnalytics(userId) {
     const totalStake = tasks.reduce((sum, task) => sum + (task.stakeAmount || 0), 0);
     metrics.averageStakePerTask = totalStake / tasks.length;
   }
-
-  // Total money sent to charity
-  metrics.totalMoneyToCharity = failedTasks
-    .filter(task => task.stakeDestination === "charity")
-    .reduce((sum, task) => sum + (task.stakeAmount || 0), 0);
 
   // Add finished tasks count for frontend calculations
   metrics.finishedTasksCount = finishedTasks;

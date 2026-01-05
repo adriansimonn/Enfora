@@ -105,3 +105,23 @@ export async function refreshAnalytics() {
   }
   return res.json()
 }
+
+// Leaderboard API functions
+export async function fetchLeaderboardTop100() {
+  const res = await fetch(`${API_BASE}/leaderboard/top100`)
+  if (!res.ok) {
+    throw new Error('Failed to fetch leaderboard')
+  }
+  return res.json()
+}
+
+export async function fetchMyRank() {
+  const res = await fetchWithAuth(`${API_BASE}/leaderboard/me`)
+  if (!res.ok) {
+    if (res.status === 404) {
+      return null // User has no rank yet
+    }
+    throw new Error('Failed to fetch your rank')
+  }
+  return res.json()
+}

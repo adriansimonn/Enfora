@@ -63,6 +63,14 @@ export default function Navigation() {
                   Dashboard
                 </button>
 
+                {/* Leaderboard Button */}
+                <button
+                  onClick={() => handleNavigate('/leaderboard')}
+                  className="px-4 py-2 text-gray-300 hover:text-white hover:bg-white/[0.06] rounded-lg transition-all duration-200 font-normal"
+                >
+                  Leaderboard
+                </button>
+
                 {/* Payments Dropdown */}
                 <div className="relative">
                   <button
