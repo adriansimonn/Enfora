@@ -124,11 +124,11 @@ export default function Dashboard() {
   };
 
   const handleSubmitEvidence = async (task, file, isExpired = false) => {
-    // Close evidence modal and show loading modal
-    setSelectedTask(null);
-
     // If task is expired, update it to failed state
     if (isExpired) {
+      // Close evidence modal first
+      setSelectedTask(null);
+
       try {
         const formData = new FormData();
         formData.append("taskId", task.taskId || task.id);
@@ -162,8 +162,6 @@ export default function Dashboard() {
       return;
     }
 
-    setUploadStatus({ message: 'Uploading Evidence', stage: 'Preparing upload...' });
-
     try {
       const formData = new FormData();
       formData.append("taskId", task.taskId || task.id);
@@ -171,8 +169,6 @@ export default function Dashboard() {
       formData.append("taskTitle", task.title);
       formData.append("taskDescription", task.description);
       formData.append("evidence", file);
-
-      setUploadStatus({ message: 'Uploading Evidence', stage: 'Sending to server...' });
 
       const response = await fetch("http://localhost:3000/api/evidence/upload", {
         method: "POST",
@@ -184,7 +180,7 @@ export default function Dashboard() {
 
       // Check if backend detected task expiration
       if (data.isExpired) {
-        setUploadStatus(null);
+        setSelectedTask(null);
         setTasks(prev =>
           prev.map(t =>
             t.id === task.id
@@ -200,9 +196,15 @@ export default function Dashboard() {
         return;
       }
 
+      // Check if backend rejected due to metadata validation (outdated evidence)
       if (!response.ok) {
-        throw new Error("Upload failed");
+        // Throw error with the backend message so EvidenceModal can catch it
+        throw new Error(data.error || "Upload failed");
       }
+
+      // Close evidence modal and show loading modal only after validation passes
+      setSelectedTask(null);
+      setUploadStatus({ message: 'Uploading Evidence', stage: 'Processing your submission...' });
 
       setUploadStatus({ message: 'Processing Evidence', stage: 'Validating your submission...' });
 

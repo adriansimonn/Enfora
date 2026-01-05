@@ -42,7 +42,12 @@ export default function EvidenceModal({ task, onClose, onSubmit }) {
 
       await onSubmit(task, file);
     } catch (err) {
-      setError("Upload failed. Please try again.");
+      // Check if it's a metadata validation error
+      if (err.message && (err.message.includes("created before") || err.message.includes("modified before"))) {
+        setError("Nice try. You can't submit old evidence.");
+      } else {
+        setError("Upload failed. Please try again.");
+      }
       setLoading(false);
     }
   };

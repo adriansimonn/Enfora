@@ -11,6 +11,7 @@ exports.createTask = async (task) => {
     ...task,
     taskId: uuidv4(),
     status: "pending",
+    createdAt: new Date().toISOString(),
   };
 
   const params = {
@@ -97,6 +98,7 @@ async function createRecurringTaskInstances(parentTask) {
       ...instance,
       taskId: uuidv4(), // Generate unique ID for each instance
       status: "pending",
+      createdAt: new Date().toISOString(),
     }));
 
     const writeRequests = instancesWithIds.map(instance => ({

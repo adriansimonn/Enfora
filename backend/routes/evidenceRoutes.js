@@ -11,6 +11,7 @@ const { v4: uuidv4 } = require("uuid");
 const dynamoDB = require("../config/dynamoClient");
 const { validateEvidence } = require("../services/aiValidator");
 const { extractText } = require("../utils/extractText");
+const { extractMetadataDates } = require("../utils/extractMetadata");
 const { deleteTaskExpirationSchedule } = require("../services/schedulerService");
 
 const router = express.Router();
@@ -171,7 +172,38 @@ router.post("/upload", (req, res, next) => {
     }
 
     /**
-     * 2. Upload evidence to S3
+     * 2. Extract and validate evidence metadata
+     */
+    const { creationDate, modificationDate } = await extractMetadataDates(file.buffer, file.originalname);
+
+    if (task.createdAt) {
+      const taskCreationDate = new Date(task.createdAt);
+      const fileExt = file.originalname.split(".").pop().toLowerCase();
+      const isImageFile = ["png", "jpg", "jpeg"].includes(fileExt);
+      const isDocxFile = fileExt === "docx";
+
+      // For images: Check creation date (images can't be edited in place)
+      if (isImageFile && creationDate && creationDate < taskCreationDate) {
+        return res.status(400).json({
+          error: "Evidence was created before the task was created. Please submit evidence created after the task.",
+          evidenceCreatedAt: creationDate.toISOString(),
+          taskCreatedAt: task.createdAt,
+        });
+      }
+
+      // For DOCX only: Check modification date (documents can be edited after creation)
+      // Note: PDF validation disabled - many PDF generators (Google Docs, etc.) update metadata on export
+      if (isDocxFile && modificationDate && modificationDate < taskCreationDate) {
+        return res.status(400).json({
+          error: "Evidence was last modified before the task was created. Please submit evidence created or modified after the task.",
+          evidenceModifiedAt: modificationDate.toISOString(),
+          taskCreatedAt: task.createdAt,
+        });
+      }
+    }
+
+    /**
+     * 3. Upload evidence to S3
      */
     const fileKey = `evidence/${userId}/${uuidv4()}-${file.originalname}`;
 
@@ -187,7 +219,7 @@ router.post("/upload", (req, res, next) => {
     const evidenceURL = `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileKey}`;
 
     /**
-     * 3. Extract text for document evidence (if applicable)
+     * 4. Extract text for document evidence (if applicable)
      */
     let extractedText = null;
     if (file.originalname.match(/\.(pdf|docx|txt|md)$/i)) {
@@ -195,7 +227,7 @@ router.post("/upload", (req, res, next) => {
     }
 
     /**
-     * 4. AI VALIDATION
+     * 5. AI VALIDATION
      */
     const validationResult = await validateEvidence({
       taskTitle,
@@ -206,7 +238,7 @@ router.post("/upload", (req, res, next) => {
     });
 
     /**
-     * 5. Map AI decision → task status
+     * 6. Map AI decision → task status
      */
     let newStatus = "review";
     const currentTimestamp = new Date().toISOString();
@@ -234,7 +266,7 @@ router.post("/upload", (req, res, next) => {
     }
 
     /**
-     * 6. Update DynamoDB task (with composite key: userId + taskId)
+     * 7. Update DynamoDB task (with composite key: userId + taskId)
      */
     const updateParams = {
       TableName: TABLE_NAME,
@@ -253,7 +285,7 @@ router.post("/upload", (req, res, next) => {
     const result = await dynamoDB.send(new UpdateCommand(updateParams));
 
     /**
-     * 7. Delete EventBridge schedule if task is completed
+     * 8. Delete EventBridge schedule if task is completed
      * Note: Keep schedule for rejected/review status - user can resubmit evidence
      */
     if (newStatus === "completed") {
@@ -267,7 +299,7 @@ router.post("/upload", (req, res, next) => {
     }
 
     /**
-     * 8. Response
+     * 9. Response
      */
     return res.status(200).json({
       message: "Evidence uploaded and validated",
