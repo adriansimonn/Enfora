@@ -18,6 +18,8 @@ export default function CreateTaskModal({ onClose, onSubmit }) {
   const [checkingPayment, setCheckingPayment] = useState(true);
   const [showPaymentRequired, setShowPaymentRequired] = useState(false);
   const [showAddPayment, setShowAddPayment] = useState(false);
+  const [agreementViewed, setAgreementViewed] = useState(false);
+  const [agreementAccepted, setAgreementAccepted] = useState(false);
 
   useEffect(() => {
     checkPaymentMethod();
@@ -64,6 +66,10 @@ export default function CreateTaskModal({ onClose, onSubmit }) {
   const handleCustomRecurrenceSave = (rule) => {
     setCustomRecurrenceRule(rule);
     setRecurrenceType('custom');
+  };
+
+  const handleAgreementLinkClick = () => {
+    setAgreementViewed(true);
   };
 
   const handleSubmit = async (e) => {
@@ -204,6 +210,31 @@ export default function CreateTaskModal({ onClose, onSubmit }) {
             </div>
           )}
 
+          {/* Agreement Checkbox */}
+          <div className="flex items-start gap-3 p-4 bg-white/[0.02] border border-white/[0.06] rounded-xl">
+            <input
+              type="checkbox"
+              id="agreement"
+              checked={agreementAccepted}
+              onChange={(e) => setAgreementAccepted(e.target.checked)}
+              disabled={!agreementViewed}
+              className="mt-1 w-4 h-4 rounded border-white/[0.2] bg-white/[0.03] text-white focus:ring-2 focus:ring-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
+            />
+            <label htmlFor="agreement" className="text-sm text-gray-300 leading-relaxed">
+              I agree to the{' '}
+              <a
+                href="/agreement"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={handleAgreementLinkClick}
+                className="text-white underline hover:text-gray-200 transition-colors"
+              >
+                Enfora Task Commitment, Evidence Submission & Verification Agreement
+              </a>
+              .
+            </label>
+          </div>
+
           {/* Actions */}
           <div className="flex gap-3 pt-4">
             <button
@@ -215,7 +246,7 @@ export default function CreateTaskModal({ onClose, onSubmit }) {
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !agreementAccepted}
               className="flex-1 px-4 py-3 bg-white disabled:bg-zinc-800 disabled:cursor-not-allowed text-black disabled:text-gray-500 font-medium rounded-xl"
             >
               {loading ? 'Creating...' : 'Create Task'}

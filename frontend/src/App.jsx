@@ -7,6 +7,7 @@ import Profile from './pages/Profile'
 import Leaderboard from './pages/Leaderboard'
 import PaymentMethods from './pages/PaymentMethods'
 import PaymentHistory from './pages/PaymentHistory'
+import Agreement from './pages/Agreement'
 import ProtectedRoute from './components/ProtectedRoute'
 
 export default function App() {
@@ -41,6 +42,7 @@ export default function App() {
           </ProtectedRoute>
         }
       />
+      <Route path="/agreement" element={<Agreement />} />
     </Routes>
   )
 }
