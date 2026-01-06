@@ -75,10 +75,11 @@ export async function refreshSession(refreshToken) {
   // Token is valid → rotate
   const user = await usersRepo.findUserById(userId);
 
-  // Get user's profile to include username
+  // Get user's profile to include username and profile picture
   const profile = await profilesRepo.findProfileByUserId(user.userId);
   if (profile) {
     user.username = profile.username;
+    user.profilePictureUrl = profile.profilePictureUrl || null;
   }
 
   const newAccessToken = signAccessToken(user);
@@ -143,8 +144,9 @@ export async function registerUser({ email, password, username, displayName }) {
     hashRefreshToken(refreshToken)
   );
 
-  // Add username to user object for response
+  // Add username and profilePictureUrl to user object for response
   user.username = username.toLowerCase();
+  user.profilePictureUrl = null;
 
   return { user, accessToken, refreshToken };
 }
@@ -160,10 +162,11 @@ export async function loginUser({ email, password }) {
     throw new Error("INVALID_CREDENTIALS");
   }
 
-  // Get user's profile to include username
+  // Get user's profile to include username and profile picture
   const profile = await profilesRepo.findProfileByUserId(user.userId);
   if (profile) {
     user.username = profile.username;
+    user.profilePictureUrl = profile.profilePictureUrl || null;
   }
 
   const accessToken = signAccessToken(user);

@@ -98,12 +98,25 @@ export default function Navigation() {
                 </div>
 
                 {/* Account Dropdown */}
-                <div className="relative">
+                <div className="relative pl-3">
                   <button
                     onClick={() => toggleDropdown('account')}
-                    className="px-4 py-2 text-gray-300 hover:text-white hover:bg-white/[0.06] rounded-lg transition-all duration-200 font-normal"
+                    className="p-1 hover:bg-white/[0.06] rounded-full transition-all duration-200"
                   >
-                    Account
+                    {user.profilePictureUrl ? (
+                      <img
+                        src={user.profilePictureUrl}
+                        alt={user.email}
+                        className="w-8 h-8 rounded-full object-cover border border-white/[0.1]"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center border border-white/[0.1]">
+                        <span className="text-xs font-medium text-white">
+                          {user.email.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                    )}
                   </button>
                   {activeDropdown === 'account' && (
                     <div className="absolute right-0 mt-2 w-56 bg-black border border-white/[0.1] rounded-xl py-1.5 z-50">

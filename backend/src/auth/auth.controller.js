@@ -54,7 +54,8 @@ export async function refresh(req, res) {
       user: {
         userId: user.userId,
         email: user.email,
-        username: user.username
+        username: user.username,
+        profilePictureUrl: user.profilePictureUrl
       }
     });
   } catch (err) {
@@ -91,7 +92,8 @@ export async function register(req, res) {
       user: {
         userId: user.userId,
         email: user.email,
-        username: user.username
+        username: user.username,
+        profilePictureUrl: user.profilePictureUrl
       }
     });
   } catch (err) {
@@ -130,7 +132,8 @@ export async function login(req, res) {
       user: {
         userId: user.userId,
         email: user.email,
-        username: user.username
+        username: user.username,
+        profilePictureUrl: user.profilePictureUrl
       }
     });
   } catch (err) {
