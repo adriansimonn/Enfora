@@ -28,6 +28,7 @@ export async function uploadProfilePicture(fileBuffer, mimeType, userId) {
     Key: fileName,
     Body: fileBuffer,
     ContentType: mimeType,
+    CacheControl: 'public, max-age=31536000, immutable',
     // Note: Bucket is configured with a public-read bucket policy instead of ACLs
   });
 
