@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
 import Navigation from '../components/Navigation'
+import VerificationModal from '../components/VerificationModal'
+import { verifyEmail, resendVerificationCode } from '../services/auth'
+import { setAccessToken as setApiAccessToken } from '../services/api'
 
 export default function Signup() {
   const [email, setEmail] = useState('')
@@ -11,7 +13,8 @@ export default function Signup() {
   const [displayName, setDisplayName] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const { register } = useAuth()
+  const [showVerification, setShowVerification] = useState(false)
+  const [pendingEmail, setPendingEmail] = useState('')
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -35,8 +38,13 @@ export default function Signup() {
     setLoading(true)
 
     try {
+      const { register } = await import('../services/auth')
       await register(email, password, username.trim(), displayName.trim() || username.trim())
-      navigate('/dashboard')
+
+      // Registration successful - verification code sent
+      setPendingEmail(email)
+      setShowVerification(true)
+      setError('')
     } catch (err) {
       setError(err.message)
     } finally {
@@ -44,9 +52,42 @@ export default function Signup() {
     }
   }
 
+  const handleVerify = async (code) => {
+    try {
+      const data = await verifyEmail(pendingEmail, code)
+
+      // Set the access token for API calls
+      setApiAccessToken(data.accessToken)
+
+      // Navigate to dashboard and reload to refresh auth state
+      navigate('/dashboard')
+      window.location.reload()
+    } catch (err) {
+      throw err
+    }
+  }
+
+  const handleResend = async () => {
+    await resendVerificationCode(pendingEmail)
+  }
+
+  const handleCloseVerification = () => {
+    setShowVerification(false)
+    setPendingEmail('')
+  }
+
   return (
     <div className="min-h-screen bg-black">
       <Navigation />
+
+      {showVerification && (
+        <VerificationModal
+          email={pendingEmail}
+          onVerify={handleVerify}
+          onResend={handleResend}
+          onClose={handleCloseVerification}
+        />
+      )}
 
       <div className="flex items-center justify-center py-16 px-4">
         <div className="w-full max-w-md p-9 space-y-6 bg-white/[0.015] backdrop-blur border border-white/[0.06] rounded-2xl">

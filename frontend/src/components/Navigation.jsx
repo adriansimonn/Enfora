@@ -113,7 +113,7 @@ export default function Navigation() {
                     ) : (
                       <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center border border-white/[0.1]">
                         <span className="text-xs font-medium text-white">
-                          {user.email.charAt(0).toUpperCase()}
+                          {user.displayName?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}
                         </span>
                       </div>
                     )}

@@ -273,6 +273,178 @@ Please review the task and make a decision on the dispute.
   }
 }
 
+/**
+ * Send email verification code to user
+ * @param {Object} data - Email and verification data
+ * @param {string} data.email - User's email address
+ * @param {string} data.verificationCode - 6-digit verification code
+ * @param {string} data.username - User's username
+ */
+async function sendVerificationCode(data) {
+  const { email, verificationCode, username } = data;
+
+  const htmlBody = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+          }
+          .container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+          }
+          .header {
+            text-align: center;
+            margin-bottom: 30px;
+          }
+          .header h1 {
+            margin: 0;
+            color: #000000;
+            font-size: 28px;
+            font-weight: 300;
+          }
+          .content {
+            text-align: center;
+            margin-bottom: 30px;
+          }
+          .content p {
+            color: #666;
+            font-size: 16px;
+            margin: 10px 0;
+          }
+          .verification-code {
+            background: linear-gradient(135deg, #000000 0%, #333333 100%);
+            color: white;
+            font-size: 36px;
+            font-weight: 600;
+            letter-spacing: 8px;
+            padding: 20px 40px;
+            border-radius: 8px;
+            display: inline-block;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+          }
+          .footer {
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+          }
+          .warning {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            text-align: left;
+          }
+          .warning p {
+            margin: 5px 0;
+            color: #856404;
+            font-size: 14px;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Welcome to Enfora!</h1>
+          </div>
+
+          <div class="content">
+            <p>Hello <strong>${username}</strong>,</p>
+            <p>Thank you for signing up! To complete your registration, please verify your email address using the code below:</p>
+
+            <div class="verification-code">${verificationCode}</div>
+
+            <p>This code will expire in <strong>10 minutes</strong>.</p>
+          </div>
+
+          <div class="warning">
+            <p><strong>Security Note:</strong></p>
+            <p>• Never share this code with anyone</p>
+            <p>• Enfora will never ask you for this code via phone or email</p>
+            <p>• If you didn't request this code, you can safely ignore this email</p>
+          </div>
+
+          <div class="footer">
+            <p>This is an automated message from Enfora.</p>
+            <p>If you have any questions, please contact us at support@enfora.app</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+
+  const textBody = `
+Welcome to Enfora!
+
+Hello ${username},
+
+Thank you for signing up! To complete your registration, please verify your email address using the code below:
+
+VERIFICATION CODE: ${verificationCode}
+
+This code will expire in 10 minutes.
+
+SECURITY NOTE:
+• Never share this code with anyone
+• Enfora will never ask you for this code via phone or email
+• If you didn't request this code, you can safely ignore this email
+
+---
+This is an automated message from Enfora.
+If you have any questions, please contact us at support@enfora.app
+  `;
+
+  const params = {
+    Source: FROM_EMAIL,
+    Destination: {
+      ToAddresses: [email],
+    },
+    Message: {
+      Subject: {
+        Data: `Your Enfora Verification Code: ${verificationCode}`,
+        Charset: "UTF-8",
+      },
+      Body: {
+        Html: {
+          Data: htmlBody,
+          Charset: "UTF-8",
+        },
+        Text: {
+          Data: textBody,
+          Charset: "UTF-8",
+        },
+      },
+    },
+  };
+
+  try {
+    const command = new SendEmailCommand(params);
+    const response = await ses.send(command);
+    console.log(`Verification code sent successfully to ${email}. MessageId: ${response.MessageId}`);
+    return response;
+  } catch (error) {
+    console.error("Error sending verification code:", error);
+    throw error;
+  }
+}
+
 module.exports = {
   sendTaskReviewNotification,
+  sendVerificationCode,
 };

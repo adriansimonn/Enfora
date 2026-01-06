@@ -12,6 +12,8 @@ const router = express.Router();
 
 // Credential-based endpoints (HIGH RISK)
 router.post("/register", registerLimiter, controller.register);
+router.post("/verify-email", registerLimiter, controller.verifyEmailCode);
+router.post("/resend-code", registerLimiter, controller.resendVerificationCode);
 router.post("/login", loginLimiter, controller.login);
 router.post("/refresh", refreshLimiter, controller.refresh);
 

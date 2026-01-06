@@ -16,6 +16,38 @@ export async function register(email, password, username, displayName) {
   return res.json()
 }
 
+export async function verifyEmail(email, code) {
+  const res = await fetch(`${API_BASE}/auth/verify-email`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ email, code })
+  })
+
+  if (!res.ok) {
+    const err = await res.json()
+    throw new Error(err.error || 'Verification failed')
+  }
+
+  return res.json()
+}
+
+export async function resendVerificationCode(email) {
+  const res = await fetch(`${API_BASE}/auth/resend-code`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ email })
+  })
+
+  if (!res.ok) {
+    const err = await res.json()
+    throw new Error(err.error || 'Resend failed')
+  }
+
+  return res.json()
+}
+
 export async function login(email, password) {
   const res = await fetch(`${API_BASE}/auth/login`, {
     method: 'POST',
