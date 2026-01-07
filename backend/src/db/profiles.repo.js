@@ -18,6 +18,7 @@ export async function createProfile(profile) {
   const item = {
     ...profile,
     username: profile.username.toLowerCase(),
+    tags: profile.tags || [], // Initialize empty tags array
     createdAt: now,
     updatedAt: now,
   };
@@ -213,6 +214,11 @@ export async function updateProfile(username, updates) {
     expressionAttributeValues[":url"] = updates.profilePictureUrl;
   }
 
+  if (updates.tags !== undefined) {
+    updateExpressions.push("tags = :tags");
+    expressionAttributeValues[":tags"] = updates.tags;
+  }
+
   updateExpressions.push("updatedAt = :updatedAt");
 
   const result = await dynamoDB.send(
@@ -221,6 +227,26 @@ export async function updateProfile(username, updates) {
       Key: { username: username.toLowerCase() },
       UpdateExpression: `SET ${updateExpressions.join(", ")}`,
       ExpressionAttributeValues: expressionAttributeValues,
+      ReturnValues: "ALL_NEW",
+    })
+  );
+
+  return result.Attributes;
+}
+
+/**
+ * Update user tags
+ */
+export async function updateTags(username, tags) {
+  const result = await dynamoDB.send(
+    new UpdateCommand({
+      TableName: PROFILES_TABLE,
+      Key: { username: username.toLowerCase() },
+      UpdateExpression: "SET tags = :tags, updatedAt = :updatedAt",
+      ExpressionAttributeValues: {
+        ":tags": tags,
+        ":updatedAt": new Date().toISOString(),
+      },
       ReturnValues: "ALL_NEW",
     })
   );

@@ -151,7 +151,8 @@ async function enrichWithProfiles(users) {
         username: profile?.username || "unknown",
         displayName: profile?.displayName || profile?.username || "Unknown User",
         profilePictureUrl: profile?.profilePictureUrl || null,
-        reliabilityScore: user.reliabilityScore
+        reliabilityScore: user.reliabilityScore,
+        tags: profile?.tags || []
       });
     } catch (error) {
       console.error(`Error fetching profile for ${user.userId}:`, error);
@@ -161,7 +162,8 @@ async function enrichWithProfiles(users) {
         username: "unknown",
         displayName: "Unknown User",
         profilePictureUrl: null,
-        reliabilityScore: user.reliabilityScore
+        reliabilityScore: user.reliabilityScore,
+        tags: []
       });
     }
   }
@@ -208,6 +210,7 @@ async function cacheIndividualRanks(users, totalUsers, timestamp) {
           displayName: user.displayName,
           profilePictureUrl: user.profilePictureUrl || null,
           reliabilityScore: user.reliabilityScore,
+          tags: user.tags || [],
           rank: user.rank,
           totalUsers: totalUsers
         })

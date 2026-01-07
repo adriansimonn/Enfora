@@ -22,6 +22,7 @@ router.get("/check-username/:username", profileController.checkUsername);
 // Protected routes - require authentication
 router.get("/user/:userId", requireAuth, profileController.getProfileByUserId);
 router.put("/:username", requireAuth, profileController.updateProfile);
+router.put("/:username/tags", requireAuth, profileController.updateTags);
 router.post(
   "/:username/picture",
   requireAuth,

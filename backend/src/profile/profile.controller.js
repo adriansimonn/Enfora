@@ -146,6 +146,29 @@ export async function deleteProfilePicture(req, res) {
 }
 
 /**
+ * PUT /api/profile/:username/tags
+ * Update user tags (admin only)
+ */
+export async function updateTags(req, res) {
+  try {
+    const { username } = req.params;
+    const { tags } = req.body;
+
+    const updatedProfile = await profileService.updateUserTags(username, tags);
+    res.json(updatedProfile);
+  } catch (error) {
+    if (error.message === "INVALID_TAGS_FORMAT") {
+      return res.status(400).json({ error: "Tags must be an array" });
+    }
+    if (error.message === "INVALID_TAG_STRUCTURE") {
+      return res.status(400).json({ error: "Each tag must have type, label, and color fields" });
+    }
+    console.error("Update tags error:", error);
+    res.status(500).json({ error: "Failed to update tags" });
+  }
+}
+
+/**
  * GET /api/profile/check-username/:username
  * Check if username is available
  */

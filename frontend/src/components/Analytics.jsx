@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { fetchAnalytics, fetchAnalyticsByUserId } from "../services/api";
 
-export default function Analytics({ userId, onShowReliabilityModal }) {
+export default function Analytics({ userId, onShowReliabilityModal, onReliabilityScoreLoad }) {
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -16,6 +16,11 @@ export default function Analytics({ userId, onShowReliabilityModal }) {
       setError(null);
       const data = userId ? await fetchAnalyticsByUserId(userId) : await fetchAnalytics();
       setAnalytics(data);
+
+      // Call the callback with reliability score if provided
+      if (onReliabilityScoreLoad && data?.reliabilityScore !== undefined) {
+        onReliabilityScoreLoad(data.reliabilityScore);
+      }
     } catch (err) {
       console.error("Failed to load analytics:", err);
       setError("Failed to load analytics");
@@ -170,12 +175,12 @@ export default function Analytics({ userId, onShowReliabilityModal }) {
   };
 
   const getReliabilityScoreColor = (score) => {
-    // 3000+: Special gradient (handled separately)
-    if (score >= 3000) {
+    // 3500+: Special gradient (handled separately)
+    if (score >= 3500) {
       return null; // Will use gradient class instead
     }
 
-    // 2000-3000: Blue (no interpolation)
+    // 2000-3500: Blue (no interpolation)
     if (score >= 2000) {
       return 'rgb(96, 165, 250)'; // blue-400
     }
@@ -250,8 +255,8 @@ export default function Analytics({ userId, onShowReliabilityModal }) {
                   </span>
                 </div>
                 <p
-                  className={`text-4xl font-light mb-2 ${analytics.reliabilityScore >= 3000 ? 'reliability-score-gradient' : ''}`}
-                  style={analytics.reliabilityScore >= 3000 ? {} : { color: getReliabilityScoreColor(analytics.reliabilityScore) }}
+                  className={`text-4xl font-light mb-2 ${analytics.reliabilityScore >= 3500 ? 'reliability-score-gradient' : ''}`}
+                  style={analytics.reliabilityScore >= 3500 ? {} : { color: getReliabilityScoreColor(analytics.reliabilityScore) }}
                 >
                   {analytics.reliabilityScore}
                 </p>

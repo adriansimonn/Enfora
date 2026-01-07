@@ -191,6 +191,30 @@ export async function removeProfilePictureService(username, userId) {
 }
 
 /**
+ * Update user tags (admin functionality)
+ */
+export async function updateUserTags(username, tags) {
+  // Validate tags format
+  if (!Array.isArray(tags)) {
+    throw new Error("INVALID_TAGS_FORMAT");
+  }
+
+  // Validate each tag has required fields
+  for (const tag of tags) {
+    if (!tag.type || !tag.label || !tag.color) {
+      throw new Error("INVALID_TAG_STRUCTURE");
+    }
+  }
+
+  // Filter out tier tags - they should only be computed dynamically
+  // Only allow role tags, achievement tags, and other manual tags
+  const nonTierTags = tags.filter(tag => tag.type !== 'tier');
+
+  const updatedProfile = await profilesRepo.updateTags(username, nonTierTags);
+  return updatedProfile;
+}
+
+/**
  * Check if username is available
  */
 export async function checkUsernameAvailability(username) {

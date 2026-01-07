@@ -545,11 +545,11 @@ function ReliabilityScoreModal({ score, onClose }) {
   }, [onClose]);
 
   const getTierInfo = (score) => {
-    if (score >= 3000) return { name: "Platinum", range: "3000+", color: "from-purple-400 via-pink-400 to-purple-400" };
-    if (score >= 1500) return { name: "Elite", range: "1500-3000", color: "from-blue-400 to-blue-500" };
-    if (score >= 600) return { name: "Reliable", range: "600-1500", color: "from-green-400 to-green-500" };
-    if (score >= 200) return { name: "Building Discipline", range: "200-600", color: "from-yellow-400 to-yellow-500" };
-    return { name: "Inconsistent or Beginner", range: "<200", color: "from-red-400 to-red-500" };
+    if (score >= 3500) return { name: "Platinum", range: "3500+", color: "from-purple-400 via-pink-400 to-purple-400" };
+    if (score >= 2000) return { name: "Elite", range: "2000-3499", color: "from-blue-400 to-blue-500" };
+    if (score >= 1000) return { name: "Reliable", range: "1000-1999", color: "from-green-400 to-green-500" };
+    if (score >= 300) return { name: "Building Discipline", range: "300-999", color: "from-yellow-400 to-yellow-500" };
+    return { name: "Inconsistent or Beginner", range: "<300", color: "from-red-400 to-red-500" };
   };
 
   const getReliabilityScoreColor = (score) => {
@@ -583,7 +583,7 @@ function ReliabilityScoreModal({ score, onClose }) {
       return `rgb(${r}, ${g}, ${b})`;
     };
 
-    if (score >= 3000) return null;
+    if (score >= 3500) return null;
     if (score >= 2000) return 'rgb(96, 165, 250)';
 
     if (score < 1000) {
@@ -602,11 +602,11 @@ function ReliabilityScoreModal({ score, onClose }) {
   const currentTier = getTierInfo(score);
 
   const tiers = [
-    { name: "Inconsistent or Beginner", range: "<200", color: "from-red-400 to-red-500", isCurrent: score < 200 },
-    { name: "Building Discipline", range: "200-600", color: "from-yellow-400 to-yellow-500", isCurrent: score >= 200 && score < 600 },
-    { name: "Reliable", range: "600-1500", color: "from-green-400 to-green-500", isCurrent: score >= 600 && score < 1500 },
-    { name: "Elite", range: "1500-3000", color: "from-blue-400 to-blue-500", isCurrent: score >= 1500 && score < 3000 },
-    { name: "Platinum", range: "3000+", color: "from-purple-400 via-white-400 to-blue-400", isCurrent: score >= 3000 },
+    { name: "Inconsistent or Beginner", range: "<300", color: "from-red-400 to-red-500", isCurrent: score < 300 },
+    { name: "Building Discipline", range: "300-999", color: "from-yellow-400 to-yellow-500", isCurrent: score >= 300 && score < 1000 },
+    { name: "Reliable", range: "1000-1999", color: "from-green-400 to-green-500", isCurrent: score >= 1000 && score < 2000 },
+    { name: "Elite", range: "2000-3499", color: "from-blue-400 to-blue-500", isCurrent: score >= 2000 && score < 3500 },
+    { name: "Platinum", range: "3500+", color: "from-purple-400 via-white-400 to-blue-400", isCurrent: score >= 3500 },
   ];
 
   return (
@@ -636,8 +636,8 @@ function ReliabilityScoreModal({ score, onClose }) {
             <div className="flex items-center gap-2 mb-4">
               <span className="text-sm text-gray-400 font-light">Current score:</span>
               <span
-                className={`text-2xl font-light ${score >= 3000 ? 'bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent' : ''}`}
-                style={score >= 3000 ? {} : { color: getReliabilityScoreColor(score) }}
+                className={`text-2xl font-light ${score >= 3500 ? 'bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent' : ''}`}
+                style={score >= 3500 ? {} : { color: getReliabilityScoreColor(score) }}
               >
                 {score}
               </span>

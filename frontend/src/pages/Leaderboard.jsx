@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { fetchLeaderboardTop100, fetchMyRank } from '../services/api';
 import Navigation from '../components/Navigation';
+import UserTag from '../components/UserTag';
 import { useAuth } from '../context/AuthContext';
+import { mergeTagsWithTier } from '../utils/tagUtils';
 
 export default function Leaderboard() {
   const [leaderboard, setLeaderboard] = useState(null);
@@ -72,7 +74,7 @@ export default function Leaderboard() {
       blue: { r: 96, g: 165, b: 250 },
     };
 
-    if (score >= 3000) {
+    if (score >= 3500) {
       return null; // Use gradient class
     }
 
@@ -171,13 +173,25 @@ export default function Leaderboard() {
               )}
             </div>
             <p className="text-sm text-gray-400 truncate">@{entry.username}</p>
+
+            {/* User Tags */}
+            {(() => {
+              const displayTags = mergeTagsWithTier(entry.tags, entry.reliabilityScore);
+              return displayTags.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5 mt-1.5">
+                  {displayTags.map((tag, index) => (
+                    <UserTag key={index} tag={tag} />
+                  ))}
+                </div>
+              ) : null;
+            })()}
           </div>
 
           {/* Reliability Score */}
           <div className="flex-shrink-0 text-right">
             <p
-              className={`text-2xl font-light ${entry.reliabilityScore >= 3000 ? 'reliability-score-gradient' : ''}`}
-              style={entry.reliabilityScore >= 3000 ? {} : { color: scoreColor }}
+              className={`text-2xl font-light ${entry.reliabilityScore >= 3500 ? 'reliability-score-gradient' : ''}`}
+              style={entry.reliabilityScore >= 3500 ? {} : { color: scoreColor }}
             >
               {entry.reliabilityScore}
             </p>

@@ -63,6 +63,7 @@ exports.getUserRank = async (userId) => {
         displayName: inTop100.displayName,
         profilePictureUrl: inTop100.profilePictureUrl,
         reliabilityScore: inTop100.reliabilityScore,
+        tags: inTop100.tags || [],
         totalUsers: top100.totalUsers,
         lastUpdated: top100.lastUpdated
       };
@@ -90,6 +91,7 @@ exports.getUserRank = async (userId) => {
         displayName: userRank.displayName,
         profilePictureUrl: userRank.profilePictureUrl,
         reliabilityScore: userRank.reliabilityScore,
+        tags: userRank.tags || [],
         totalUsers: userRank.totalUsers,
         lastUpdated: userRank.lastUpdated
       };
@@ -164,6 +166,7 @@ exports.computeUserRankOnDemand = async (userId) => {
       displayName: profile?.displayName || profile?.username || "Unknown User",
       profilePictureUrl: profile?.profilePictureUrl,
       reliabilityScore: userAnalytics.reliabilityScore,
+      tags: profile?.tags || [],
       totalUsers: null, // Unknown without full scan
       lastUpdated: new Date().toISOString()
     };
@@ -279,6 +282,7 @@ exports.calculateLeaderboard = async () => {
           displayName: user.displayName,
           profilePictureUrl: user.profilePictureUrl,
           reliabilityScore: user.reliabilityScore,
+          tags: user.tags || [],
           rank: user.rank,
           totalUsers: allUsers.length
         }
@@ -330,7 +334,8 @@ exports.enrichWithProfiles = async (users) => {
         username: profile?.username || "unknown",
         displayName: profile?.displayName || profile?.username || "Unknown User",
         profilePictureUrl: profile?.profilePictureUrl,
-        reliabilityScore: user.reliabilityScore
+        reliabilityScore: user.reliabilityScore,
+        tags: profile?.tags || []
       });
     } catch (error) {
       console.error(`Error fetching profile for user ${user.userId}:`, error);
@@ -341,7 +346,8 @@ exports.enrichWithProfiles = async (users) => {
         username: "unknown",
         displayName: "Unknown User",
         profilePictureUrl: null,
-        reliabilityScore: user.reliabilityScore
+        reliabilityScore: user.reliabilityScore,
+        tags: []
       });
     }
   }
