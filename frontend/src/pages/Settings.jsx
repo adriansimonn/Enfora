@@ -79,7 +79,7 @@ export default function Settings() {
     e.preventDefault()
     setLoading(true)
     try {
-      await updateProfile({
+      await updateProfile(user.username, {
         displayName: accountData.displayName,
         username: accountData.username,
         bio: accountData.bio

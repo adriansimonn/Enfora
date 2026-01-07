@@ -65,7 +65,8 @@ export async function refresh(req, res) {
         email: user.email,
         username: user.username,
         displayName: user.displayName,
-        profilePictureUrl: user.profilePictureUrl
+        profilePictureUrl: user.profilePictureUrl,
+        bio: user.bio
       }
     });
   } catch (err) {
@@ -180,7 +181,8 @@ export async function verifyEmailCode(req, res) {
         email: user.email,
         username: user.username,
         displayName: user.displayName,
-        profilePictureUrl: user.profilePictureUrl
+        profilePictureUrl: user.profilePictureUrl,
+        bio: user.bio
       }
     });
   } catch (err) {
@@ -258,7 +260,8 @@ export async function login(req, res) {
         email: user.email,
         username: user.username,
         displayName: user.displayName,
-        profilePictureUrl: user.profilePictureUrl
+        profilePictureUrl: user.profilePictureUrl,
+        bio: user.bio
       }
     });
   } catch (err) {

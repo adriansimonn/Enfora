@@ -551,7 +551,7 @@ async function sendAccountDeletionCode(data) {
             <p><strong>⚠️ Important:</strong></p>
             <p>• Deleting your account is <strong>permanent and cannot be undone</strong></p>
             <p>• All your data, tasks, and progress will be permanently removed</p>
-            <p>• If you didn't request this, please ignore this email and secure your account</p>
+            <p>• If you didn't request this, please change your password to secure your account</p>
             <p>• Never share this code with anyone</p>
           </div>
 
@@ -620,8 +620,205 @@ If you have any questions, please contact us at support@enfora.app
   }
 }
 
+/**
+ * Send account deletion confirmation email
+ * @param {Object} data - Email data
+ * @param {string} data.email - User's email address
+ * @param {string} data.username - User's username
+ */
+async function sendAccountDeletionConfirmation(data) {
+  const { email, username } = data;
+
+  const htmlBody = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+          }
+          .container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+          }
+          .header {
+            text-align: center;
+            margin-bottom: 30px;
+          }
+          .header h1 {
+            margin: 0;
+            color: #000000;
+            font-size: 28px;
+            font-weight: 300;
+          }
+          .content {
+            text-align: center;
+            margin-bottom: 30px;
+          }
+          .content p {
+            color: #666;
+            font-size: 16px;
+            margin: 15px 0;
+            line-height: 1.8;
+          }
+          .goodbye-message {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 8px;
+            margin: 30px 0;
+          }
+          .goodbye-message h2 {
+            margin: 0 0 15px 0;
+            font-size: 24px;
+            font-weight: 300;
+          }
+          .goodbye-message p {
+            color: rgba(255, 255, 255, 0.95);
+            margin: 10px 0;
+          }
+          .info-box {
+            background-color: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+            text-align: left;
+          }
+          .info-box p {
+            margin: 8px 0;
+            color: #1565c0;
+            font-size: 14px;
+          }
+          .info-box strong {
+            color: #0d47a1;
+          }
+          .footer {
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+          }
+          .cta-button {
+            display: inline-block;
+            background-color: #000000;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 20px 0;
+            font-weight: 500;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Account Deleted</h1>
+          </div>
+
+          <div class="content">
+            <div class="goodbye-message">
+              <h2>Goodbye, ${username}</h2>
+              <p>Your Enfora account has been successfully deleted.</p>
+            </div>
+
+            <p>We're sorry to see you go. Your account and all associated data have been permanently removed from our systems.</p>
+
+            <div class="info-box">
+              <p><strong>What's been deleted:</strong></p>
+              <p>• Your profile and account information</p>
+              <p>• All tasks and progress data</p>
+              <p>• Achievement history and analytics</p>
+              <p>• All personal preferences and settings</p>
+            </div>
+
+            <p>If you change your mind, you're always welcome to create a new account and rejoin the Enfora community.</p>
+
+            <a href="https://enfora.app" class="cta-button">Visit Enfora</a>
+          </div>
+
+          <div class="footer">
+            <p>Thank you for being part of Enfora.</p>
+            <p>If you have any feedback about your experience, we'd love to hear from you at support@enfora.app</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+
+  const textBody = `
+ACCOUNT DELETED
+
+Goodbye, ${username}
+
+Your Enfora account has been successfully deleted.
+
+We're sorry to see you go. Your account and all associated data have been permanently removed from our systems.
+
+WHAT'S BEEN DELETED:
+• Your profile and account information
+• All tasks and progress data
+• Achievement history and analytics
+• All personal preferences and settings
+
+If you change your mind, you're always welcome to create a new account and rejoin the Enfora community.
+
+Visit us at: https://enfora.app
+
+---
+Thank you for being part of Enfora.
+If you have any feedback about your experience, we'd love to hear from you at support@enfora.app
+  `;
+
+  const params = {
+    Source: FROM_EMAIL,
+    Destination: {
+      ToAddresses: [email],
+    },
+    Message: {
+      Subject: {
+        Data: "Your Enfora Account Has Been Deleted",
+        Charset: "UTF-8",
+      },
+      Body: {
+        Html: {
+          Data: htmlBody,
+          Charset: "UTF-8",
+        },
+        Text: {
+          Data: textBody,
+          Charset: "UTF-8",
+        },
+      },
+    },
+  };
+
+  try {
+    const command = new SendEmailCommand(params);
+    const response = await ses.send(command);
+    console.log(`Account deletion confirmation sent successfully to ${email}. MessageId: ${response.MessageId}`);
+    return response;
+  } catch (error) {
+    console.error("Error sending account deletion confirmation:", error);
+    throw error;
+  }
+}
+
 module.exports = {
   sendTaskReviewNotification,
   sendVerificationCode,
   sendAccountDeletionCode,
+  sendAccountDeletionConfirmation,
 };

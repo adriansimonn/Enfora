@@ -81,6 +81,7 @@ export async function refreshSession(refreshToken) {
     user.username = profile.username;
     user.displayName = profile.displayName;
     user.profilePictureUrl = profile.profilePictureUrl || null;
+    user.bio = profile.bio || '';
   }
 
   const newAccessToken = signAccessToken(user);
@@ -149,6 +150,7 @@ export async function registerUser({ email, password, username, displayName }) {
   user.username = username.toLowerCase();
   user.displayName = displayName || username;
   user.profilePictureUrl = null;
+  user.bio = '';
 
   return { user, accessToken, refreshToken };
 }
@@ -170,6 +172,7 @@ export async function loginUser({ email, password }) {
     user.username = profile.username;
     user.displayName = profile.displayName;
     user.profilePictureUrl = profile.profilePictureUrl || null;
+    user.bio = profile.bio || '';
   }
 
   const accessToken = signAccessToken(user);

@@ -181,10 +181,9 @@ export async function updateUsername(oldUsername, newUsername, userId) {
 
   // Delete old profile
   await dynamoDB.send(
-    new UpdateCommand({
+    new DeleteCommand({
       TableName: PROFILES_TABLE,
       Key: { username: oldUsername.toLowerCase() },
-      UpdateExpression: "REMOVE userId, displayName, bio, profilePictureUrl, createdAt, updatedAt",
     })
   );
 

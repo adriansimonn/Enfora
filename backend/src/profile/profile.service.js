@@ -78,7 +78,19 @@ export async function updateProfileInfo(username, userId, updates) {
 
   // Handle username change separately if needed
   if (updates.username && updates.username !== username) {
-    return await changeUsername(username, updates.username, userId);
+    // First change the username
+    const profileWithNewUsername = await changeUsername(username, updates.username, userId);
+
+    // Then update other fields on the new username if provided
+    const additionalUpdates = {};
+    if (updates.displayName !== undefined) additionalUpdates.displayName = updates.displayName;
+    if (updates.bio !== undefined) additionalUpdates.bio = updates.bio;
+
+    if (Object.keys(additionalUpdates).length > 0) {
+      return await profilesRepo.updateProfile(updates.username, additionalUpdates);
+    }
+
+    return profileWithNewUsername;
   }
 
   // Update other fields

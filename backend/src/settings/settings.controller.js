@@ -8,7 +8,7 @@ import {
   verifyCode,
   deleteVerificationCode,
 } from "../db/verificationCodes.repo.js";
-import { sendAccountDeletionCode } from "../../services/emailService.js";
+import { sendAccountDeletionCode, sendAccountDeletionConfirmation } from "../../services/emailService.js";
 
 /**
  * Change user password
@@ -140,6 +140,12 @@ export async function requestAccountDeletion(req, res) {
       return res.status(404).json({ error: "User not found" });
     }
 
+    // Get user profile to access username
+    const profile = await profilesRepo.findProfileByUserId(userId);
+    if (!profile) {
+      return res.status(404).json({ error: "Profile not found" });
+    }
+
     // Generate verification code
     const code = generateVerificationCode();
 
@@ -150,7 +156,7 @@ export async function requestAccountDeletion(req, res) {
     await sendAccountDeletionCode({
       email: user.email,
       verificationCode: code,
-      username: user.username,
+      username: profile.username,
     });
 
     res.json({
@@ -182,8 +188,14 @@ export async function deleteAccount(req, res) {
       return res.status(404).json({ error: "User not found" });
     }
 
+    // Get user profile to access username
+    const profile = await profilesRepo.findProfileByUserId(userId);
+    if (!profile) {
+      return res.status(404).json({ error: "Profile not found" });
+    }
+
     // Verify username matches
-    if (user.username !== username) {
+    if (profile.username !== username.toLowerCase()) {
       return res.status(400).json({ error: "Username does not match" });
     }
 
@@ -217,10 +229,21 @@ export async function deleteAccount(req, res) {
     // Delete verification code
     await deleteVerificationCode(user.email);
 
+    // Send goodbye email before deleting the account
+    try {
+      await sendAccountDeletionConfirmation({
+        email: user.email,
+        username: profile.username,
+      });
+    } catch (emailErr) {
+      console.error("Error sending goodbye email:", emailErr);
+      // Continue with deletion even if email fails
+    }
+
     // Delete user data from all tables
     // 1. Delete profile
     try {
-      await profilesRepo.deleteProfile(user.username);
+      await profilesRepo.deleteProfile(profile.username);
     } catch (err) {
       console.error("Error deleting profile:", err);
       // Continue even if profile deletion fails
