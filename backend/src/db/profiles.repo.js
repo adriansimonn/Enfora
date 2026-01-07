@@ -3,6 +3,7 @@ import {
   PutCommand,
   UpdateCommand,
   QueryCommand,
+  DeleteCommand,
 } from "@aws-sdk/lib-dynamodb";
 
 import dynamoDB from "../../config/dynamoClient.js";
@@ -260,4 +261,16 @@ export async function updateTags(username, tags) {
 export async function isUsernameAvailable(username) {
   const profile = await findProfileByUsername(username);
   return profile === null;
+}
+
+/**
+ * Delete profile
+ */
+export async function deleteProfile(username) {
+  await dynamoDB.send(
+    new DeleteCommand({
+      TableName: PROFILES_TABLE,
+      Key: { username: username.toLowerCase() },
+    })
+  );
 }

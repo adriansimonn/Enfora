@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import Navigation from '../components/Navigation'
 import { updateProfile } from '../services/profile'
+import { changePassword, getNotificationSettings, updateNotificationSettings, requestAccountDeletion, confirmAccountDeletion } from '../services/settings'
 
 export default function Settings() {
   const { user, logout } = useAuth()
@@ -39,6 +40,13 @@ export default function Settings() {
     emailEnabled: false
   })
 
+  // Account Deletion Modal State
+  const [showDeletionModal, setShowDeletionModal] = useState(false)
+  const [deletionStep, setDeletionStep] = useState(1) // 1: warning, 2: code entry, 3: username confirmation
+  const [deletionCode, setDeletionCode] = useState('')
+  const [deletionUsername, setDeletionUsername] = useState('')
+  const [deletionEmail, setDeletionEmail] = useState('')
+
   useEffect(() => {
     if (user) {
       setAccountData({
@@ -48,7 +56,19 @@ export default function Settings() {
         bio: user.bio || ''
       })
     }
+    // Load notification settings
+    loadNotificationSettings()
   }, [user])
+
+  const loadNotificationSettings = async () => {
+    try {
+      const settings = await getNotificationSettings()
+      setNotificationSettings(settings)
+    } catch (error) {
+      console.error('Failed to load notification settings:', error)
+      // Keep default values if loading fails
+    }
+  }
 
   const showMessage = (type, text) => {
     setMessage({ type, text })
@@ -87,7 +107,7 @@ export default function Settings() {
 
     setLoading(true)
     try {
-      // TODO: Implement password change API
+      await changePassword(passwordData.currentPassword, passwordData.newPassword)
       showMessage('success', 'Password changed successfully')
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' })
     } catch (error) {
@@ -101,7 +121,7 @@ export default function Settings() {
     e.preventDefault()
     setLoading(true)
     try {
-      // TODO: Implement notification settings API
+      await updateNotificationSettings(notificationSettings)
       showMessage('success', 'Notification preferences updated successfully')
     } catch (error) {
       showMessage('error', error.message || 'Failed to update notification preferences')
@@ -144,22 +164,46 @@ export default function Settings() {
     }
   }
 
-  const handleDeleteAccount = async () => {
-    const confirmed = window.confirm(
-      'Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently removed.'
-    )
+  const handleDeleteAccount = () => {
+    setShowDeletionModal(true)
+    setDeletionStep(1)
+    setDeletionCode('')
+    setDeletionUsername('')
+    setDeletionEmail('')
+  }
 
-    if (!confirmed) return
+  const handleRequestDeletionCode = async () => {
+    setLoading(true)
+    try {
+      const response = await requestAccountDeletion()
+      setDeletionEmail(response.email)
+      setDeletionStep(2)
+      showMessage('success', `Verification code sent to ${response.email}`)
+    } catch (error) {
+      showMessage('error', error.message || 'Failed to send verification code')
+    } finally {
+      setLoading(false)
+    }
+  }
 
-    const doubleConfirm = window.confirm(
-      'This is your final warning. Are you absolutely sure you want to delete your account?'
-    )
+  const handleVerifyCode = () => {
+    if (deletionCode.length !== 6) {
+      showMessage('error', 'Please enter a 6-digit code')
+      return
+    }
+    setDeletionStep(3)
+  }
 
-    if (!doubleConfirm) return
+  const handleConfirmDeletion = async () => {
+    if (!deletionUsername) {
+      showMessage('error', 'Please enter your username')
+      return
+    }
 
     setLoading(true)
     try {
-      // TODO: Implement account deletion API
+      await confirmAccountDeletion(deletionCode, deletionUsername)
+      setShowDeletionModal(false)
       await logout()
       navigate('/')
       showMessage('success', 'Account deleted successfully')
@@ -168,6 +212,14 @@ export default function Settings() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleCancelDeletion = () => {
+    setShowDeletionModal(false)
+    setDeletionStep(1)
+    setDeletionCode('')
+    setDeletionUsername('')
+    setDeletionEmail('')
   }
 
   const sections = [
@@ -487,6 +539,136 @@ export default function Settings() {
           </div>
         </div>
       </div>
+
+      {/* Account Deletion Modal */}
+      {showDeletionModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-black border border-white/[0.06] rounded-2xl shadow-2xl max-w-md w-full">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-white/[0.06]">
+              <h2 className="text-xl font-light text-white tracking-[-0.01em]">Delete Account</h2>
+              <button
+                onClick={handleCancelDeletion}
+                className="text-gray-400 hover:text-white transition-all duration-200 p-1 hover:bg-white/[0.06] rounded-lg"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6">
+              {deletionStep === 1 && (
+                <div className="space-y-4">
+                  <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
+                    <p className="text-red-400 font-light text-sm mb-2">
+                      <strong>Warning:</strong> This action cannot be undone!
+                    </p>
+                    <ul className="text-red-400 font-light text-sm space-y-1 list-disc list-inside">
+                      <li>All your data will be permanently deleted</li>
+                      <li>Your tasks and progress will be lost</li>
+                      <li>You cannot recover your account after deletion</li>
+                    </ul>
+                  </div>
+                  <p className="text-gray-300 font-light text-sm">
+                    To proceed, we'll send a verification code to your email address.
+                  </p>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={handleCancelDeletion}
+                      className="flex-1 px-4 py-3 bg-white/[0.03] hover:bg-white/[0.06] text-white rounded-lg transition-all duration-200 border border-white/[0.08] font-normal"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleRequestDeletionCode}
+                      disabled={loading}
+                      className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all duration-200 font-normal disabled:opacity-50"
+                    >
+                      {loading ? 'Sending...' : 'Continue'}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {deletionStep === 2 && (
+                <div className="space-y-4">
+                  <p className="text-gray-300 font-light text-sm">
+                    We've sent a 6-digit verification code to <strong>{deletionEmail}</strong>
+                  </p>
+                  <div>
+                    <label className="block text-sm font-normal text-gray-300 mb-2">Verification Code</label>
+                    <input
+                      type="text"
+                      value={deletionCode}
+                      onChange={(e) => setDeletionCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      maxLength={6}
+                      placeholder="Enter 6-digit code"
+                      className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl text-white text-center text-2xl tracking-widest font-light focus:outline-none focus:border-white/[0.12] transition-all"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 font-light">
+                    The code will expire in 10 minutes
+                  </p>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={handleCancelDeletion}
+                      className="flex-1 px-4 py-3 bg-white/[0.03] hover:bg-white/[0.06] text-white rounded-lg transition-all duration-200 border border-white/[0.08] font-normal"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleVerifyCode}
+                      disabled={deletionCode.length !== 6}
+                      className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all duration-200 font-normal disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Verify Code
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {deletionStep === 3 && (
+                <div className="space-y-4">
+                  <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
+                    <p className="text-red-400 font-light text-sm">
+                      <strong>Final Step:</strong> Type your username to confirm deletion
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-normal text-gray-300 mb-2">
+                      Type <strong>{user?.username}</strong> to confirm
+                    </label>
+                    <input
+                      type="text"
+                      value={deletionUsername}
+                      onChange={(e) => setDeletionUsername(e.target.value)}
+                      placeholder="Enter your username"
+                      className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl text-white font-light focus:outline-none focus:border-white/[0.12] transition-all"
+                    />
+                  </div>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={handleCancelDeletion}
+                      className="flex-1 px-4 py-3 bg-white/[0.03] hover:bg-white/[0.06] text-white rounded-lg transition-all duration-200 border border-white/[0.08] font-normal"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleConfirmDeletion}
+                      disabled={loading || deletionUsername !== user?.username}
+                      className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all duration-200 font-normal disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {loading ? 'Deleting...' : 'Delete Account'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

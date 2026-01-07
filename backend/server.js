@@ -39,6 +39,10 @@ async function initializeServer() {
   const { default: profileRoutes } = await import("./src/profile/profile.routes.js");
   app.use("/api/profile", profileRoutes);
 
+  // Import settings routes (ES module)
+  const { default: settingsRoutes } = await import("./src/settings/settings.routes.js");
+  app.use("/api/settings", settingsRoutes);
+
   // Routes
   const taskRoutes = require("./routes/taskRoutes");
   app.use("/api/tasks", taskRoutes);

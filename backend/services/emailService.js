@@ -444,7 +444,184 @@ If you have any questions, please contact us at support@enfora.app
   }
 }
 
+/**
+ * Send account deletion verification code
+ * @param {Object} data - Email and verification data
+ * @param {string} data.email - User's email address
+ * @param {string} data.verificationCode - 6-digit verification code
+ * @param {string} data.username - User's username
+ */
+async function sendAccountDeletionCode(data) {
+  const { email, verificationCode, username } = data;
+
+  const htmlBody = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+          }
+          .container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+          }
+          .header {
+            text-align: center;
+            margin-bottom: 30px;
+          }
+          .header h1 {
+            margin: 0;
+            color: #dc3545;
+            font-size: 28px;
+            font-weight: 300;
+          }
+          .content {
+            text-align: center;
+            margin-bottom: 30px;
+          }
+          .content p {
+            color: #666;
+            font-size: 16px;
+            margin: 10px 0;
+          }
+          .verification-code {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            font-size: 36px;
+            font-weight: 600;
+            letter-spacing: 8px;
+            padding: 20px 40px;
+            border-radius: 8px;
+            display: inline-block;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+          }
+          .footer {
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+          }
+          .warning {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            text-align: left;
+          }
+          .warning p {
+            margin: 5px 0;
+            color: #721c24;
+            font-size: 14px;
+          }
+          .warning strong {
+            color: #721c24;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>⚠️ Account Deletion Request</h1>
+          </div>
+
+          <div class="content">
+            <p>Hello <strong>${username}</strong>,</p>
+            <p>We received a request to delete your Enfora account. To confirm this action, please use the verification code below:</p>
+
+            <div class="verification-code">${verificationCode}</div>
+
+            <p>This code will expire in <strong>10 minutes</strong>.</p>
+          </div>
+
+          <div class="warning">
+            <p><strong>⚠️ Important:</strong></p>
+            <p>• Deleting your account is <strong>permanent and cannot be undone</strong></p>
+            <p>• All your data, tasks, and progress will be permanently removed</p>
+            <p>• If you didn't request this, please ignore this email and secure your account</p>
+            <p>• Never share this code with anyone</p>
+          </div>
+
+          <div class="footer">
+            <p>This is an automated message from Enfora.</p>
+            <p>If you have any questions, please contact us at support@enfora.app</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+
+  const textBody = `
+ACCOUNT DELETION REQUEST
+
+Hello ${username},
+
+We received a request to delete your Enfora account. To confirm this action, please use the verification code below:
+
+VERIFICATION CODE: ${verificationCode}
+
+This code will expire in 10 minutes.
+
+⚠️ IMPORTANT:
+• Deleting your account is PERMANENT and CANNOT BE UNDONE
+• All your data, tasks, and progress will be permanently removed
+• If you didn't request this, please ignore this email and secure your account
+• Never share this code with anyone
+
+---
+This is an automated message from Enfora.
+If you have any questions, please contact us at support@enfora.app
+  `;
+
+  const params = {
+    Source: FROM_EMAIL,
+    Destination: {
+      ToAddresses: [email],
+    },
+    Message: {
+      Subject: {
+        Data: `Account Deletion Verification Code: ${verificationCode}`,
+        Charset: "UTF-8",
+      },
+      Body: {
+        Html: {
+          Data: htmlBody,
+          Charset: "UTF-8",
+        },
+        Text: {
+          Data: textBody,
+          Charset: "UTF-8",
+        },
+      },
+    },
+  };
+
+  try {
+    const command = new SendEmailCommand(params);
+    const response = await ses.send(command);
+    console.log(`Account deletion code sent successfully to ${email}. MessageId: ${response.MessageId}`);
+    return response;
+  } catch (error) {
+    console.error("Error sending account deletion code:", error);
+    throw error;
+  }
+}
+
 module.exports = {
   sendTaskReviewNotification,
   sendVerificationCode,
+  sendAccountDeletionCode,
 };

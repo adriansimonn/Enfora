@@ -3,6 +3,7 @@ import {
   PutCommand,
   UpdateCommand,
   QueryCommand,
+  DeleteCommand,
 } from "@aws-sdk/lib-dynamodb";
 
 import dynamoDB from "../../config/dynamoClient.js";
@@ -176,4 +177,85 @@ export async function getStripeCustomerId(userId) {
   );
 
   return result.Item?.stripeCustomerId || null;
+}
+
+/**
+ * Update user's password
+ */
+export async function updatePassword(userId, newPasswordHash) {
+  await dynamoDB.send(
+    new UpdateCommand({
+      TableName: USERS_TABLE,
+      Key: { userId },
+      UpdateExpression: "SET passwordHash = :hash",
+      ExpressionAttributeValues: {
+        ":hash": newPasswordHash,
+      },
+    })
+  );
+}
+
+/**
+ * Update notification settings
+ */
+export async function updateNotificationSettings(userId, settings) {
+  const updateExpression = [];
+  const attributeValues = {};
+
+  if (settings.emailNotifications !== undefined) {
+    updateExpression.push("emailNotifications = :emailNotif");
+    attributeValues[":emailNotif"] = settings.emailNotifications;
+  }
+  if (settings.taskReminders !== undefined) {
+    updateExpression.push("taskReminders = :taskRem");
+    attributeValues[":taskRem"] = settings.taskReminders;
+  }
+  if (settings.achievementAlerts !== undefined) {
+    updateExpression.push("achievementAlerts = :achAlerts");
+    attributeValues[":achAlerts"] = settings.achievementAlerts;
+  }
+
+  if (updateExpression.length === 0) {
+    return;
+  }
+
+  await dynamoDB.send(
+    new UpdateCommand({
+      TableName: USERS_TABLE,
+      Key: { userId },
+      UpdateExpression: `SET ${updateExpression.join(", ")}`,
+      ExpressionAttributeValues: attributeValues,
+    })
+  );
+}
+
+/**
+ * Get notification settings
+ */
+export async function getNotificationSettings(userId) {
+  const result = await dynamoDB.send(
+    new GetCommand({
+      TableName: USERS_TABLE,
+      Key: { userId },
+      ProjectionExpression: "emailNotifications, taskReminders, achievementAlerts",
+    })
+  );
+
+  return {
+    emailNotifications: result.Item?.emailNotifications ?? true,
+    taskReminders: result.Item?.taskReminders ?? true,
+    achievementAlerts: result.Item?.achievementAlerts ?? true,
+  };
+}
+
+/**
+ * Delete user account
+ */
+export async function deleteUser(userId) {
+  await dynamoDB.send(
+    new DeleteCommand({
+      TableName: USERS_TABLE,
+      Key: { userId },
+    })
+  );
 }
