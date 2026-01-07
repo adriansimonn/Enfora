@@ -8,6 +8,7 @@ import Leaderboard from './pages/Leaderboard'
 import PaymentMethods from './pages/PaymentMethods'
 import PaymentHistory from './pages/PaymentHistory'
 import Agreement from './pages/Agreement'
+import Settings from './pages/Settings'
 import ProtectedRoute from './components/ProtectedRoute'
 
 export default function App() {
@@ -39,6 +40,14 @@ export default function App() {
         element={
           <ProtectedRoute>
             <PaymentHistory />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/account/settings"
+        element={
+          <ProtectedRoute>
+            <Settings />
           </ProtectedRoute>
         }
       />
