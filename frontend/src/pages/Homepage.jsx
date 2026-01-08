@@ -3,6 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Navigation from '../components/Navigation';
 import emblemLogo from '../assets/logos/emblem_logo_t_light.png';
+import createTaskImg from '../assets/homepageImages/1-CreateTask.png';
+import setStakeImg from '../assets/homepageImages/2-SetStake.png';
+import uploadEvidenceImg from '../assets/homepageImages/3-UploadEvidence.png';
+import taskCompletedImg from '../assets/homepageImages/4-TaskCompleted.png';
+import taskFailedImg from '../assets/homepageImages/5-TaskFailed.png';
 
 const MOTTOS = [
   'Accountability, Automated.',
@@ -45,6 +50,7 @@ export default function Homepage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [motto, setMotto] = useState('');
+  const [hoveredStep, setHoveredStep] = useState(1);
 
   useEffect(() => {
     // Set page title
@@ -54,6 +60,39 @@ export default function Homepage() {
     const randomMotto = MOTTOS[Math.floor(Math.random() * MOTTOS.length)];
     setMotto(randomMotto);
   }, []);
+
+  const steps = [
+    {
+      number: 1,
+      title: 'Create a task',
+      description: 'Set a deadline and define what "done" looks like. Be specific.',
+      image: createTaskImg
+    },
+    {
+      number: 2,
+      title: 'Put money on the line',
+      description: "Choose how much you'll lose if you don't complete it. Make it hurt enough to matter.",
+      image: setStakeImg
+    },
+    {
+      number: 3,
+      title: 'Submit proof',
+      description: "Upload screenshots, photos, or documents as evidence when you're done.",
+      image: uploadEvidenceImg
+    },
+    {
+      number: 4,
+      title: 'AI verifies proof',
+      description: 'Pass - you keep your money. Fail - try again.',
+      image: taskCompletedImg
+    },
+    {
+      number: 5,
+      title: 'Deadline passes',
+      description: "No sufficient proof? You're automatically charged.",
+      image: taskFailedImg
+    }
+  ];
 
   return (
     <div className="min-h-screen bg-black">
@@ -166,69 +205,59 @@ export default function Homepage() {
 
         {/* Solution Section */}
         <div className="max-w-[1280px] mx-auto px-6 py-28">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-6xl mx-auto">
             <h2 className="text-3xl font-light text-white mb-16 text-center tracking-[-0.01em]">
-              How Enfora Works
+              How To Use Enfora
             </h2>
-            <div className="space-y-5">
-              <div className="flex gap-6 items-start group">
-                <div className="flex-shrink-0 w-11 h-11 bg-white/[0.03] rounded-xl flex items-center justify-center text-white/60 font-light text-base border border-white/[0.06] group-hover:border-white/[0.12] transition-all duration-300">
-                  1
-                </div>
-                <div className="flex-1 pt-1">
-                  <h3 className="text-[17px] font-normal text-white mb-2">Create a task</h3>
-                  <p className="text-gray-400 leading-relaxed text-[14px] font-light">Set a deadline and define what "done" looks like. Be specific.</p>
-                </div>
+            <div className="grid lg:grid-cols-2 gap-12 items-start">
+              {/* Left side - Steps */}
+              <div className="space-y-5">
+                {steps.map((step) => (
+                  <div
+                    key={step.number}
+                    className="flex gap-6 items-start group cursor-pointer"
+                    onMouseEnter={() => setHoveredStep(step.number)}
+                  >
+                    <div className="flex-shrink-0 w-11 h-11 bg-white/[0.03] rounded-xl flex items-center justify-center text-white/60 font-light text-base border border-white/[0.06] group-hover:border-white/[0.12] transition-all duration-300">
+                      {step.number}
+                    </div>
+                    <div className="flex-1 pt-1">
+                      <h3 className="text-[17px] font-normal text-white mb-2">{step.title}</h3>
+                      <p className="text-gray-400 leading-relaxed text-[14px] font-light">{step.description}</p>
+                    </div>
+                  </div>
+                ))}
+
+                <InteractiveGradientBox
+                  className="mt-14 p-6 border border-white/[0.06] rounded-2xl relative overflow-hidden transition-all duration-200"
+                  gradientColors={['rgba(59, 130, 246, 0.15)', 'rgba(147, 51, 234, 0.1)', 'rgba(0, 0, 0, 0.015)']}
+                >
+                  <p className="text-white/90 text-center text-[15px] font-light relative z-10">
+                    No excuses. No loopholes. Just follow-through.
+                  </p>
+                </InteractiveGradientBox>
               </div>
 
-              <div className="flex gap-6 items-start group">
-                <div className="flex-shrink-0 w-11 h-11 bg-white/[0.03] rounded-xl flex items-center justify-center text-white/60 font-light text-base border border-white/[0.06] group-hover:border-white/[0.12] transition-all duration-300">
-                  2
-                </div>
-                <div className="flex-1 pt-1">
-                  <h3 className="text-[17px] font-normal text-white mb-2">Put money on the line</h3>
-                  <p className="text-gray-400 leading-relaxed text-[14px] font-light">Choose how much you'll lose if you don't complete it. Make it hurt enough to matter.</p>
-                </div>
-              </div>
-
-              <div className="flex gap-6 items-start group">
-                <div className="flex-shrink-0 w-11 h-11 bg-white/[0.03] rounded-xl flex items-center justify-center text-white/60 font-light text-base border border-white/[0.06] group-hover:border-white/[0.12] transition-all duration-300">
-                  3
-                </div>
-                <div className="flex-1 pt-1">
-                  <h3 className="text-[17px] font-normal text-white mb-2">Submit proof</h3>
-                  <p className="text-gray-400 leading-relaxed text-[14px] font-light">Upload screenshots, photos, or documents as evidence when you're done.</p>
-                </div>
-              </div>
-
-              <div className="flex gap-6 items-start group">
-                <div className="flex-shrink-0 w-11 h-11 bg-white/[0.03] rounded-xl flex items-center justify-center text-white/60 font-light text-base border border-white/[0.06] group-hover:border-white/[0.12] transition-all duration-300">
-                  4
-                </div>
-                <div className="flex-1 pt-1">
-                  <h3 className="text-[17px] font-normal text-white mb-2">AI verifies proof</h3>
-                  <p className="text-gray-400 leading-relaxed text-[14px] font-light">Pass → you keep your money. Fail → try again.</p>
+              {/* Right side - Image display */}
+              <div className="lg:sticky lg:top-32 h-fit">
+                <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-white/[0.02] border border-white/[0.06]">
+                  <div className="absolute inset-0 bg-blue-500/20 blur-3xl opacity-60 -z-10"></div>
+                  {steps.map((step) => (
+                    <div
+                      key={step.number}
+                      className={`absolute inset-0 p-4 transition-opacity duration-500 ${
+                        hoveredStep === step.number ? 'opacity-100' : 'opacity-0'
+                      }`}
+                    >
+                      <img
+                        src={step.image}
+                        alt={step.title}
+                        className="w-full h-full object-contain rounded-2xl"
+                      />
+                    </div>
+                  ))}
                 </div>
               </div>
-
-              <div className="flex gap-6 items-start group">
-                <div className="flex-shrink-0 w-11 h-11 bg-white/[0.03] rounded-xl flex items-center justify-center text-white/60 font-light text-base border border-white/[0.06] group-hover:border-white/[0.12] transition-all duration-300">
-                  5
-                </div>
-                <div className="flex-1 pt-1">
-                  <h3 className="text-[17px] font-normal text-white mb-2">Deadline passes</h3>
-                  <p className="text-gray-400 leading-relaxed text-[14px] font-light">No sufficient proof? You're automatically charged.</p>
-                </div>
-              </div>
-
-              <InteractiveGradientBox
-                className="mt-14 p-6 border border-white/[0.06] rounded-2xl relative overflow-hidden transition-all duration-200"
-                gradientColors={['rgba(59, 130, 246, 0.15)', 'rgba(147, 51, 234, 0.1)', 'rgba(0, 0, 0, 0.015)']}
-              >
-                <p className="text-white/90 text-center text-[15px] font-light relative z-10">
-                  No excuses. No loopholes. Just follow-through.
-                </p>
-              </InteractiveGradientBox>
             </div>
           </div>
         </div>
