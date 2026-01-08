@@ -816,9 +816,169 @@ If you have any feedback about your experience, we'd love to hear from you at su
   }
 }
 
+/**
+ * Send 2FA verification code to user
+ * @param {Object} data - Email and verification data
+ * @param {string} data.email - User's email address
+ * @param {string} data.verificationCode - 6-digit verification code
+ */
+async function send2FACode(data) {
+  const { email, verificationCode } = data;
+
+  const htmlBody = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+          }
+          .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 40px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+          }
+          .header {
+            text-align: center;
+            margin-bottom: 30px;
+          }
+          .header h1 {
+            color: #000;
+            margin: 0;
+            font-size: 28px;
+            font-weight: 300;
+          }
+          .content {
+            text-align: center;
+            margin: 30px 0;
+          }
+          .code-container {
+            background-color: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 30px 0;
+            text-align: center;
+          }
+          .code {
+            font-size: 36px;
+            font-weight: 600;
+            letter-spacing: 8px;
+            color: #000;
+            font-family: 'Courier New', monospace;
+          }
+          .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #856404;
+          }
+          .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            color: #6c757d;
+            font-size: 14px;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Two-Factor Authentication</h1>
+          </div>
+
+          <div class="content">
+            <p>You're signing in to your Enfora account. Use the verification code below to complete your login:</p>
+          </div>
+
+          <div class="code-container">
+            <div class="code">${verificationCode}</div>
+          </div>
+
+          <div class="content">
+            <p>This code will expire in <strong>10 minutes</strong>.</p>
+          </div>
+
+          <div class="warning">
+            <strong>Security Notice:</strong> If you didn't attempt to sign in to Enfora, please ignore this email and ensure your account is secure.
+          </div>
+
+          <div class="footer">
+            <p>This is an automated message from Enfora.</p>
+            <p>Do not reply to this email.</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+
+  const textBody = `
+Two-Factor Authentication
+
+You're signing in to your Enfora account.
+
+Your verification code is: ${verificationCode}
+
+This code will expire in 10 minutes.
+
+SECURITY NOTICE:
+If you didn't attempt to sign in to Enfora, please ignore this email and ensure your account is secure.
+
+---
+This is an automated message from Enfora.
+Do not reply to this email.
+  `;
+
+  const params = {
+    Source: FROM_EMAIL,
+    Destination: {
+      ToAddresses: [email],
+    },
+    Message: {
+      Subject: {
+        Data: "Your Enfora Login Code",
+        Charset: "UTF-8",
+      },
+      Body: {
+        Html: {
+          Data: htmlBody,
+          Charset: "UTF-8",
+        },
+        Text: {
+          Data: textBody,
+          Charset: "UTF-8",
+        },
+      },
+    },
+  };
+
+  try {
+    const command = new SendEmailCommand(params);
+    const response = await ses.send(command);
+    console.log(`2FA code sent successfully to ${email}. MessageId: ${response.MessageId}`);
+    return response;
+  } catch (error) {
+    console.error("Error sending 2FA code:", error);
+    throw error;
+  }
+}
+
 module.exports = {
   sendTaskReviewNotification,
   sendVerificationCode,
   sendAccountDeletionCode,
   sendAccountDeletionConfirmation,
+  send2FACode,
 };

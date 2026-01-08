@@ -2,17 +2,21 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import Navigation from '../components/Navigation'
+import TwoFactorVerificationModal from '../components/TwoFactorVerificationModal'
 
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [requires2FA, setRequires2FA] = useState(false)
+  const [twoFactorMethod, setTwoFactorMethod] = useState(null)
+  const [twoFactorEmail, setTwoFactorEmail] = useState('')
   const { login } = useAuth()
   const navigate = useNavigate()
 
   useEffect(() => {
-    document.title = 'Enfora | Login';
+    document.title = 'Enfora | Login'
   }, [])
 
   const handleSubmit = async (e) => {
@@ -21,12 +25,30 @@ export default function Login() {
     setLoading(true)
 
     try {
-      await login(email, password)
-      navigate('/dashboard')
+      const result = await login(email, password)
+
+      if (result.requires2FA) {
+        // 2FA is required
+        setRequires2FA(true)
+        setTwoFactorMethod(result.twoFactorMethod)
+        setTwoFactorEmail(result.email)
+        setLoading(false)
+      } else {
+        // Login successful
+        navigate('/dashboard')
+      }
     } catch (err) {
       setError(err.message)
-    } finally {
       setLoading(false)
+    }
+  }
+
+  const handle2FAVerification = async (code, isBackupCode) => {
+    try {
+      await login(twoFactorEmail, password, code, isBackupCode)
+      navigate('/dashboard')
+    } catch (err) {
+      throw err // Let modal handle the error
     }
   }
 
@@ -96,6 +118,19 @@ export default function Login() {
           </div>
         </div>
       </div>
+
+      {/* 2FA Verification Modal */}
+      {requires2FA && (
+        <TwoFactorVerificationModal
+          email={twoFactorEmail}
+          method={twoFactorMethod}
+          onVerify={handle2FAVerification}
+          onClose={() => {
+            setRequires2FA(false)
+            setLoading(false)
+          }}
+        />
+      )}
     </div>
   )
 }

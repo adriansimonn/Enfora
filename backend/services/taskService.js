@@ -265,3 +265,61 @@ exports.deleteTask = async (taskId, userId) => {
 
   return { success: true };
 };
+
+/**
+ * Delete all tasks for a user (used during account deletion)
+ */
+exports.deleteAllTasksForUser = async (userId) => {
+  try {
+    // Get all tasks for the user
+    const tasks = await exports.getTasksByUser(userId);
+
+    if (!tasks || tasks.length === 0) {
+      console.log(`No tasks found for user ${userId}`);
+      return { deletedCount: 0 };
+    }
+
+    // Delete tasks in batches (max 25 per batch for BatchWriteCommand)
+    const batchSize = 25;
+    let deletedCount = 0;
+
+    for (let i = 0; i < tasks.length; i += batchSize) {
+      const batch = tasks.slice(i, i + batchSize);
+
+      const deleteRequests = batch.map(task => ({
+        DeleteRequest: {
+          Key: {
+            userId: task.userId,
+            taskId: task.taskId,
+          }
+        }
+      }));
+
+      const batchParams = {
+        RequestItems: {
+          [TABLE_NAME]: deleteRequests
+        }
+      };
+
+      await dynamoDB.send(new BatchWriteCommand(batchParams));
+      deletedCount += batch.length;
+      console.log(`Deleted batch of ${batch.length} tasks for user ${userId}`);
+
+      // Delete EventBridge schedules for each task in the batch
+      for (const task of batch) {
+        try {
+          await deleteTaskExpirationSchedule(userId, task.taskId);
+        } catch (scheduleError) {
+          console.error(`Failed to delete schedule for task ${task.taskId}:`, scheduleError);
+          // Continue with other tasks even if schedule deletion fails
+        }
+      }
+    }
+
+    console.log(`Successfully deleted ${deletedCount} tasks for user ${userId}`);
+    return { deletedCount };
+  } catch (error) {
+    console.error("Error deleting all tasks for user:", error);
+    throw error;
+  }
+};

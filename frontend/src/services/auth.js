@@ -48,12 +48,12 @@ export async function resendVerificationCode(email) {
   return res.json()
 }
 
-export async function login(email, password) {
+export async function login(email, password, twoFactorCode = null, isBackupCode = false) {
   const res = await fetch(`${API_BASE}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
-    body: JSON.stringify({ email, password })
+    body: JSON.stringify({ email, password, twoFactorCode, isBackupCode })
   })
 
   if (!res.ok) {

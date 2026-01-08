@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Navigation from '../components/Navigation'
 import VerificationModal from '../components/VerificationModal'
+import TwoFactorSetupPrompt from '../components/TwoFactorSetupPrompt'
 import { verifyEmail, resendVerificationCode } from '../services/auth'
 import { setAccessToken as setApiAccessToken } from '../services/api'
 
@@ -14,6 +15,7 @@ export default function Signup() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [showVerification, setShowVerification] = useState(false)
+  const [show2FAPrompt, setShow2FAPrompt] = useState(false)
   const [pendingEmail, setPendingEmail] = useState('')
   const navigate = useNavigate()
 
@@ -59,12 +61,24 @@ export default function Signup() {
       // Set the access token for API calls
       setApiAccessToken(data.accessToken)
 
-      // Navigate to dashboard and reload to refresh auth state
-      navigate('/dashboard')
-      window.location.reload()
+      // Show 2FA setup prompt after successful verification
+      setShowVerification(false)
+      setShow2FAPrompt(true)
     } catch (err) {
       throw err
     }
+  }
+
+  const handle2FAComplete = () => {
+    setShow2FAPrompt(false)
+    navigate('/dashboard')
+    window.location.reload()
+  }
+
+  const handle2FASkip = () => {
+    setShow2FAPrompt(false)
+    navigate('/dashboard')
+    window.location.reload()
   }
 
   const handleResend = async () => {
@@ -86,6 +100,13 @@ export default function Signup() {
           onVerify={handleVerify}
           onResend={handleResend}
           onClose={handleCloseVerification}
+        />
+      )}
+
+      {show2FAPrompt && (
+        <TwoFactorSetupPrompt
+          onComplete={handle2FAComplete}
+          onSkip={handle2FASkip}
         />
       )}
 

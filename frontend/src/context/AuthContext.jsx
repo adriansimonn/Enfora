@@ -66,8 +66,15 @@ export function AuthProvider({ children }) {
     }
   }, [])
 
-  const login = async (email, password) => {
-    const data = await loginAPI(email, password)
+  const login = async (email, password, twoFactorCode = null, isBackupCode = false) => {
+    const data = await loginAPI(email, password, twoFactorCode, isBackupCode)
+
+    // Check if 2FA is required
+    if (data.requires2FA) {
+      return data // Return 2FA requirement info without setting tokens
+    }
+
+    // Normal login flow - set tokens and user
     updateAccessToken(data.accessToken)
     setUser(data.user)
     return data

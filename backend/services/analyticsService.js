@@ -221,3 +221,25 @@ exports.refreshUserAnalytics = async (userId) => {
     throw error;
   }
 };
+
+/**
+ * Delete user analytics (used during account deletion)
+ */
+exports.deleteUserAnalytics = async (userId) => {
+  try {
+    const { DeleteCommand } = require("@aws-sdk/lib-dynamodb");
+
+    const params = {
+      TableName: ANALYTICS_TABLE,
+      Key: { userId }
+    };
+
+    await dynamoDB.send(new DeleteCommand(params));
+    console.log(`Successfully deleted analytics for user ${userId}`);
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting user analytics:", error);
+    throw error;
+  }
+};

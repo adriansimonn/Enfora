@@ -11,7 +11,9 @@ import EditTaskModal from "../components/EditTaskModal";
 import LoadingModal from "../components/LoadingModal";
 import TaskDetailsModal from "../components/TaskDetailsModal";
 import ConfirmationModal from "../components/ConfirmationModal";
+import TwoFactorEncouragementBanner from "../components/TwoFactorEncouragementBanner";
 import { fetchTasks, createTask, updateTask, deleteTask, submitDispute } from "../services/api";
+import { get2FAStatus } from "../services/twoFactor";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -31,11 +33,40 @@ export default function Dashboard() {
   const [sortBy, setSortBy] = useState("status"); // dueDate, stakeAmount, status
   const [showReliabilityModal, setShowReliabilityModal] = useState(false);
   const [reliabilityScore, setReliabilityScore] = useState(0);
+  const [show2FABanner, setShow2FABanner] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
 
   useEffect(() => {
     document.title = 'Enfora | Dashboard';
     loadTasks();
   }, []);
+
+  useEffect(() => {
+    // Check 2FA status after user is loaded
+    if (user) {
+      check2FAStatus();
+    }
+  }, [user]);
+
+  const check2FAStatus = async () => {
+    try {
+      const status = await get2FAStatus();
+      console.log('2FA Status:', status); // Debug log
+      // Show banner if 2FA is not enabled and not dismissed in this session
+      if (!status.twoFactorEnabled && !bannerDismissed) {
+        console.log('Showing 2FA banner'); // Debug log
+        setShow2FABanner(true);
+      }
+    } catch (err) {
+      // Silently fail - banner is not critical
+      console.error('Failed to check 2FA status:', err);
+    }
+  };
+
+  const handleDismissBanner = () => {
+    setShow2FABanner(false);
+    setBannerDismissed(true);
+  };
 
   const loadTasks = async () => {
     try {
@@ -347,6 +378,10 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-black">
       <Navigation />
+
+      {show2FABanner && (
+        <TwoFactorEncouragementBanner onDismiss={handleDismissBanner} />
+      )}
 
       <div className="p-6 max-w-7xl mx-auto">
         <div className="mb-8">

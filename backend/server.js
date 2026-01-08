@@ -43,6 +43,10 @@ async function initializeServer() {
   const { default: settingsRoutes } = await import("./src/settings/settings.routes.js");
   app.use("/api/settings", settingsRoutes);
 
+  // Import 2FA routes (ES module)
+  const { default: twoFactorRoutes } = await import("./src/auth/twoFactor.routes.js");
+  app.use("/api/2fa", twoFactorRoutes);
+
   // Routes
   const taskRoutes = require("./routes/taskRoutes");
   app.use("/api/tasks", taskRoutes);

@@ -9,6 +9,8 @@ import {
   deleteVerificationCode,
 } from "../db/verificationCodes.repo.js";
 import { sendAccountDeletionCode, sendAccountDeletionConfirmation } from "../../services/emailService.js";
+import { deleteAllTasksForUser } from "../../services/taskService.js";
+import { deleteUserAnalytics } from "../../services/analyticsService.js";
 
 /**
  * Change user password
@@ -241,18 +243,35 @@ export async function deleteAccount(req, res) {
     }
 
     // Delete user data from all tables
-    // 1. Delete profile
+    // 1. Delete all tasks
+    try {
+      await deleteAllTasksForUser(userId);
+      console.log("Tasks deleted successfully");
+    } catch (err) {
+      console.error("Error deleting tasks:", err);
+      // Continue even if task deletion fails
+    }
+
+    // 2. Delete analytics
+    try {
+      await deleteUserAnalytics(userId);
+      console.log("Analytics deleted successfully");
+    } catch (err) {
+      console.error("Error deleting analytics:", err);
+      // Continue even if analytics deletion fails
+    }
+
+    // 3. Delete profile
     try {
       await profilesRepo.deleteProfile(profile.username);
+      console.log("Profile deleted successfully");
     } catch (err) {
       console.error("Error deleting profile:", err);
       // Continue even if profile deletion fails
     }
 
-    // 2. Delete user (this should be last as it contains authentication data)
+    // 4. Delete user (this should be last as it contains authentication data)
     await usersRepo.deleteUser(userId);
-
-    // TODO: Delete other user data (tasks, analytics, etc.) when those are implemented
 
     res.json({ message: "Account deleted successfully" });
   } catch (err) {

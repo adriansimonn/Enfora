@@ -4,6 +4,8 @@ import { useAuth } from '../context/AuthContext'
 import Navigation from '../components/Navigation'
 import { updateProfile } from '../services/profile'
 import { changePassword, getNotificationSettings, updateNotificationSettings, requestAccountDeletion, confirmAccountDeletion } from '../services/settings'
+import { get2FAStatus, disable2FA as disable2FAService } from '../services/twoFactor'
+import TwoFactorSetupModal from '../components/TwoFactorSetupModal'
 
 export default function Settings() {
   const { user, logout } = useAuth()
@@ -36,13 +38,19 @@ export default function Settings() {
 
   // 2FA Settings State
   const [twoFactorSettings, setTwoFactorSettings] = useState({
-    authenticatorEnabled: false,
-    emailEnabled: false
+    twoFactorEnabled: false,
+    twoFactorMethod: null,
+    hasBackupCodes: false,
+    backupCodesCount: 0
   })
+  const [show2FASetupModal, setShow2FASetupModal] = useState(false)
+  const [setup2FAMethod, setSetup2FAMethod] = useState(null)
+  const [disablePassword, setDisablePassword] = useState('')
+  const [showDisableConfirm, setShowDisableConfirm] = useState(false)
 
   // Account Deletion Modal State
   const [showDeletionModal, setShowDeletionModal] = useState(false)
-  const [deletionStep, setDeletionStep] = useState(1) // 1: warning, 2: code entry, 3: username confirmation
+  const [deletionStep, setDeletionStep] = useState(1)
   const [deletionCode, setDeletionCode] = useState('')
   const [deletionUsername, setDeletionUsername] = useState('')
   const [deletionEmail, setDeletionEmail] = useState('')
@@ -56,8 +64,8 @@ export default function Settings() {
         bio: user.bio || ''
       })
     }
-    // Load notification settings
     loadNotificationSettings()
+    load2FASettings()
   }, [user])
 
   const loadNotificationSettings = async () => {
@@ -66,7 +74,15 @@ export default function Settings() {
       setNotificationSettings(settings)
     } catch (error) {
       console.error('Failed to load notification settings:', error)
-      // Keep default values if loading fails
+    }
+  }
+
+  const load2FASettings = async () => {
+    try {
+      const settings = await get2FAStatus()
+      setTwoFactorSettings(settings)
+    } catch (error) {
+      console.error('Failed to load 2FA settings:', error)
     }
   }
 
@@ -131,32 +147,32 @@ export default function Settings() {
   }
 
   const handleEnable2FA = async (method) => {
-    setLoading(true)
-    try {
-      // TODO: Implement 2FA setup API
-      if (method === 'authenticator') {
-        showMessage('success', 'Authenticator app 2FA will be implemented soon')
-      } else {
-        showMessage('success', 'Email-based 2FA will be implemented soon')
-      }
-    } catch (error) {
-      showMessage('error', error.message || 'Failed to enable 2FA')
-    } finally {
-      setLoading(false)
-    }
+    setSetup2FAMethod(method)
+    setShow2FASetupModal(true)
   }
 
-  const handleDisable2FA = async (method) => {
+  const handle2FASetupSuccess = async () => {
+    await load2FASettings()
+    showMessage('success', 'Two-factor authentication enabled successfully')
+  }
+
+  const handleDisable2FA = async () => {
+    setShowDisableConfirm(true)
+  }
+
+  const handleConfirmDisable2FA = async () => {
+    if (!disablePassword) {
+      showMessage('error', 'Password is required')
+      return
+    }
+
     setLoading(true)
     try {
-      // TODO: Implement 2FA disable API
-      if (method === 'authenticator') {
-        setTwoFactorSettings({ ...twoFactorSettings, authenticatorEnabled: false })
-        showMessage('success', 'Authenticator app 2FA disabled')
-      } else {
-        setTwoFactorSettings({ ...twoFactorSettings, emailEnabled: false })
-        showMessage('success', 'Email-based 2FA disabled')
-      }
+      await disable2FAService(disablePassword)
+      await load2FASettings()
+      setShowDisableConfirm(false)
+      setDisablePassword('')
+      showMessage('success', 'Two-factor authentication disabled')
     } catch (error) {
       showMessage('error', error.message || 'Failed to disable 2FA')
     } finally {
@@ -415,81 +431,88 @@ export default function Settings() {
                     </p>
 
                     <div className="space-y-4">
-                      {/* Authenticator App 2FA */}
-                      <div className="border border-white/[0.06] bg-white/[0.02] rounded-xl p-6">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <h4 className="text-base font-normal text-white mb-2">Authenticator App</h4>
-                            <p className="text-sm text-gray-400 font-light mb-4">
-                              Use an authenticator app like Google Authenticator or Authy to generate verification codes.
-                            </p>
-                            {twoFactorSettings.authenticatorEnabled ? (
-                              <div className="flex items-center gap-2 text-sm text-green-400 font-light">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                Enabled
+                      {!twoFactorSettings.twoFactorEnabled ? (
+                        <>
+                          {/* Authenticator App 2FA */}
+                          <div className="border border-white/[0.06] bg-white/[0.02] rounded-xl p-6">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <h4 className="text-base font-normal text-white mb-2">Authenticator App</h4>
+                                <p className="text-sm text-gray-400 font-light mb-4">
+                                  Use an authenticator app like Google Authenticator or Authy to generate verification codes.
+                                </p>
+                                <div className="flex items-center gap-2 text-sm text-gray-500 font-light">
+                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  Not enabled
+                                </div>
                               </div>
-                            ) : (
-                              <div className="flex items-center gap-2 text-sm text-gray-500 font-light">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                Not enabled
-                              </div>
-                            )}
+                              <button
+                                onClick={() => handleEnable2FA('authenticator')}
+                                disabled={loading}
+                                className="px-4 py-2 bg-white text-black hover:bg-gray-200 rounded-lg transition-all duration-200 font-normal disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                Enable
+                              </button>
+                            </div>
                           </div>
-                          <button
-                            onClick={() => twoFactorSettings.authenticatorEnabled ? handleDisable2FA('authenticator') : handleEnable2FA('authenticator')}
-                            disabled={loading}
-                            className={`px-4 py-2 rounded-lg transition-all duration-200 font-normal ${
-                              twoFactorSettings.authenticatorEnabled
-                                ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20'
-                                : 'bg-white text-black hover:bg-gray-200'
-                            } disabled:opacity-50 disabled:cursor-not-allowed`}
-                          >
-                            {twoFactorSettings.authenticatorEnabled ? 'Disable' : 'Enable'}
-                          </button>
-                        </div>
-                      </div>
 
-                      {/* Email 2FA */}
-                      <div className="border border-white/[0.06] bg-white/[0.02] rounded-xl p-6">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <h4 className="text-base font-normal text-white mb-2">Email Verification</h4>
-                            <p className="text-sm text-gray-400 font-light mb-4">
-                              Receive verification codes via email when signing in from a new device.
-                            </p>
-                            {twoFactorSettings.emailEnabled ? (
-                              <div className="flex items-center gap-2 text-sm text-green-400 font-light">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          {/* Email 2FA */}
+                          <div className="border border-white/[0.06] bg-white/[0.02] rounded-xl p-6">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <h4 className="text-base font-normal text-white mb-2">Email Verification</h4>
+                                <p className="text-sm text-gray-400 font-light mb-4">
+                                  Receive verification codes via email when signing in.
+                                </p>
+                                <div className="flex items-center gap-2 text-sm text-gray-500 font-light">
+                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  Not enabled
+                                </div>
+                              </div>
+                              <button
+                                onClick={() => handleEnable2FA('email')}
+                                disabled={loading}
+                                className="px-4 py-2 bg-white text-black hover:bg-gray-200 rounded-lg transition-all duration-200 font-normal disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                Enable
+                              </button>
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="border border-green-500/20 bg-green-500/5 rounded-xl p-6">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
-                                Enabled
+                                <h4 className="text-base font-normal text-white">
+                                  {twoFactorSettings.twoFactorMethod === 'authenticator' ? 'Authenticator App' : 'Email Verification'}
+                                </h4>
                               </div>
-                            ) : (
-                              <div className="flex items-center gap-2 text-sm text-gray-500 font-light">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                Not enabled
-                              </div>
-                            )}
+                              <p className="text-sm text-green-400 font-light mb-4">
+                                Two-factor authentication is currently enabled
+                              </p>
+                              <p className="text-sm text-gray-400 font-light">
+                                Your account is protected with {twoFactorSettings.twoFactorMethod === 'authenticator' ? 'authenticator app verification' : 'email verification codes'}.
+                                {twoFactorSettings.hasBackupCodes && ` You have ${twoFactorSettings.backupCodesCount} backup codes remaining.`}
+                              </p>
+                            </div>
+                            <button
+                              onClick={handleDisable2FA}
+                              disabled={loading}
+                              className="px-4 py-2 rounded-lg transition-all duration-200 font-normal bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              Disable
+                            </button>
                           </div>
-                          <button
-                            onClick={() => twoFactorSettings.emailEnabled ? handleDisable2FA('email') : handleEnable2FA('email')}
-                            disabled={loading}
-                            className={`px-4 py-2 rounded-lg transition-all duration-200 font-normal ${
-                              twoFactorSettings.emailEnabled
-                                ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20'
-                                : 'bg-white text-black hover:bg-gray-200'
-                            } disabled:opacity-50 disabled:cursor-not-allowed`}
-                          >
-                            {twoFactorSettings.emailEnabled ? 'Disable' : 'Enable'}
-                          </button>
                         </div>
-                      </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -539,6 +562,75 @@ export default function Settings() {
           </div>
         </div>
       </div>
+
+      {/* 2FA Setup Modal */}
+      {show2FASetupModal && (
+        <TwoFactorSetupModal
+          method={setup2FAMethod}
+          onClose={() => {
+            setShow2FASetupModal(false)
+            setSetup2FAMethod(null)
+          }}
+          onSuccess={handle2FASetupSuccess}
+        />
+      )}
+
+      {/* Disable 2FA Confirmation Modal */}
+      {showDisableConfirm && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-black border border-white/[0.06] rounded-2xl shadow-2xl max-w-md w-full">
+            <div className="flex items-center justify-between p-6 border-b border-white/[0.06]">
+              <h2 className="text-xl font-light text-white tracking-[-0.01em]">Disable 2FA</h2>
+              <button
+                onClick={() => {
+                  setShowDisableConfirm(false)
+                  setDisablePassword('')
+                }}
+                className="text-gray-400 hover:text-white transition-all duration-200 p-1 hover:bg-white/[0.06] rounded-lg"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
+                <p className="text-red-400 font-light text-sm">
+                  This will make your account less secure. Enter your password to confirm.
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-normal text-gray-300 mb-2">Password</label>
+                <input
+                  type="password"
+                  value={disablePassword}
+                  onChange={(e) => setDisablePassword(e.target.value)}
+                  className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl text-white focus:outline-none focus:border-white/[0.12] transition-all font-light"
+                  placeholder="Enter your password"
+                />
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowDisableConfirm(false)
+                    setDisablePassword('')
+                  }}
+                  className="flex-1 px-4 py-3 bg-white/[0.03] hover:bg-white/[0.06] text-white rounded-lg transition-all duration-200 border border-white/[0.08] font-normal"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmDisable2FA}
+                  disabled={loading || !disablePassword}
+                  className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all duration-200 font-normal disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? 'Disabling...' : 'Disable 2FA'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Account Deletion Modal */}
       {showDeletionModal && (

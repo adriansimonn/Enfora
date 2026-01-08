@@ -252,13 +252,13 @@ export default function Homepage() {
                 </div>
                 <div className="text-center">
                   <div className="text-3xl mb-3">⏰</div>
-                  <p className="text-white font-normal mb-1 text-[15px]">Deadlines stop</p>
-                  <p className="text-[13px] text-gray-500 font-light">being optional</p>
+                  <p className="text-white font-normal mb-1 text-[15px]">Deadlines</p>
+                  <p className="text-[13px] text-gray-500 font-light">become unavoidable</p>
                 </div>
                 <div className="text-center">
                   <div className="text-3xl mb-3">🎯</div>
-                  <p className="text-white font-normal mb-1 text-[15px]">You treat goals</p>
-                  <p className="text-[13px] text-gray-500 font-light">seriously</p>
+                  <p className="text-white font-normal mb-1 text-[15px]">Goals</p>
+                  <p className="text-[13px] text-gray-500 font-light">become serious</p>
                 </div>
               </div>
               <p className="text-[16px] text-white text-center font-light">
@@ -390,8 +390,8 @@ export default function Homepage() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                   </svg>
                 </div>
-                <h3 className="text-[16px] font-normal text-white mb-2">Secure Payments</h3>
-                <p className="text-gray-400 text-[13px] leading-relaxed font-light">Bank-level encryption for all transactions</p>
+                <h3 className="text-[16px] font-normal text-white mb-2">Secure Payments and 2FA</h3>
+                <p className="text-gray-400 text-[13px] leading-relaxed font-light">Bank-level encryption for all transactions and accounts shielded by two-factor authentication.</p>
               </div>
 
               <div className="bg-white/[0.015] border border-white/[0.06] rounded-2xl p-7 backdrop-blur-sm hover:bg-white/[0.025] transition-all duration-300">
@@ -411,7 +411,7 @@ export default function Homepage() {
                   </svg>
                 </div>
                 <h3 className="text-[16px] font-normal text-white mb-2">Funds Only Charged on Failure</h3>
-                <p className="text-gray-400 text-[13px] leading-relaxed font-light">Complete your task and you never pay anything</p>
+                <p className="text-gray-400 text-[13px] leading-relaxed font-light">Complete your task and you never pay anything.</p>
               </div>
 
               <div className="bg-white/[0.015] border border-white/[0.06] rounded-2xl p-7 backdrop-blur-sm hover:bg-white/[0.025] transition-all duration-300">
@@ -421,7 +421,7 @@ export default function Homepage() {
                   </svg>
                 </div>
                 <h3 className="text-[16px] font-normal text-white mb-2">Transparent & Fair System</h3>
-                <p className="text-gray-400 text-[13px] leading-relaxed font-light">Clear enforcement rules and fair evidence review</p>
+                <p className="text-gray-400 text-[13px] leading-relaxed font-light">Clear enforcement rules and fair evidence review powered by AI and human review panels.</p>
               </div>
             </div>
           </div>

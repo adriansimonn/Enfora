@@ -33,8 +33,10 @@
     "pdf-lib": "^1.17.1",
     "pdf-parse": "^2.4.5",
     "pdfjs-dist": "^5.4.296",
+    "qrcode": "^1.5.4",
     "rate-limit-redis": "^4.3.1",
     "redis": "^5.10.0",
+    "speakeasy": "^2.0.0",
     "stripe": "^20.1.0",
     "uuid": "^13.0.0",
     "xml2js": "^0.6.2"

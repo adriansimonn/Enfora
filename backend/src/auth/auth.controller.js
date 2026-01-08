@@ -58,6 +58,10 @@ export async function refresh(req, res) {
 
     setRefreshTokenCookie(res, newRefreshToken);
 
+    // Get 2FA status
+    const { get2FASettings } = await import("../db/users.repo.js");
+    const twoFactorSettings = await get2FASettings(user.userId);
+
     res.json({
       accessToken,
       user: {
@@ -66,7 +70,8 @@ export async function refresh(req, res) {
         username: user.username,
         displayName: user.displayName,
         profilePictureUrl: user.profilePictureUrl,
-        bio: user.bio
+        bio: user.bio,
+        twoFactorEnabled: twoFactorSettings.twoFactorEnabled
       }
     });
   } catch (err) {
@@ -182,7 +187,9 @@ export async function verifyEmailCode(req, res) {
         username: user.username,
         displayName: user.displayName,
         profilePictureUrl: user.profilePictureUrl,
-        bio: user.bio
+        bio: user.bio,
+        twoFactorEnabled: false,
+        isNewUser: true // Flag to indicate this is a new user for 2FA setup prompt
       }
     });
   } catch (err) {
@@ -242,15 +249,70 @@ export async function resendVerificationCode(req, res) {
 
 export async function login(req, res) {
   try {
-    const { email, password } = req.body;
+    const { email, password, twoFactorCode, isBackupCode } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({ error: "Missing fields" });
     }
 
+    // First, validate credentials
     const { user, accessToken, refreshToken } =
       await authService.loginUser({ email, password });
 
+    // Check if 2FA is enabled for this user
+    const { get2FASettings } = await import("../db/users.repo.js");
+    const twoFactorSettings = await get2FASettings(user.userId);
+
+    if (twoFactorSettings.twoFactorEnabled) {
+      // 2FA is enabled, check if code was provided
+      if (!twoFactorCode) {
+        // Return response indicating 2FA is required
+        return res.status(200).json({
+          requires2FA: true,
+          twoFactorMethod: twoFactorSettings.twoFactorMethod,
+          email: user.email
+        });
+      }
+
+      // Verify the 2FA code
+      const speakeasy = await import("speakeasy");
+      const { verifyCode, deleteVerificationCode } = await import("../db/verificationCodes.repo.js");
+      const { useBackupCode } = await import("../db/users.repo.js");
+
+      let verified = false;
+
+      // Check if it's a backup code
+      if (isBackupCode) {
+        if (twoFactorSettings.twoFactorBackupCodes?.includes(twoFactorCode)) {
+          verified = true;
+          // Remove the used backup code
+          await useBackupCode(user.userId, twoFactorCode);
+        }
+      } else if (twoFactorSettings.twoFactorMethod === "authenticator") {
+        // Verify TOTP code
+        verified = speakeasy.default.totp.verify({
+          secret: twoFactorSettings.twoFactorSecret,
+          encoding: "base32",
+          token: twoFactorCode,
+          window: 2,
+        });
+      } else if (twoFactorSettings.twoFactorMethod === "email") {
+        // Verify email code
+        const verification = await verifyCode(email, twoFactorCode);
+        verified = verification.valid && verification.userData?.purpose === "2FA_LOGIN";
+
+        if (verified) {
+          // Delete the used code
+          await deleteVerificationCode(email);
+        }
+      }
+
+      if (!verified) {
+        return res.status(401).json({ error: "Invalid 2FA code" });
+      }
+    }
+
+    // 2FA verified or not required, proceed with login
     setRefreshTokenCookie(res, refreshToken);
 
     res.json({
@@ -261,7 +323,8 @@ export async function login(req, res) {
         username: user.username,
         displayName: user.displayName,
         profilePictureUrl: user.profilePictureUrl,
-        bio: user.bio
+        bio: user.bio,
+        twoFactorEnabled: twoFactorSettings.twoFactorEnabled
       }
     });
   } catch (err) {

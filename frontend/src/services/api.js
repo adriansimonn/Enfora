@@ -10,7 +10,7 @@ export function getAccessToken() {
   return accessToken
 }
 
-async function fetchWithAuth(url, options = {}) {
+export async function fetchWithAuth(url, options = {}) {
   const headers = {
     ...options.headers,
     'Content-Type': 'application/json'
@@ -43,7 +43,12 @@ export async function createTask(taskData) {
     body: JSON.stringify(taskData)
   })
   if (!res.ok) {
-    throw new Error('Failed to create task')
+    const errorData = await res.json()
+    // Check for 2FA stake limit error
+    if (errorData.error === '2FA_REQUIRED_FOR_STAKE_LIMIT') {
+      throw new Error('Limit of $20 total stake at risk exceeded. Enable 2FA to remove this limit.')
+    }
+    throw new Error(errorData.message || errorData.error || 'Failed to create task')
   }
   return res.json()
 }

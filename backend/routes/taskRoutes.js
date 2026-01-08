@@ -35,6 +35,30 @@ router.post("/", async (req, res) => {
         }
       }
 
+      // Check 2FA requirement for $20 stake limit
+      const { get2FASettings } = await import("../src/db/users.repo.js");
+      const twoFactorSettings = await get2FASettings(req.user.userId);
+
+      if (!twoFactorSettings.twoFactorEnabled) {
+        // User doesn't have 2FA enabled - check stake limit
+        const analyticsService = require("../services/analyticsService");
+        const analytics = await analyticsService.getUserAnalytics(req.user.userId);
+
+        const currentStakeAtRisk = analytics.totalStakeAtRisk || 0;
+        const newStakeAmount = parseFloat(stakeAmount) || 0;
+        const totalStakeAfterCreation = currentStakeAtRisk + newStakeAmount;
+
+        if (totalStakeAfterCreation > 20) {
+          return res.status(400).json({
+            error: "2FA_REQUIRED_FOR_STAKE_LIMIT",
+            message: "Enable 2FA to remove the $20 stake limit",
+            currentStakeAtRisk: currentStakeAtRisk,
+            attemptedStake: newStakeAmount,
+            stakeLimit: 20
+          });
+        }
+      }
+
       const taskData = {
         ...req.body,
         userId: req.user.userId
