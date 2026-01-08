@@ -235,8 +235,6 @@ exports.deleteUserAnalytics = async (userId) => {
     };
 
     await dynamoDB.send(new DeleteCommand(params));
-    console.log(`Successfully deleted analytics for user ${userId}`);
-
     return { success: true };
   } catch (error) {
     console.error("Error deleting user analytics:", error);

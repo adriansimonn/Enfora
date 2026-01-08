@@ -257,7 +257,6 @@ export async function deleteAccount(req, res) {
     // 1. Delete all tasks
     try {
       await deleteAllTasksForUser(userId);
-      console.log("Tasks deleted successfully");
     } catch (err) {
       console.error("Error deleting tasks:", err);
       // Continue even if task deletion fails
@@ -266,7 +265,6 @@ export async function deleteAccount(req, res) {
     // 2. Delete analytics
     try {
       await deleteUserAnalytics(userId);
-      console.log("Analytics deleted successfully");
     } catch (err) {
       console.error("Error deleting analytics:", err);
       // Continue even if analytics deletion fails
@@ -275,7 +273,6 @@ export async function deleteAccount(req, res) {
     // 3. Delete profile
     try {
       await profilesRepo.deleteProfile(profile.username);
-      console.log("Profile deleted successfully");
     } catch (err) {
       console.error("Error deleting profile:", err);
       // Continue even if profile deletion fails

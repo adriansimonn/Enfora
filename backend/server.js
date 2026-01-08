@@ -1,4 +1,3 @@
-console.log("CWD:", process.cwd());
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
@@ -22,13 +21,6 @@ app.use("/api/webhooks", webhookRoutes);
 app.use(express.json()); // For parsing JSON bodies
 app.use(cookieParser()); // For parsing cookies
 app.use(express.urlencoded({ extended: true }));
-
-// Add request logging middleware
-app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
-  console.log("Body:", req.body);
-  next();
-});
 
 // CSRF Protection - apply to all routes except webhooks (already mounted)
 // Webhooks are exempt because they use signature verification instead

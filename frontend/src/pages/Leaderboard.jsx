@@ -31,7 +31,6 @@ export default function Leaderboard() {
           const rankData = await fetchMyRank();
           setMyRank(rankData);
         } catch (rankError) {
-          console.log('User has no rank yet:', rankError);
           setMyRank(null);
         }
       }

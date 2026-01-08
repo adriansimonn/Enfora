@@ -6,8 +6,6 @@ import {
   setRefreshTokenCookie,
   clearRefreshTokenCookie
 } from "../utils/cookies.js";
-import { getGoogleAuthURL, getGoogleUser } from "./google.oauth.js";
-import { googleLogin } from "./auth.service.js";
 import {
   generateVerificationCode,
   storeVerificationCode,
@@ -17,38 +15,6 @@ import {
 import { sendVerificationCode } from "../../services/emailService.js";
 import * as usersRepo from "../db/users.repo.js";
 import * as profilesRepo from "../db/profiles.repo.js";
-
-export function googleRedirect(req, res) {
-  res.redirect(getGoogleAuthURL());
-}
-
-export async function googleCallback(req, res) {
-  try {
-    const { code } = req.query;
-    if (!code) {
-      return res.redirect("/login?error=oauth_failed");
-    }
-
-    const googleUser = await getGoogleUser(code);
-
-    if (!googleUser.verified) {
-      return res.redirect("/login?error=email_not_verified");
-    }
-
-    const { user, accessToken, refreshToken } =
-      await googleLogin(googleUser);
-
-    setRefreshTokenCookie(res, refreshToken);
-
-    // Redirect back to frontend with access token
-    res.redirect(
-      `${process.env.FRONTEND_URL}/oauth-success?token=${accessToken}`
-    );
-  } catch (err) {
-    console.error(err);
-    res.redirect("/login?error=oauth_failed");
-  }
-}
 
 export async function refresh(req, res) {
   try {

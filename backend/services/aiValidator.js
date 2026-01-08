@@ -140,8 +140,6 @@ Task Description:
     },
   });
 
-  console.log('[DEBUG] Screenshot validation response:', JSON.stringify(response, null, 2));
-
   const content = response.choices[0].message.content;
   return JSON.parse(content);
 }
@@ -198,8 +196,6 @@ Task Description:
       },
     },
   });
-
-  console.log('[DEBUG] Image validation response:', JSON.stringify(response, null, 2));
 
   const content = response.choices[0].message.content;
   return JSON.parse(content);
@@ -258,8 +254,6 @@ Document Content:
       },
     },
   });
-
-  console.log('[DEBUG] Document validation response:', JSON.stringify(response, null, 2));
 
   const content = response.choices[0].message.content;
   return JSON.parse(content);

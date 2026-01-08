@@ -132,23 +132,6 @@ export async function incrementTokenVersion(userId) {
 }
 
 /**
- * Link Google account to existing user
- */
-export async function linkGoogleAccount(userId, googleId) {
-  await dynamoDB.send(
-    new UpdateCommand({
-      TableName: USERS_TABLE,
-      Key: { userId },
-      UpdateExpression: "SET googleId = :gid, provider = :provider",
-      ExpressionAttributeValues: {
-        ":gid": googleId,
-        ":provider": "google",
-      },
-    })
-  );
-}
-
-/**
  * Update user's Stripe customer ID
  */
 export async function updateStripeCustomerId(userId, stripeCustomerId) {

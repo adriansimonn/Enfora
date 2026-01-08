@@ -48,12 +48,6 @@ export const refreshLimiter = baseLimiter({
   message: "Too many refresh attempts.",
 });
 
-export const googleAuthLimiter = baseLimiter({
-  windowMs: 15 * 60 * 1000,
-  max: 15,
-  message: "Too many OAuth attempts.",
-});
-
 // VERIFICATION CODE: Per-email limiting to prevent brute force attacks on 6-digit codes
 export const verificationCodeLimiter = baseLimiter({
   windowMs: 15 * 60 * 1000, // 15 minutes

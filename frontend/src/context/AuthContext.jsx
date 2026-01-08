@@ -42,20 +42,16 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     // Initialize CSRF token then try to refresh access token on mount
     const initializeAuth = async () => {
-      console.log('AuthContext: Initializing CSRF token...')
       await initializeCsrfToken()
 
-      console.log('AuthContext: Attempting to refresh token on mount...')
       try {
         const data = await refreshAccessToken()
-        console.log('AuthContext: Refresh successful', data)
         updateAccessToken(data.accessToken)
         // Set user data from refresh response
         if (data.user) {
           setUser(data.user)
         }
       } catch (err) {
-        console.log('AuthContext: Refresh failed', err.message)
         // No valid session
       } finally {
         setLoading(false)

@@ -20,14 +20,7 @@ exports.createTask = async (task) => {
   };
 
   try {
-    console.log("Creating task with data:", JSON.stringify({
-      title: taskItem.title,
-      isRecurring: taskItem.isRecurring,
-      recurrenceRule: taskItem.recurrenceRule
-    }, null, 2));
-    console.log("Attempting DynamoDB PUT:", JSON.stringify(params, null, 2));
     await dynamoDB.send(new PutCommand(params));
-    console.log("DynamoDB PUT succeeded");
 
     // If this is a recurring task, generate instances
     if (task.isRecurring && task.recurrenceRule) {
@@ -38,11 +31,9 @@ exports.createTask = async (task) => {
     if (taskItem.deadline && taskItem.userId && taskItem.taskId) {
       try {
         await createTaskExpirationSchedule(taskItem.userId, taskItem.taskId, taskItem.deadline);
-        console.log(`EventBridge schedule created for task ${taskItem.taskId}`);
       } catch (scheduleError) {
         // If deadline is in the past, immediately mark task as failed
         if (scheduleError.isPastDeadline) {
-          console.log(`Marking task ${taskItem.taskId} as failed due to past deadline`);
           const updateParams = {
             TableName: TABLE_NAME,
             Key: {
@@ -115,18 +106,15 @@ async function createRecurringTaskInstances(parentTask) {
 
     try {
       await dynamoDB.send(new BatchWriteCommand(batchParams));
-      console.log(`Created batch of ${batch.length} recurring task instances`);
 
       // Create EventBridge schedules for each instance
       for (const instance of instancesWithIds) {
         if (instance.deadline && instance.userId && instance.taskId) {
           try {
             await createTaskExpirationSchedule(instance.userId, instance.taskId, instance.deadline);
-            console.log(`EventBridge schedule created for recurring task instance ${instance.taskId}`);
           } catch (scheduleError) {
             // If deadline is in the past, immediately mark instance as failed
             if (scheduleError.isPastDeadline) {
-              console.log(`Marking recurring instance ${instance.taskId} as failed due to past deadline`);
               const updateParams = {
                 TableName: TABLE_NAME,
                 Key: {
@@ -167,18 +155,6 @@ exports.getTasksByUser = async (userId) => {
   };
 
   const result = await dynamoDB.send(new QueryCommand(params));
-
-  // Log recurrence info for debugging
-  if (result.Items && result.Items.length > 0) {
-    const recurringTasks = result.Items.filter(t => t.isRecurring);
-    if (recurringTasks.length > 0) {
-      console.log(`Found ${recurringTasks.length} recurring tasks for user ${userId}`);
-      recurringTasks.forEach(t => {
-        console.log(`Task "${t.title}": isRecurring=${t.isRecurring}, recurrenceRule=`, t.recurrenceRule);
-      });
-    }
-  }
-
   return result.Items;
 };
 
@@ -233,7 +209,6 @@ exports.updateTask = async (taskId, userId, updates) => {
   if (updates.status === "completed" || updates.status === "failed") {
     try {
       await deleteTaskExpirationSchedule(userId, taskId);
-      console.log(`EventBridge schedule deleted for task ${taskId} with status ${updates.status}`);
     } catch (scheduleError) {
       console.error("Failed to delete EventBridge schedule:", scheduleError);
       // Don't fail the update if schedule deletion fails
@@ -257,7 +232,6 @@ exports.deleteTask = async (taskId, userId) => {
   // Delete EventBridge schedule when task is deleted
   try {
     await deleteTaskExpirationSchedule(userId, taskId);
-    console.log(`EventBridge schedule deleted for task ${taskId}`);
   } catch (scheduleError) {
     console.error("Failed to delete EventBridge schedule:", scheduleError);
     // Don't fail the deletion if schedule deletion fails
@@ -275,7 +249,6 @@ exports.deleteAllTasksForUser = async (userId) => {
     const tasks = await exports.getTasksByUser(userId);
 
     if (!tasks || tasks.length === 0) {
-      console.log(`No tasks found for user ${userId}`);
       return { deletedCount: 0 };
     }
 
@@ -303,7 +276,6 @@ exports.deleteAllTasksForUser = async (userId) => {
 
       await dynamoDB.send(new BatchWriteCommand(batchParams));
       deletedCount += batch.length;
-      console.log(`Deleted batch of ${batch.length} tasks for user ${userId}`);
 
       // Delete EventBridge schedules for each task in the batch
       for (const task of batch) {
@@ -316,7 +288,6 @@ exports.deleteAllTasksForUser = async (userId) => {
       }
     }
 
-    console.log(`Successfully deleted ${deletedCount} tasks for user ${userId}`);
     return { deletedCount };
   } catch (error) {
     console.error("Error deleting all tasks for user:", error);

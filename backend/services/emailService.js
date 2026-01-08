@@ -265,7 +265,6 @@ Please review the task and make a decision on the dispute.
   try {
     const command = new SendEmailCommand(params);
     const response = await ses.send(command);
-    console.log(`Task review notification sent successfully. MessageId: ${response.MessageId}`);
     return response;
   } catch (error) {
     console.error("Error sending task review notification:", error);
@@ -436,7 +435,6 @@ If you have any questions, please contact us at support@enfora.app
   try {
     const command = new SendEmailCommand(params);
     const response = await ses.send(command);
-    console.log(`Verification code sent successfully to ${email}. MessageId: ${response.MessageId}`);
     return response;
   } catch (error) {
     console.error("Error sending verification code:", error);
@@ -612,7 +610,6 @@ If you have any questions, please contact us at support@enfora.app
   try {
     const command = new SendEmailCommand(params);
     const response = await ses.send(command);
-    console.log(`Account deletion code sent successfully to ${email}. MessageId: ${response.MessageId}`);
     return response;
   } catch (error) {
     console.error("Error sending account deletion code:", error);
@@ -808,7 +805,6 @@ If you have any feedback about your experience, we'd love to hear from you at su
   try {
     const command = new SendEmailCommand(params);
     const response = await ses.send(command);
-    console.log(`Account deletion confirmation sent successfully to ${email}. MessageId: ${response.MessageId}`);
     return response;
   } catch (error) {
     console.error("Error sending account deletion confirmation:", error);
@@ -967,7 +963,6 @@ Do not reply to this email.
   try {
     const command = new SendEmailCommand(params);
     const response = await ses.send(command);
-    console.log(`2FA code sent successfully to ${email}. MessageId: ${response.MessageId}`);
     return response;
   } catch (error) {
     console.error("Error sending 2FA code:", error);

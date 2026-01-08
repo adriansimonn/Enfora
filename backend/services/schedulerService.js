@@ -42,7 +42,6 @@ exports.createTaskExpirationSchedule = async (userId, taskId, deadline) => {
     if (scheduleTime <= now) {
       const error = new Error("DEADLINE_PASSED");
       error.isPastDeadline = true;
-      console.log(`Task ${taskId} deadline is in the past (${scheduleTime.toISOString()}), cannot create schedule`);
       throw error;
     }
 
@@ -68,12 +67,8 @@ exports.createTaskExpirationSchedule = async (userId, taskId, deadline) => {
       State: "ENABLED",
     };
 
-    console.log(`Creating schedule for task ${taskId} at ${scheduleExpression}`);
-
     const command = new CreateScheduleCommand(input);
     const response = await schedulerClient.send(command);
-
-    console.log(`Schedule created successfully: ${scheduleName}`);
     return response;
   } catch (error) {
     console.error("Error creating EventBridge schedule:", error);
@@ -95,16 +90,11 @@ exports.deleteTaskExpirationSchedule = async (userId, taskId) => {
       GroupName: SCHEDULE_GROUP,
     };
 
-    console.log(`Deleting schedule: ${scheduleName}`);
-
     const command = new DeleteScheduleCommand(input);
     await schedulerClient.send(command);
-
-    console.log(`Schedule deleted successfully: ${scheduleName}`);
   } catch (error) {
-    // If schedule doesn't exist, log but don't throw
+    // If schedule doesn't exist, don't throw
     if (error.name === "ResourceNotFoundException") {
-      console.log(`Schedule ${scheduleName} not found, may have already been deleted or never created`);
       return;
     }
 

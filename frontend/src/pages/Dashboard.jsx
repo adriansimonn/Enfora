@@ -51,10 +51,8 @@ export default function Dashboard() {
   const check2FAStatus = async () => {
     try {
       const status = await get2FAStatus();
-      console.log('2FA Status:', status); // Debug log
       // Show banner if 2FA is not enabled and not dismissed in this session
       if (!status.twoFactorEnabled && !bannerDismissed) {
-        console.log('Showing 2FA banner'); // Debug log
         setShow2FABanner(true);
       }
     } catch (err) {

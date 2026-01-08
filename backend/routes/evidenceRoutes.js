@@ -292,7 +292,6 @@ router.post("/upload", (req, res, next) => {
     if (newStatus === "completed") {
       try {
         await deleteTaskExpirationSchedule(userId, taskId);
-        console.log(`EventBridge schedule deleted for completed task ${taskId}`);
       } catch (scheduleError) {
         console.error("Failed to delete EventBridge schedule:", scheduleError);
         // Don't fail the response if schedule deletion fails

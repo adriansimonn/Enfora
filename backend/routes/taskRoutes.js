@@ -171,7 +171,6 @@ router.post("/:taskId/dispute", async (req, res) => {
         };
 
         await emailService.sendTaskReviewNotification(emailData);
-        console.log(`Review notification email sent for task ${taskId}`);
       } catch (emailError) {
         // Log email error but don't fail the dispute submission
         console.error("Failed to send review notification email:", emailError);

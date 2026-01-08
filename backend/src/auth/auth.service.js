@@ -12,41 +12,6 @@ function hashRefreshToken(token) {
   return crypto.createHash("sha256").update(token).digest("hex");
 }
 
-export async function googleLogin({ googleId, email }) {
-  let user = await usersRepo.findUserByEmail(email);
-
-  // Case 1: User exists (password or Google)
-  if (user) {
-    // Link Google if not already linked
-    if (!user.googleId) {
-      await usersRepo.linkGoogleAccount(user.userId, googleId);
-    }
-  } else {
-    // Case 2: New user
-    user = {
-      userId: crypto.randomUUID(),
-      email,
-      googleId,
-      passwordHash: null,
-      authProviders: ["google"],
-      tokenVersion: 0,
-      createdAt: Date.now()
-    };
-
-    await usersRepo.createUser(user);
-  }
-
-  const accessToken = signAccessToken(user);
-  const refreshToken = signRefreshToken(user);
-
-  await usersRepo.updateRefreshToken(
-    user.userId,
-    hashRefreshToken(refreshToken)
-  );
-
-  return { user, accessToken, refreshToken };
-}
-
 export async function refreshSession(refreshToken) {
   if (!refreshToken) {
     throw new Error("NO_REFRESH_TOKEN");

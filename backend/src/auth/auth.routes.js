@@ -5,7 +5,6 @@ import {
   loginLimiter,
   registerLimiter,
   refreshLimiter,
-  googleAuthLimiter,
   verificationCodeLimiter,
 } from "../../middleware/rateLimiters.js";
 
@@ -20,9 +19,5 @@ router.post("/refresh", refreshLimiter, controller.refresh);
 
 // Session management
 router.post("/logout", controller.logout);
-
-// OAuth
-router.get("/google", googleAuthLimiter, controller.googleRedirect);
-router.get("/google/callback", googleAuthLimiter, controller.googleCallback);
 
 export default router;
