@@ -1,5 +1,6 @@
 // src/auth/twoFactor.controller.js
 import crypto from "crypto";
+import bcrypt from "bcrypt";
 import speakeasy from "speakeasy";
 import QRCode from "qrcode";
 import * as usersRepo from "../db/users.repo.js";
@@ -13,14 +14,43 @@ import { send2FACode } from "../../services/emailService.js";
 
 /**
  * Generate backup codes for 2FA
+ * Returns both plaintext codes (to show user once) and hashed codes (to store in DB)
  */
-function generateBackupCodes(count = 10) {
-  const codes = [];
+async function generateBackupCodes(count = 10) {
+  const plaintextCodes = [];
+  const hashedCodes = [];
+
   for (let i = 0; i < count; i++) {
     const code = crypto.randomBytes(4).toString("hex").toUpperCase();
-    codes.push(code);
+    plaintextCodes.push(code);
+    // Hash the backup code with bcrypt before storage
+    const hashedCode = await bcrypt.hash(code, 10);
+    hashedCodes.push(hashedCode);
   }
-  return codes;
+
+  return {
+    plaintextCodes, // Show to user once
+    hashedCodes,    // Store in database
+  };
+}
+
+/**
+ * Verify a backup code against hashed codes
+ */
+async function verifyBackupCode(code, hashedCodes) {
+  if (!hashedCodes || !Array.isArray(hashedCodes)) {
+    return { valid: false, matchedHash: null };
+  }
+
+  // Check each hashed code
+  for (const hashedCode of hashedCodes) {
+    const isMatch = await bcrypt.compare(code, hashedCode);
+    if (isMatch) {
+      return { valid: true, matchedHash: hashedCode };
+    }
+  }
+
+  return { valid: false, matchedHash: null };
 }
 
 /**
@@ -47,17 +77,21 @@ export async function setupAuthenticator(req, res) {
     // Generate QR code
     const qrCodeDataURL = await QRCode.toDataURL(secret.otpauth_url);
 
-    // Store the secret temporarily (we'll confirm it in the next step)
+    // Generate backup codes (plaintext to show user, hashed to store later)
+    const { plaintextCodes, hashedCodes } = await generateBackupCodes();
+
+    // Store the secret and hashed backup codes temporarily (we'll confirm it in the next step)
     // Store in verification codes table with 30-minute expiration
     await storeVerificationCode(email, "TEMP_SECRET", {
       tempSecret: secret.base32,
+      hashedBackupCodes: hashedCodes,
       purpose: "2FA_SETUP_AUTHENTICATOR",
     });
 
     res.json({
       secret: secret.base32,
       qrCode: qrCodeDataURL,
-      backupCodes: generateBackupCodes(),
+      backupCodes: plaintextCodes, // Send plaintext codes to user (only shown once)
     });
   } catch (error) {
     console.error("Error setting up authenticator:", error);
@@ -72,13 +106,13 @@ export async function verifyAuthenticatorSetup(req, res) {
   try {
     const userId = req.user.userId;
     const email = req.user.email;
-    const { code, backupCodes } = req.body;
+    const { code } = req.body;
 
-    if (!code || !backupCodes || !Array.isArray(backupCodes)) {
-      return res.status(400).json({ error: "Missing required fields" });
+    if (!code) {
+      return res.status(400).json({ error: "Verification code required" });
     }
 
-    // Get the temporary secret
+    // Get the temporary secret and hashed backup codes
     const { getVerificationCode } = await import("../db/verificationCodes.repo.js");
     const tempData = await getVerificationCode(email);
 
@@ -87,6 +121,7 @@ export async function verifyAuthenticatorSetup(req, res) {
     }
 
     const secret = tempData.tempSecret;
+    const hashedBackupCodes = tempData.hashedBackupCodes;
 
     // Verify the TOTP code
     const verified = speakeasy.totp.verify({
@@ -100,12 +135,12 @@ export async function verifyAuthenticatorSetup(req, res) {
       return res.status(400).json({ error: "Invalid verification code" });
     }
 
-    // Save 2FA settings
+    // Save 2FA settings with HASHED backup codes
     await usersRepo.update2FASettings(userId, {
       twoFactorEnabled: true,
       twoFactorMethod: "authenticator",
       twoFactorSecret: secret,
-      twoFactorBackupCodes: backupCodes,
+      twoFactorBackupCodes: hashedBackupCodes, // Store hashed codes only
     });
 
     // Clean up temporary secret
@@ -135,21 +170,21 @@ export async function setupEmail2FA(req, res) {
       return res.status(400).json({ error: "2FA is already enabled" });
     }
 
-    // Generate backup codes
-    const backupCodes = generateBackupCodes();
+    // Generate backup codes (plaintext to show user, hashed to store)
+    const { plaintextCodes, hashedCodes } = await generateBackupCodes();
 
-    // Save 2FA settings
+    // Save 2FA settings with HASHED backup codes
     await usersRepo.update2FASettings(userId, {
       twoFactorEnabled: true,
       twoFactorMethod: "email",
       twoFactorSecret: null, // Email method doesn't need a secret
-      twoFactorBackupCodes: backupCodes,
+      twoFactorBackupCodes: hashedCodes, // Store hashed codes only
     });
 
     res.json({
       message: "Email 2FA enabled successfully",
       method: "email",
-      backupCodes: backupCodes,
+      backupCodes: plaintextCodes, // Send plaintext codes to user (only shown once)
     });
   } catch (error) {
     console.error("Error setting up email 2FA:", error);
@@ -236,12 +271,13 @@ export async function verify2FACode(req, res) {
 
     let verified = false;
 
-    // Check if it's a backup code
+    // Check if it's a backup code (verify against hashed codes)
     if (isBackupCode) {
-      if (twoFactorSettings.twoFactorBackupCodes?.includes(code)) {
+      const backupCodeResult = await verifyBackupCode(code, twoFactorSettings.twoFactorBackupCodes);
+      if (backupCodeResult.valid) {
         verified = true;
-        // Remove the used backup code
-        await usersRepo.useBackupCode(user.userId, code);
+        // Remove the used backup code (by its hash)
+        await usersRepo.useBackupCode(user.userId, backupCodeResult.matchedHash);
       }
     } else if (twoFactorSettings.twoFactorMethod === "authenticator") {
       // Verify TOTP code
@@ -341,17 +377,17 @@ export async function regenerateBackupCodes(req, res) {
       return res.status(400).json({ error: "2FA is not enabled" });
     }
 
-    // Generate new backup codes
-    const backupCodes = generateBackupCodes();
+    // Generate new backup codes (plaintext to show user, hashed to store)
+    const { plaintextCodes, hashedCodes } = await generateBackupCodes();
 
-    // Update backup codes
+    // Update backup codes with HASHED versions
     await usersRepo.update2FASettings(userId, {
-      twoFactorBackupCodes: backupCodes,
+      twoFactorBackupCodes: hashedCodes, // Store hashed codes only
     });
 
     res.json({
       message: "Backup codes regenerated successfully",
-      backupCodes: backupCodes,
+      backupCodes: plaintextCodes, // Send plaintext codes to user (only shown once)
     });
   } catch (error) {
     console.error("Error regenerating backup codes:", error);

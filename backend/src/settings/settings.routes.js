@@ -1,6 +1,7 @@
 import express from "express";
 import { requireAuth } from "../auth/auth.middleware.js";
 import * as settingsController from "./settings.controller.js";
+import { verificationCodeLimiter } from "../../middleware/rateLimiters.js";
 
 const router = express.Router();
 
@@ -14,8 +15,8 @@ router.post("/password", settingsController.changePassword);
 router.get("/notifications", settingsController.getNotificationSettings);
 router.put("/notifications", settingsController.updateNotificationSettings);
 
-// Account deletion
+// Account deletion - Rate limit to prevent brute force on verification codes
 router.post("/account/delete/request", settingsController.requestAccountDeletion);
-router.post("/account/delete/confirm", settingsController.deleteAccount);
+router.post("/account/delete/confirm", verificationCodeLimiter, settingsController.deleteAccount);
 
 export default router;

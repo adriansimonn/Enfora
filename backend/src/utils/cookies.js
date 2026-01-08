@@ -1,8 +1,8 @@
 export function setRefreshTokenCookie(res, token) {
   res.cookie("refreshToken", token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+    secure: true, // Always use secure cookies (HTTPS only)
+    sameSite: "strict", // Always use strict for maximum CSRF protection
     path: "/",
     maxAge: 30 * 24 * 60 * 60 * 1000
   });

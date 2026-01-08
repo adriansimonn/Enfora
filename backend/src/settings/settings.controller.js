@@ -176,11 +176,11 @@ export async function requestAccountDeletion(req, res) {
  */
 export async function deleteAccount(req, res) {
   try {
-    const { verificationCode, username } = req.body;
+    const { verificationCode, username, password } = req.body;
     const userId = req.user.userId;
 
-    // Validate input
-    if (!verificationCode || !username) {
+    // Validate input - REQUIRE password for account deletion
+    if (!verificationCode || !username || !password) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
@@ -201,7 +201,18 @@ export async function deleteAccount(req, res) {
       return res.status(400).json({ error: "Username does not match" });
     }
 
-    // Verify the code
+    // SECURITY: Verify password before allowing account deletion
+    if (!user.passwordHash) {
+      return res.status(400).json({ error: "Cannot delete OAuth-only accounts this way" });
+    }
+
+    const { verifyPassword } = await import("../utils/password.js");
+    const validPassword = await verifyPassword(password, user.passwordHash);
+    if (!validPassword) {
+      return res.status(401).json({ error: "Invalid password" });
+    }
+
+    // Verify the email verification code
     const verification = await verifyCode(user.email, verificationCode);
 
     if (!verification.valid) {

@@ -1,4 +1,5 @@
 // src/auth/auth.controller.js
+import bcrypt from "bcrypt";
 import * as authService from "./auth.service.js";
 import { refreshSession } from "./auth.service.js";
 import {
@@ -281,12 +282,20 @@ export async function login(req, res) {
 
       let verified = false;
 
-      // Check if it's a backup code
+      // Check if it's a backup code (verify against hashed codes)
       if (isBackupCode) {
-        if (twoFactorSettings.twoFactorBackupCodes?.includes(twoFactorCode)) {
-          verified = true;
-          // Remove the used backup code
-          await useBackupCode(user.userId, twoFactorCode);
+        const hashedCodes = twoFactorSettings.twoFactorBackupCodes;
+        if (hashedCodes && Array.isArray(hashedCodes)) {
+          // Check each hashed code
+          for (const hashedCode of hashedCodes) {
+            const isMatch = await bcrypt.compare(twoFactorCode, hashedCode);
+            if (isMatch) {
+              verified = true;
+              // Remove the used backup code (by its hash)
+              await useBackupCode(user.userId, hashedCode);
+              break;
+            }
+          }
         }
       } else if (twoFactorSettings.twoFactorMethod === "authenticator") {
         // Verify TOTP code

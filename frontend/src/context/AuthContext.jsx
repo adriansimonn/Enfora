@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useRef } from 'react'
 import { login as loginAPI, register as registerAPI, logout as logoutAPI, refreshAccessToken } from '../services/auth'
-import { setAccessToken as setApiAccessToken } from '../services/api'
+import { setAccessToken as setApiAccessToken, initializeCsrfToken } from '../services/api'
 import emblemLogo from '../assets/logos/emblem_logo_t.png'
 
 const AuthContext = createContext(null)
@@ -40,24 +40,29 @@ export function AuthProvider({ children }) {
   }
 
   useEffect(() => {
-    // Try to refresh token on mount
-    console.log('AuthContext: Attempting to refresh token on mount...')
-    refreshAccessToken()
-      .then(data => {
+    // Initialize CSRF token then try to refresh access token on mount
+    const initializeAuth = async () => {
+      console.log('AuthContext: Initializing CSRF token...')
+      await initializeCsrfToken()
+
+      console.log('AuthContext: Attempting to refresh token on mount...')
+      try {
+        const data = await refreshAccessToken()
         console.log('AuthContext: Refresh successful', data)
         updateAccessToken(data.accessToken)
         // Set user data from refresh response
         if (data.user) {
           setUser(data.user)
         }
-      })
-      .catch((err) => {
+      } catch (err) {
         console.log('AuthContext: Refresh failed', err.message)
         // No valid session
-      })
-      .finally(() => {
+      } finally {
         setLoading(false)
-      })
+      }
+    }
+
+    initializeAuth()
 
     return () => {
       if (refreshTimerRef.current) {
@@ -67,6 +72,9 @@ export function AuthProvider({ children }) {
   }, [])
 
   const login = async (email, password, twoFactorCode = null, isBackupCode = false) => {
+    // Ensure CSRF token is available before login
+    await initializeCsrfToken()
+
     const data = await loginAPI(email, password, twoFactorCode, isBackupCode)
 
     // Check if 2FA is required
@@ -81,6 +89,9 @@ export function AuthProvider({ children }) {
   }
 
   const register = async (email, password, username, displayName) => {
+    // Ensure CSRF token is available before registration
+    await initializeCsrfToken()
+
     const data = await registerAPI(email, password, username, displayName)
     updateAccessToken(data.accessToken)
     setUser(data.user)

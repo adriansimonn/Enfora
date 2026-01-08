@@ -3,6 +3,14 @@ const express = require("express");
 const router = express.Router();
 const paymentService = require("../services/paymentService");
 const stripeService = require("../services/stripeService");
+const { skipCsrf } = require("../middleware/csrf");
+
+// Import rate limiters
+let paymentLimiter, paymentChargeLimiter;
+import("../middleware/rateLimiters.js").then((module) => {
+  paymentLimiter = module.paymentLimiter;
+  paymentChargeLimiter = module.paymentChargeLimiter;
+});
 
 // Import auth middleware (dynamic import for ES module)
 let requireAuth;
@@ -43,11 +51,12 @@ router.get("/methods", async (req, res) => {
  * Create SetupIntent for collecting payment method
  */
 router.post("/setup-intent", async (req, res) => {
-  if (!requireAuth) {
+  if (!requireAuth || !paymentLimiter) {
     return res.status(500).json({ error: "Server initializing" });
   }
 
-  requireAuth(req, res, async () => {
+  paymentLimiter(req, res, () => {
+    requireAuth(req, res, async () => {
     try {
       const { getStripeCustomerId } = await import("../src/db/users.repo.js");
       const { findUserById } = await import("../src/db/users.repo.js");
@@ -79,6 +88,7 @@ router.post("/setup-intent", async (req, res) => {
         message: "Failed to create payment setup",
       });
     }
+    });
   });
 });
 
@@ -87,11 +97,12 @@ router.post("/setup-intent", async (req, res) => {
  * Save payment method to user account
  */
 router.post("/methods", async (req, res) => {
-  if (!requireAuth) {
+  if (!requireAuth || !paymentLimiter) {
     return res.status(500).json({ error: "Server initializing" });
   }
 
-  requireAuth(req, res, async () => {
+  paymentLimiter(req, res, () => {
+    requireAuth(req, res, async () => {
     try {
       const { paymentMethodId } = req.body;
 
@@ -126,6 +137,7 @@ router.post("/methods", async (req, res) => {
         message: error.message || "Failed to save payment method",
       });
     }
+    });
   });
 });
 
@@ -134,22 +146,24 @@ router.post("/methods", async (req, res) => {
  * Remove user's payment method
  */
 router.delete("/methods", async (req, res) => {
-  if (!requireAuth) {
+  if (!requireAuth || !paymentLimiter) {
     return res.status(500).json({ error: "Server initializing" });
   }
 
-  requireAuth(req, res, async () => {
-    try {
-      await paymentService.removePaymentMethod(req.user.userId);
+  paymentLimiter(req, res, () => {
+    requireAuth(req, res, async () => {
+      try {
+        await paymentService.removePaymentMethod(req.user.userId);
 
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Error removing payment method:", error);
-      res.status(500).json({
-        error: "PAYMENT_METHOD_ERROR",
-        message: error.message || "Failed to remove payment method",
-      });
-    }
+        res.json({ success: true });
+      } catch (error) {
+        console.error("Error removing payment method:", error);
+        res.status(500).json({
+          error: "PAYMENT_METHOD_ERROR",
+          message: error.message || "Failed to remove payment method",
+        });
+      }
+    });
   });
 });
 
@@ -188,8 +202,14 @@ router.get("/history", async (req, res) => {
  * POST /api/payments/charge
  * Internal endpoint to charge user for failed task
  * Requires API key authentication
+ * Skip CSRF since this uses API key authentication instead
  */
-router.post("/charge", async (req, res) => {
+router.post("/charge", skipCsrf, async (req, res) => {
+  if (!paymentChargeLimiter) {
+    return res.status(500).json({ error: "Server initializing" });
+  }
+
+  paymentChargeLimiter(req, res, async () => {
   try {
     // Validate API key for internal requests
     const apiKey = req.headers['x-api-key'];
@@ -230,6 +250,7 @@ router.post("/charge", async (req, res) => {
       message: "Failed to process charge",
     });
   }
+  });
 });
 
 module.exports = router;

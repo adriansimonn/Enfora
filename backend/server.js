@@ -2,6 +2,7 @@ console.log("CWD:", process.cwd());
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
+const { csrfProtection } = require("./middleware/csrf");
 require("dotenv").config();
 
 const app = express();
@@ -28,6 +29,10 @@ app.use((req, res, next) => {
   console.log("Body:", req.body);
   next();
 });
+
+// CSRF Protection - apply to all routes except webhooks (already mounted)
+// Webhooks are exempt because they use signature verification instead
+app.use(csrfProtection);
 
 // Initialize server asynchronously to load ES module routes
 async function initializeServer() {

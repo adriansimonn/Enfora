@@ -22,7 +22,10 @@ router.get("/check-username/:username", profileController.checkUsername);
 // Protected routes - require authentication
 router.get("/user/:userId", requireAuth, profileController.getProfileByUserId);
 router.put("/:username", requireAuth, profileController.updateProfile);
-router.put("/:username/tags", requireAuth, profileController.updateTags);
+// Note: updateTags endpoint removed - tags should only be modified by:
+// 1. System automatically when reliability score changes
+// 2. Developers with direct database access
+// Users should NOT be able to modify their own or others' tags
 router.post(
   "/:username/picture",
   requireAuth,

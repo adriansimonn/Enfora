@@ -2,6 +2,16 @@ import { getAccessToken } from './api'
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
 
+// Helper function to get CSRF token from cookies
+function getCsrfToken() {
+  const value = `; ${document.cookie}`
+  const parts = value.split(`; XSRF-TOKEN=`)
+  if (parts.length === 2) {
+    return parts.pop().split(';').shift()
+  }
+  return null
+}
+
 async function fetchWithAuth(url, options = {}) {
   const token = getAccessToken()
   const headers = {
@@ -11,6 +21,15 @@ async function fetchWithAuth(url, options = {}) {
 
   if (token) {
     headers.Authorization = `Bearer ${token}`
+  }
+
+  // Add CSRF token for state-changing requests
+  const method = options.method?.toUpperCase()
+  if (method === 'POST' || method === 'PUT' || method === 'DELETE' || method === 'PATCH') {
+    const csrfToken = getCsrfToken()
+    if (csrfToken) {
+      headers['X-XSRF-Token'] = csrfToken
+    }
   }
 
   const res = await fetch(url, {

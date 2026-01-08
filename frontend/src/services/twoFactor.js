@@ -2,6 +2,16 @@ import { fetchWithAuth } from './api'
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
 
+// Helper function to get CSRF token from cookies
+function getCsrfToken() {
+  const value = `; ${document.cookie}`
+  const parts = value.split(`; XSRF-TOKEN=`)
+  if (parts.length === 2) {
+    return parts.pop().split(';').shift()
+  }
+  return null
+}
+
 /**
  * Get 2FA status for current user
  */
@@ -82,11 +92,18 @@ export async function disable2FA(password) {
  * Send 2FA code via email (for login)
  */
 export async function send2FAEmailCode(email) {
+  const headers = {
+    'Content-Type': 'application/json'
+  }
+  const csrfToken = getCsrfToken()
+  if (csrfToken) {
+    headers['X-XSRF-Token'] = csrfToken
+  }
+
   const response = await fetch(`${API_BASE}/2fa/send-email-code`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
+    headers,
+    credentials: 'include',
     body: JSON.stringify({ email })
   })
   if (!response.ok) {
@@ -100,11 +117,18 @@ export async function send2FAEmailCode(email) {
  * Verify 2FA code during login
  */
 export async function verify2FACode(email, code, isBackupCode = false) {
+  const headers = {
+    'Content-Type': 'application/json'
+  }
+  const csrfToken = getCsrfToken()
+  if (csrfToken) {
+    headers['X-XSRF-Token'] = csrfToken
+  }
+
   const response = await fetch(`${API_BASE}/2fa/verify`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
+    headers,
+    credentials: 'include',
     body: JSON.stringify({ email, code, isBackupCode })
   })
   if (!response.ok) {

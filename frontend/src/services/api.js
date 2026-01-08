@@ -10,6 +10,36 @@ export function getAccessToken() {
   return accessToken
 }
 
+// Helper function to get CSRF token from cookies
+function getCsrfToken() {
+  const value = `; ${document.cookie}`
+  const parts = value.split(`; XSRF-TOKEN=`)
+  if (parts.length === 2) {
+    return parts.pop().split(';').shift()
+  }
+  return null
+}
+
+// Initialize CSRF token by making a lightweight GET request
+export async function initializeCsrfToken() {
+  // Check if we already have a token
+  if (getCsrfToken()) {
+    return
+  }
+
+  // Make a simple GET request to obtain the CSRF token
+  // Using the leaderboard endpoint as it's public and lightweight
+  try {
+    await fetch(`${API_BASE}/leaderboard/top100`, {
+      method: 'GET',
+      credentials: 'include'
+    })
+  } catch (error) {
+    // Silently fail - the token will be obtained on the next GET request
+    console.warn('Failed to initialize CSRF token:', error)
+  }
+}
+
 export async function fetchWithAuth(url, options = {}) {
   const headers = {
     ...options.headers,
@@ -18,6 +48,15 @@ export async function fetchWithAuth(url, options = {}) {
 
   if (accessToken) {
     headers.Authorization = `Bearer ${accessToken}`
+  }
+
+  // Add CSRF token for state-changing requests
+  const method = options.method?.toUpperCase()
+  if (method === 'POST' || method === 'PUT' || method === 'DELETE' || method === 'PATCH') {
+    const csrfToken = getCsrfToken()
+    if (csrfToken) {
+      headers['X-XSRF-Token'] = csrfToken
+    }
   }
 
   const res = await fetch(url, {
