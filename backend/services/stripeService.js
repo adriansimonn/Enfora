@@ -137,16 +137,27 @@ async function detachPaymentMethod(paymentMethodId) {
  */
 async function createPaymentIntent(amount, customerId, metadata = {}) {
   try {
+    console.log('[StripeService] Creating payment intent...');
     const idempotencyKey = crypto.randomUUID();
+    console.log('  Idempotency key:', idempotencyKey);
+    console.log('  Amount:', amount);
+    console.log('  Customer ID:', customerId);
+    console.log('  Metadata:', JSON.stringify(metadata, null, 2));
 
     // Get customer's default payment method
+    console.log('[StripeService] Retrieving customer from Stripe...');
     const customer = await stripe.customers.retrieve(customerId);
     const defaultPaymentMethod = customer.invoice_settings?.default_payment_method;
 
+    console.log('  Customer email:', customer.email);
+    console.log('  Default payment method ID:', defaultPaymentMethod);
+
     if (!defaultPaymentMethod) {
+      console.error('[StripeService] No default payment method found for customer');
       throw new Error('No payment method available');
     }
 
+    console.log('[StripeService] Creating payment intent with Stripe API...');
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(amount), // Ensure integer
       currency: 'usd',
@@ -162,17 +173,28 @@ async function createPaymentIntent(amount, customerId, metadata = {}) {
       idempotencyKey, // Prevent duplicate charges
     });
 
+    console.log('✓ Payment intent created successfully');
+    console.log('  Payment Intent ID:', paymentIntent.id);
+    console.log('  Status:', paymentIntent.status);
+    console.log('  Amount:', paymentIntent.amount);
+
     return paymentIntent;
   } catch (error) {
-    console.error('Error creating payment intent:', error);
+    console.error('[StripeService] Error creating payment intent:', error);
+    console.error('  Error type:', error.type);
+    console.error('  Error code:', error.code);
+    console.error('  Error message:', error.message);
 
     // Handle specific Stripe errors
     if (error.type === 'StripeCardError') {
+      console.error('[StripeService] Card error - decline code:', error.decline_code);
       throw new Error(error.message); // User-friendly card error
     } else if (error.code === 'payment_method_not_available') {
+      console.error('[StripeService] Payment method not available');
       throw new Error('No payment method available');
     }
 
+    console.error('[StripeService] Generic payment processing error');
     throw new Error('Payment processing failed');
   }
 }

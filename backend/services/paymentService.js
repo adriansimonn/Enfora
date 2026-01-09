@@ -112,6 +112,7 @@ async function hasPaymentMethod(userId) {
  */
 async function createTransaction(data) {
   try {
+    console.log('[PaymentService] Creating transaction in DynamoDB...');
     const transaction = {
       transactionId: crypto.randomUUID(),
       userId: data.userId,
@@ -125,14 +126,19 @@ async function createTransaction(data) {
       updatedAt: new Date().toISOString(),
     };
 
+    console.log('  Transaction data:', JSON.stringify(transaction, null, 2));
+
     await dynamoDB.send(new PutCommand({
       TableName: TRANSACTIONS_TABLE,
       Item: transaction,
     }));
 
+    console.log('✓ Transaction record saved to DynamoDB');
     return transaction;
   } catch (error) {
-    console.error('Error creating transaction:', error);
+    console.error('[PaymentService] Error creating transaction:', error);
+    console.error('  Error code:', error.code);
+    console.error('  Error message:', error.message);
     throw new Error('Failed to create transaction record');
   }
 }
@@ -257,6 +263,7 @@ async function getTransactionById(transactionId) {
  */
 async function getTransactionByPaymentIntentId(paymentIntentId) {
   try {
+    console.log('[PaymentService] Looking up transaction by payment intent ID:', paymentIntentId);
     const result = await dynamoDB.send(new QueryCommand({
       TableName: TRANSACTIONS_TABLE,
       IndexName: 'stripePaymentIntentId-index', // Note: This GSI would need to be created
@@ -267,10 +274,16 @@ async function getTransactionByPaymentIntentId(paymentIntentId) {
       Limit: 1,
     }));
 
-    return result.Items?.[0] || null;
+    const transaction = result.Items?.[0] || null;
+    console.log('  Transaction found:', !!transaction);
+    if (transaction) {
+      console.log('  Transaction ID:', transaction.transactionId);
+    }
+    return transaction;
   } catch (error) {
     // If index doesn't exist, fall back to scan (inefficient but works for MVP)
-    console.warn('stripePaymentIntentId-index not found, using scan');
+    console.warn('[PaymentService] stripePaymentIntentId-index not found, using scan');
+    console.warn('  Error:', error.message);
     try {
       const scanResult = await dynamoDB.send(new QueryCommand({
         TableName: TRANSACTIONS_TABLE,
@@ -279,9 +292,11 @@ async function getTransactionByPaymentIntentId(paymentIntentId) {
           ':pid': paymentIntentId,
         },
       }));
-      return scanResult.Items?.[0] || null;
+      const transaction = scanResult.Items?.[0] || null;
+      console.log('  Scan result - Transaction found:', !!transaction);
+      return transaction;
     } catch (scanError) {
-      console.error('Error scanning for transaction:', scanError);
+      console.error('[PaymentService] Error scanning for transaction:', scanError);
       return null;
     }
   }
@@ -296,10 +311,17 @@ async function getTransactionByPaymentIntentId(paymentIntentId) {
  */
 async function chargeFailedTask(userId, taskId, amount) {
   try {
+    console.log('[PaymentService] chargeFailedTask called');
+    console.log('  User ID:', userId);
+    console.log('  Task ID:', taskId);
+    console.log('  Amount: $' + amount);
+
     // Validate payment method exists
     const stripeCustomerId = await getStripeCustomerId(userId);
+    console.log('  Stripe Customer ID:', stripeCustomerId);
 
     if (!stripeCustomerId) {
+      console.log('✗ No Stripe customer ID found for user');
       return {
         success: false,
         error: 'No payment method on file',
@@ -307,8 +329,14 @@ async function chargeFailedTask(userId, taskId, amount) {
     }
 
     const paymentMethod = await stripeService.getDefaultPaymentMethod(stripeCustomerId);
+    console.log('  Payment method found:', !!paymentMethod);
+    if (paymentMethod) {
+      console.log('    Brand:', paymentMethod.brand);
+      console.log('    Last 4:', paymentMethod.last4);
+    }
 
     if (!paymentMethod) {
+      console.log('✗ No payment method on file for customer');
       return {
         success: false,
         error: 'No payment method on file',
@@ -317,8 +345,10 @@ async function chargeFailedTask(userId, taskId, amount) {
 
     // Convert dollars to cents
     const amountInCents = Math.round(amount * 100);
+    console.log('  Amount in cents:', amountInCents);
 
     // Create pending transaction record
+    console.log('[PaymentService] Creating transaction record...');
     const transaction = await createTransaction({
       userId,
       taskId,
@@ -326,16 +356,21 @@ async function chargeFailedTask(userId, taskId, amount) {
       amount: amountInCents,
       status: 'pending',
     });
+    console.log('✓ Transaction created:', transaction.transactionId);
 
     try {
       // Create and confirm payment intent
+      console.log('[PaymentService] Creating Stripe payment intent...');
       const paymentIntent = await stripeService.createPaymentIntent(
         amountInCents,
         stripeCustomerId,
         { userId, taskId, transactionId: transaction.transactionId }
       );
+      console.log('✓ Payment intent created:', paymentIntent.id);
+      console.log('  Payment intent status:', paymentIntent.status);
 
       // Update transaction with payment intent ID
+      console.log('[PaymentService] Updating transaction with payment intent ID...');
       await dynamoDB.send(new UpdateCommand({
         TableName: TRANSACTIONS_TABLE,
         Key: { transactionId: transaction.transactionId },
@@ -344,9 +379,11 @@ async function chargeFailedTask(userId, taskId, amount) {
           ':pid': paymentIntent.id,
         },
       }));
+      console.log('✓ Transaction updated with payment intent ID');
 
       // Check payment intent status
       if (paymentIntent.status === 'succeeded') {
+        console.log('[PaymentService] Payment succeeded immediately');
         await updateTransactionStatus(transaction.transactionId, 'succeeded');
         return {
           success: true,
@@ -358,6 +395,7 @@ async function chargeFailedTask(userId, taskId, amount) {
         };
       } else if (paymentIntent.status === 'requires_payment_method') {
         const failureReason = paymentIntent.last_payment_error?.message || 'Payment failed';
+        console.log('[PaymentService] Payment requires payment method:', failureReason);
         await updateTransactionStatus(transaction.transactionId, 'failed', { failureReason });
         return {
           success: false,
@@ -370,6 +408,7 @@ async function chargeFailedTask(userId, taskId, amount) {
         };
       } else {
         // Payment is processing
+        console.log('[PaymentService] Payment is processing, webhook will update status');
         return {
           success: true,
           transaction: {
@@ -380,6 +419,10 @@ async function chargeFailedTask(userId, taskId, amount) {
         };
       }
     } catch (paymentError) {
+      console.error('[PaymentService] Payment error:', paymentError);
+      console.error('  Error message:', paymentError.message);
+      console.error('  Error type:', paymentError.type);
+
       // Update transaction as failed
       const failureReason = paymentError.message || 'Payment processing failed';
       await updateTransactionStatus(transaction.transactionId, 'failed', { failureReason });
@@ -395,7 +438,8 @@ async function chargeFailedTask(userId, taskId, amount) {
       };
     }
   } catch (error) {
-    console.error('Error charging failed task:', error);
+    console.error('[PaymentService] Error charging failed task:', error);
+    console.error('  Error stack:', error.stack);
     return {
       success: false,
       error: error.message || 'Failed to process payment',

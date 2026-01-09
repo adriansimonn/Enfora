@@ -211,32 +211,61 @@ router.post("/charge", skipCsrf, async (req, res) => {
 
   paymentChargeLimiter(req, res, async () => {
   try {
+    console.log('=== PAYMENT CHARGE ENDPOINT CALLED ===');
+    console.log('Timestamp:', new Date().toISOString());
+    console.log('Request body:', JSON.stringify(req.body, null, 2));
+
     // Validate API key for internal requests
     const apiKey = req.headers['x-api-key'];
-    if (apiKey !== process.env.PAYMENT_API_KEY) {
+    const expectedApiKey = process.env.PAYMENT_API_KEY;
+
+    console.log('API Key present:', !!apiKey);
+    console.log('Expected API Key configured:', !!expectedApiKey);
+    console.log('API Key match:', apiKey === expectedApiKey);
+
+    if (apiKey !== expectedApiKey) {
+      console.error('✗ API key validation failed');
       return res.status(401).json({
         error: "UNAUTHORIZED",
         message: "Invalid API key",
       });
     }
 
+    console.log('✓ API key validated successfully');
+
     const { userId, taskId, amount } = req.body;
 
     if (!userId || !taskId || !amount) {
+      console.error('✗ Missing required fields:', { userId: !!userId, taskId: !!taskId, amount: !!amount });
       return res.status(400).json({
         error: "INVALID_REQUEST",
         message: "userId, taskId, and amount are required",
       });
     }
 
+    console.log('Processing charge for:');
+    console.log('  User ID:', userId);
+    console.log('  Task ID:', taskId);
+    console.log('  Amount: $' + amount);
+
     const result = await paymentService.chargeFailedTask(userId, taskId, amount);
 
+    console.log('Charge result:', JSON.stringify(result, null, 2));
+
     if (result.success) {
+      console.log('✓ Charge successful');
+      console.log('  Transaction ID:', result.transaction?.transactionId);
+      console.log('  Status:', result.transaction?.status);
+      console.log('  Payment Intent ID:', result.transaction?.stripePaymentIntentId);
+      console.log('================================');
       res.json({
         success: true,
         transaction: result.transaction,
       });
     } else {
+      console.log('✗ Charge failed:', result.error);
+      console.log('  Transaction ID:', result.transaction?.transactionId);
+      console.log('================================');
       res.status(400).json({
         success: false,
         error: result.error,
@@ -244,7 +273,9 @@ router.post("/charge", skipCsrf, async (req, res) => {
       });
     }
   } catch (error) {
-    console.error("Error charging failed task:", error);
+    console.error("✗ Error charging failed task:", error);
+    console.error('Error stack:', error.stack);
+    console.error('================================');
     res.status(500).json({
       error: "CHARGE_ERROR",
       message: "Failed to process charge",
