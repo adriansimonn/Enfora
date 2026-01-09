@@ -60,9 +60,10 @@ app.use(express.json()); // For parsing JSON bodies
 app.use(cookieParser()); // For parsing cookies
 app.use(express.urlencoded({ extended: true }));
 
-// CSRF Protection - apply to all routes except webhooks (already mounted)
+// CSRF Protection - TEMPORARILY DISABLED for cross-origin setup
+// TODO: Implement proper CSRF protection for cross-origin (e.g., custom header or CORS-based protection)
 // Webhooks are exempt because they use signature verification instead
-app.use(csrfProtection);
+// app.use(csrfProtection);
 
 // Initialize server asynchronously to load ES module routes
 async function initializeServer() {
