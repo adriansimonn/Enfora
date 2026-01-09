@@ -27,7 +27,7 @@ function csrfProtection(req, res, next) {
     res.cookie("XSRF-TOKEN", token, {
       httpOnly: false, // Must be readable by JavaScript
       secure: true, // Always use secure in production
-      sameSite: "strict",
+      sameSite: "none", // Required for cross-origin cookies (frontend and backend on different domains)
       maxAge: 3600000, // 1 hour
     });
 

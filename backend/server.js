@@ -7,11 +7,23 @@ require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Debug: Log environment on startup
+console.log('=== ENVIRONMENT VARIABLES ===');
+console.log('FRONTEND_URL:', process.env.FRONTEND_URL);
+console.log('PORT:', process.env.PORT);
+console.log('============================');
+
 // Middleware
-app.use(cors({
+const corsOptions = {
   origin: process.env.FRONTEND_URL || "http://localhost:5173",
-  credentials: true
-}));
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-XSRF-Token', 'X-CSRF-Token'],
+};
+
+console.log('CORS Configuration:', corsOptions);
+
+app.use(cors(corsOptions));
 
 // Debug logging middleware
 app.use((req, res, next) => {
