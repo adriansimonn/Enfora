@@ -29,7 +29,10 @@ function csrfProtection(req, res, next) {
       secure: true, // Always use secure in production
       sameSite: "none", // Required for cross-origin cookies (frontend and backend on different domains)
       maxAge: 3600000, // 1 hour
+      path: "/",
     });
+
+    console.log('[CSRF] Generated and set CSRF token:', token.substring(0, 10) + '...');
 
     return next();
   }
@@ -38,8 +41,14 @@ function csrfProtection(req, res, next) {
   const cookieToken = req.cookies["XSRF-TOKEN"];
   const headerToken = req.headers["x-xsrf-token"] || req.headers["x-csrf-token"];
 
+  console.log('[CSRF] Validating CSRF token');
+  console.log('[CSRF] Cookie token:', cookieToken ? cookieToken.substring(0, 10) + '...' : 'MISSING');
+  console.log('[CSRF] Header token:', headerToken ? headerToken.substring(0, 10) + '...' : 'MISSING');
+  console.log('[CSRF] All cookies:', Object.keys(req.cookies));
+
   // Check if both tokens exist
   if (!cookieToken || !headerToken) {
+    console.log('[CSRF] Validation FAILED - token missing');
     return res.status(403).json({
       error: "CSRF token missing. Please refresh the page and try again.",
     });
