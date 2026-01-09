@@ -3,7 +3,8 @@ import {
   ScanCommand,
   PutItemCommand,
   QueryCommand,
-  BatchWriteItemCommand
+  BatchWriteItemCommand,
+  DeleteItemCommand
 } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 
@@ -172,15 +173,78 @@ async function enrichWithProfiles(users) {
 }
 
 /**
+ * Delete old cache entries to prevent overpopulation
+ */
+async function deleteOldCacheEntries(cacheType) {
+  try {
+    // Query all entries for this cacheType
+    const queryResult = await client.send(new QueryCommand({
+      TableName: LEADERBOARD_TABLE,
+      KeyConditionExpression: "cacheType = :ct",
+      ExpressionAttributeValues: marshall({ ":ct": cacheType }),
+      ProjectionExpression: "cacheType, lastUpdated"
+    }));
+
+    if (!queryResult.Items || queryResult.Items.length === 0) {
+      return 0;
+    }
+
+    const items = queryResult.Items.map(item => unmarshall(item));
+
+    // Keep only the most recent entry, delete all others
+    if (items.length > 1) {
+      // Sort by lastUpdated descending to find most recent
+      items.sort((a, b) => b.lastUpdated.localeCompare(a.lastUpdated));
+
+      // Delete all except the most recent one
+      const itemsToDelete = items.slice(1);
+
+      // Batch delete in groups of 25 (DynamoDB limit)
+      const batchSize = 25;
+      for (let i = 0; i < itemsToDelete.length; i += batchSize) {
+        const batch = itemsToDelete.slice(i, i + batchSize);
+
+        const deleteRequests = batch.map(item => ({
+          DeleteRequest: {
+            Key: marshall({
+              cacheType: item.cacheType,
+              lastUpdated: item.lastUpdated
+            })
+          }
+        }));
+
+        await client.send(new BatchWriteItemCommand({
+          RequestItems: {
+            [LEADERBOARD_TABLE]: deleteRequests
+          }
+        }));
+      }
+
+      console.log(`Deleted ${itemsToDelete.length} old cache entries for ${cacheType}`);
+      return itemsToDelete.length;
+    }
+
+    return 0;
+  } catch (error) {
+    console.error(`Error deleting old cache entries for ${cacheType}:`, error);
+    return 0;
+  }
+}
+
+/**
  * Cache top 100 in single item
  */
 async function cacheTop100(rankings, totalUsers, timestamp) {
+  // Delete old entries first
+  await deleteOldCacheEntries("GLOBAL_TOP_100");
+
   const item = {
     cacheType: "GLOBAL_TOP_100",
     lastUpdated: timestamp,
     rankings: rankings,
     totalUsers: totalUsers,
-    version: Date.now()
+    version: Date.now(),
+    ttl: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60) // Expire in 7 days
   };
 
   await client.send(new PutItemCommand({
@@ -196,6 +260,15 @@ async function cacheIndividualRanks(users, totalUsers, timestamp) {
   const usersWithProfiles = await enrichWithProfiles(users);
   let count = 0;
   const batchSize = 25; // DynamoDB limit
+  const ttl = Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60); // Expire in 7 days
+
+  // Clean up old entries for each user before writing new ones
+  // This happens in the background to avoid slowing down the Lambda too much
+  for (const user of usersWithProfiles) {
+    deleteOldCacheEntries(`USER_RANK#${user.userId}`).catch(err => {
+      console.error(`Error cleaning up old entries for user ${user.userId}:`, err);
+    });
+  }
 
   for (let i = 0; i < usersWithProfiles.length; i += batchSize) {
     const batch = usersWithProfiles.slice(i, i + batchSize);
@@ -212,7 +285,8 @@ async function cacheIndividualRanks(users, totalUsers, timestamp) {
           reliabilityScore: user.reliabilityScore,
           tags: user.tags || [],
           rank: user.rank,
-          totalUsers: totalUsers
+          totalUsers: totalUsers,
+          ttl: ttl
         })
       }
     }));

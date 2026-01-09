@@ -1,4 +1,4 @@
-const { PutCommand, QueryCommand, ScanCommand } = require("@aws-sdk/lib-dynamodb");
+const { PutCommand, QueryCommand, ScanCommand, DeleteCommand, BatchWriteCommand } = require("@aws-sdk/lib-dynamodb");
 const dynamoDB = require("../config/dynamoClient");
 
 const LEADERBOARD_TABLE = "LeaderboardCache";
@@ -177,6 +177,68 @@ exports.computeUserRankOnDemand = async (userId) => {
 };
 
 /**
+ * Delete old cache entries to prevent overpopulation
+ */
+exports.deleteOldCacheEntries = async (cacheType) => {
+  try {
+    // Query all entries for this cacheType
+    const queryParams = {
+      TableName: LEADERBOARD_TABLE,
+      KeyConditionExpression: "cacheType = :ct",
+      ExpressionAttributeValues: {
+        ":ct": cacheType
+      },
+      ProjectionExpression: "cacheType, lastUpdated"
+    };
+
+    const queryResult = await dynamoDB.send(new QueryCommand(queryParams));
+
+    if (!queryResult.Items || queryResult.Items.length === 0) {
+      return 0;
+    }
+
+    // Keep only the most recent entry, delete all others
+    if (queryResult.Items.length > 1) {
+      // Sort by lastUpdated descending to find most recent
+      const items = [...queryResult.Items];
+      items.sort((a, b) => b.lastUpdated.localeCompare(a.lastUpdated));
+
+      // Delete all except the most recent one
+      const itemsToDelete = items.slice(1);
+
+      // Batch delete in groups of 25 (DynamoDB limit)
+      const batchSize = 25;
+      for (let i = 0; i < itemsToDelete.length; i += batchSize) {
+        const batch = itemsToDelete.slice(i, i + batchSize);
+
+        const deleteRequests = batch.map(item => ({
+          DeleteRequest: {
+            Key: {
+              cacheType: item.cacheType,
+              lastUpdated: item.lastUpdated
+            }
+          }
+        }));
+
+        await dynamoDB.send(new BatchWriteCommand({
+          RequestItems: {
+            [LEADERBOARD_TABLE]: deleteRequests
+          }
+        }));
+      }
+
+      console.log(`Deleted ${itemsToDelete.length} old cache entries for ${cacheType}`);
+      return itemsToDelete.length;
+    }
+
+    return 0;
+  } catch (error) {
+    console.error(`Error deleting old cache entries for ${cacheType}:`, error);
+    return 0;
+  }
+};
+
+/**
  * Calculate full leaderboard (called by Lambda)
  * This is the core ranking algorithm
  */
@@ -252,6 +314,9 @@ exports.calculateLeaderboard = async () => {
     // Step 5: Cache top 100 in single item
     const cacheTimestamp = new Date().toISOString();
 
+    // Delete old GLOBAL_TOP_100 entries first
+    await exports.deleteOldCacheEntries("GLOBAL_TOP_100");
+
     const top100CacheParams = {
       TableName: LEADERBOARD_TABLE,
       Item: {
@@ -259,7 +324,8 @@ exports.calculateLeaderboard = async () => {
         lastUpdated: cacheTimestamp,
         rankings: top100WithProfiles,
         totalUsers: allUsers.length,
-        version: Date.now() // Use timestamp as version
+        version: Date.now(),
+        ttl: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60) // Expire in 7 days
       }
     };
 
@@ -270,6 +336,15 @@ exports.calculateLeaderboard = async () => {
     // Only cache a subset to avoid excessive writes (e.g., ranks 101-500)
     const usersToCache = rankedUsers.slice(100, 500);
     const usersWithProfiles = await exports.enrichWithProfiles(usersToCache);
+
+    const ttl = Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60); // Expire in 7 days
+
+    // Clean up old entries for each user (in background)
+    for (const user of usersWithProfiles) {
+      exports.deleteOldCacheEntries(`USER_RANK#${user.userId}`).catch(err => {
+        console.error(`Error cleaning up old entries for user ${user.userId}:`, err);
+      });
+    }
 
     for (const user of usersWithProfiles) {
       const userCacheParams = {
@@ -284,7 +359,8 @@ exports.calculateLeaderboard = async () => {
           reliabilityScore: user.reliabilityScore,
           tags: user.tags || [],
           rank: user.rank,
-          totalUsers: allUsers.length
+          totalUsers: allUsers.length,
+          ttl: ttl
         }
       };
 
