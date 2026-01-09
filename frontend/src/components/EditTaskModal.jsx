@@ -79,11 +79,16 @@ export default function EditTaskModal({ task, onClose, onSave, onDelete }) {
 
     try {
       const recurrenceRule = getRecurrenceRule();
+
+      // Convert datetime-local to ISO string with timezone
+      const deadlineDate = new Date(deadline);
+      const deadlineISO = deadlineDate.toISOString();
+
       await onSave({
         ...task,
         title,
         description,
-        deadline,
+        deadline: deadlineISO,
         stakeAmount: parseFloat(stakeAmount),
         recurrenceRule,
         isRecurring: recurrenceRule !== null

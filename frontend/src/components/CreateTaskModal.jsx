@@ -86,10 +86,17 @@ export default function CreateTaskModal({ onClose, onSubmit }) {
 
     try {
       const recurrenceRule = getRecurrenceRule();
+
+      // Convert datetime-local to ISO string with timezone
+      // datetime-local gives us a string like "2024-01-09T14:00" which is interpreted as local time
+      // We need to convert it to ISO format with timezone info
+      const deadlineDate = new Date(deadline);
+      const deadlineISO = deadlineDate.toISOString();
+
       await onSubmit({
         title,
         description,
-        deadline,
+        deadline: deadlineISO,
         stakeAmount: parseFloat(stakeAmount),
         recurrenceRule,
         isRecurring: recurrenceRule !== null
