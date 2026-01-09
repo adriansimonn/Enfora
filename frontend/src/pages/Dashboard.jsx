@@ -15,6 +15,8 @@ import TwoFactorEncouragementBanner from "../components/TwoFactorEncouragementBa
 import { fetchTasks, createTask, updateTask, deleteTask, submitDispute } from "../services/api";
 import { get2FAStatus } from "../services/twoFactor";
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+
 export default function Dashboard() {
   const { user } = useAuth();
   const [tasks, setTasks] = useState([]);
@@ -166,7 +168,7 @@ export default function Dashboard() {
         formData.append("taskDescription", task.description);
         formData.append("isExpiredCheck", "true");
 
-        const response = await fetch("http://localhost:3000/api/evidence/upload", {
+        const response = await fetch(`${API_BASE}/evidence/upload`, {
           method: "POST",
           body: formData,
           credentials: 'include'
@@ -199,7 +201,7 @@ export default function Dashboard() {
       formData.append("taskDescription", task.description);
       formData.append("evidence", file);
 
-      const response = await fetch("http://localhost:3000/api/evidence/upload", {
+      const response = await fetch(`${API_BASE}/evidence/upload`, {
         method: "POST",
         body: formData,
         credentials: 'include'
