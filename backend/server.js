@@ -13,6 +13,14 @@ app.use(cors({
   credentials: true
 }));
 
+// Debug logging middleware
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  console.log('Origin:', req.headers.origin);
+  console.log('CORS allowed origin:', process.env.FRONTEND_URL || "http://localhost:5173");
+  next();
+});
+
 // CRITICAL: Mount webhook routes BEFORE express.json() to preserve raw body for signature verification
 const webhookRoutes = require("./routes/webhookRoutes");
 app.use("/api/webhooks", webhookRoutes);

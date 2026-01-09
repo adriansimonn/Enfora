@@ -216,9 +216,11 @@ export async function resendVerificationCode(req, res) {
 
 export async function login(req, res) {
   try {
+    console.log('[LOGIN] Attempt for email:', req.body.email);
     const { email, password, twoFactorCode, isBackupCode } = req.body;
 
     if (!email || !password) {
+      console.log('[LOGIN] Missing email or password');
       return res.status(400).json({ error: "Missing fields" });
     }
 
@@ -290,6 +292,7 @@ export async function login(req, res) {
     // 2FA verified or not required, proceed with login
     setRefreshTokenCookie(res, refreshToken);
 
+    console.log('[LOGIN] Success for user:', user.userId);
     res.json({
       accessToken,
       user: {
@@ -304,10 +307,11 @@ export async function login(req, res) {
     });
   } catch (err) {
     if (err.message === "INVALID_CREDENTIALS") {
+      console.log('[LOGIN] Invalid credentials for email:', req.body.email);
       return res.status(401).json({ error: "Invalid email or password" });
     }
 
-    console.error(err);
+    console.error('[LOGIN] Error:', err);
     res.status(500).json({ error: "Server error" });
   }
 }
