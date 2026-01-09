@@ -15,13 +15,31 @@ console.log('============================');
 
 // Middleware
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || "http://localhost:5173",
+  origin: function (origin, callback) {
+    const allowedOrigin = process.env.FRONTEND_URL || "http://localhost:5173";
+    console.log('CORS Check - Request Origin:', origin);
+    console.log('CORS Check - Allowed Origin:', allowedOrigin);
+
+    // Allow requests with no origin (like mobile apps, curl, Postman)
+    if (!origin) {
+      console.log('CORS Check - No origin, allowing');
+      return callback(null, true);
+    }
+
+    if (origin === allowedOrigin) {
+      console.log('CORS Check - Origin matches, allowing');
+      callback(null, true);
+    } else {
+      console.log('CORS Check - Origin does NOT match, rejecting');
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-XSRF-Token', 'X-CSRF-Token'],
 };
 
-console.log('CORS Configuration:', corsOptions);
+console.log('CORS Configuration initialized with dynamic origin check');
 
 app.use(cors(corsOptions));
 
