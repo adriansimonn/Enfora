@@ -80,13 +80,38 @@ export default function TaskCard({ task, onAction, onEdit }) {
       </div>
 
       <div className="text-sm text-gray-400 font-light">
-        Due: {new Date(task.deadline).toLocaleString(undefined, {
-          year: 'numeric',
-          month: 'numeric',
-          day: 'numeric',
-          hour: 'numeric',
-          minute: 'numeric'
-        })}
+        {task.isRecurring && task.recurrenceRule ? (
+          <>
+            <div>
+              Due: {new Date(task.dueDate || task.deadline).toLocaleString(undefined, {
+                year: 'numeric',
+                month: 'numeric',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: 'numeric'
+              })}
+            </div>
+            <div className="mt-1">
+              Repeats until: {new Date(task.repeatsUntil || task.deadline).toLocaleString(undefined, {
+                year: 'numeric',
+                month: 'numeric',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: 'numeric'
+              })}
+            </div>
+          </>
+        ) : (
+          <div>
+            Due: {new Date(task.deadline).toLocaleString(undefined, {
+              year: 'numeric',
+              month: 'numeric',
+              day: 'numeric',
+              hour: 'numeric',
+              minute: 'numeric'
+            })}
+          </div>
+        )}
       </div>
 
       {task.isRecurring && task.recurrenceRule && (

@@ -125,16 +125,16 @@ export default function Navigation() {
                         <p className="text-sm text-gray-300 truncate font-light">{user.email}</p>
                       </div>
                       <button
-                        onClick={() => handleNavigate('/account/settings')}
-                        className="w-full text-left px-4 py-2.5 text-gray-300 hover:bg-white/[0.06] hover:text-white transition-all duration-200 font-light rounded-lg mx-1 my-0.5"
-                      >
-                        Settings
-                      </button>
-                      <button
                         onClick={() => handleNavigate(user.username ? `/profile/${user.username}` : '/account/profile')}
                         className="w-full text-left px-4 py-2.5 text-gray-300 hover:bg-white/[0.06] hover:text-white transition-all duration-200 font-light rounded-lg mx-1 my-0.5"
                       >
                         Profile
+                      </button>
+                      <button
+                        onClick={() => handleNavigate('/account/settings')}
+                        className="w-full text-left px-4 py-2.5 text-gray-300 hover:bg-white/[0.06] hover:text-white transition-all duration-200 font-light rounded-lg mx-1 my-0.5"
+                      >
+                        Settings
                       </button>
                       <div className="border-t border-white/[0.06] my-1.5 mx-1"></div>
                       <button

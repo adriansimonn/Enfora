@@ -166,8 +166,8 @@ Enfora is a web-based accountability platform that helps you achieve your goals 
 - Creates QR codes for 2FA authenticator app setup
 - Encodes TOTP secrets in standard otpauth:// format
 
-**adm-zip** - Archive handling
-- Processes ZIP files if needed for bulk evidence uploads
+**adm-zip** - DOCX file processing
+- Extracts internal XML metadata from DOCX files (which are ZIP-structured documents)
 
 **xml2js** - XML parsing
 - Parses XML responses from AWS services

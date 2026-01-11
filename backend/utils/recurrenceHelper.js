@@ -3,58 +3,31 @@
  */
 
 /**
- * Generate task instances from a recurring task
- * @param {Object} parentTask - The parent recurring task
- * @param {number} maxInstances - Maximum number of instances to generate (default: 52)
- * @returns {Array} Array of task instances
+ * Calculate the next due date for a recurring task
+ * @param {Date} currentDueDate - The current due date
+ * @param {Object} recurrenceRule - The recurrence rule
+ * @param {Date} repeatsUntil - The deadline (date until which the task should repeat)
+ * @returns {Date|null} Next due date or null if past the repeatsUntil date
  */
-function generateTaskInstances(parentTask, maxInstances = 52) {
-  const { recurrenceRule, deadline } = parentTask;
-
+function calculateNextDueDate(currentDueDate, recurrenceRule, repeatsUntil) {
   if (!recurrenceRule) {
-    return [];
+    return null;
   }
 
-  const instances = [];
-  const startDate = new Date(deadline);
-  const { frequency, interval, byWeekday, until, count } = recurrenceRule;
+  const { frequency, interval, byWeekday } = recurrenceRule;
+  const nextDate = getNextOccurrence(new Date(currentDueDate), frequency, interval, byWeekday);
 
-  const maxCount = count || maxInstances;
-  const endDate = until ? new Date(until) : null;
-
-  let currentDate = new Date(startDate);
-  let instanceCount = 0;
-
-  // Generate instances
-  while (instanceCount < maxCount) {
-    // Check if we've reached the end date
-    if (endDate && currentDate > endDate) {
-      break;
-    }
-
-    // Add current instance
-    if (instanceCount > 0) { // Skip the first one as it's the parent task
-      instances.push({
-        ...parentTask,
-        deadline: currentDate.toISOString(),
-        parentTaskId: parentTask.taskId,
-        isRecurring: false, // Individual instances are not recurring
-        recurrenceRule: null,
-        instanceNumber: instanceCount,
-      });
-    }
-
-    instanceCount++;
-
-    // Calculate next occurrence
-    currentDate = getNextOccurrence(currentDate, frequency, interval, byWeekday);
-
-    if (!currentDate) {
-      break;
-    }
+  if (!nextDate) {
+    return null;
   }
 
-  return instances;
+  // Check if next occurrence is past the repeatsUntil date
+  const untilDate = new Date(repeatsUntil);
+  if (nextDate > untilDate) {
+    return null;
+  }
+
+  return nextDate;
 }
 
 /**
@@ -153,7 +126,7 @@ function formatRecurrenceRule(recurrenceRule) {
 }
 
 module.exports = {
-  generateTaskInstances,
+  calculateNextDueDate,
   getNextOccurrence,
   formatRecurrenceRule,
 };

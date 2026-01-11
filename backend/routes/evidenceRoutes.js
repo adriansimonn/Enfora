@@ -5,14 +5,14 @@ require("dotenv").config({ path: path.resolve(__dirname, "../.env") });
 
 const multer = require("multer");
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
-const { UpdateCommand, GetCommand } = require("@aws-sdk/lib-dynamodb");
+const { GetCommand } = require("@aws-sdk/lib-dynamodb");
 const { v4: uuidv4 } = require("uuid");
 
 const dynamoDB = require("../config/dynamoClient");
 const { validateEvidence } = require("../services/aiValidator");
 const { extractText } = require("../utils/extractText");
 const { extractMetadataDates } = require("../utils/extractMetadata");
-const { deleteTaskExpirationSchedule } = require("../services/schedulerService");
+const taskService = require("../services/taskService");
 
 const router = express.Router();
 const TABLE_NAME = "Tasks";
@@ -85,24 +85,11 @@ router.post("/upload", (req, res, next) => {
     if (isExpiredCheck === 'true') {
       const currentTimestamp = new Date().toISOString();
 
-      const updateParams = {
-        TableName: TABLE_NAME,
-        Key: {
-          userId: userId,
-          taskId: taskId
-        },
-        UpdateExpression: "SET #st = :status, failedAt = :failedAt",
-        ExpressionAttributeNames: {
-          "#st": "status",
-        },
-        ExpressionAttributeValues: {
-          ":status": "failed",
-          ":failedAt": currentTimestamp,
-        },
-        ReturnValues: "ALL_NEW",
-      };
-
-      await dynamoDB.send(new UpdateCommand(updateParams));
+      // Use taskService.updateTask to handle recurring tasks properly
+      await taskService.updateTask(taskId, userId, {
+        status: "failed",
+        failedAt: currentTimestamp,
+      });
 
       return res.status(200).json({
         message: "Task marked as failed due to expiration",
@@ -137,32 +124,20 @@ router.post("/upload", (req, res, next) => {
       });
     }
 
-    // Check if task deadline has passed
+    // Check if task deadline has passed (use dueDate for recurring tasks)
     const now = new Date().toISOString();
-    const deadline = new Date(task.deadline).toISOString();
+    const effectiveDeadline = task.dueDate || task.deadline;
+    const deadline = new Date(effectiveDeadline).toISOString();
 
     if (now > deadline) {
       // Task has expired, update status to failed
       const currentTimestamp = new Date().toISOString();
 
-      const updateParams = {
-        TableName: TABLE_NAME,
-        Key: {
-          userId: userId,
-          taskId: taskId
-        },
-        UpdateExpression: "SET #st = :status, failedAt = :failedAt",
-        ExpressionAttributeNames: {
-          "#st": "status",
-        },
-        ExpressionAttributeValues: {
-          ":status": "failed",
-          ":failedAt": currentTimestamp,
-        },
-        ReturnValues: "ALL_NEW",
-      };
-
-      await dynamoDB.send(new UpdateCommand(updateParams));
+      // Use taskService.updateTask to handle recurring tasks properly
+      await taskService.updateTask(taskId, userId, {
+        status: "failed",
+        failedAt: currentTimestamp,
+      });
 
       return res.status(400).json({
         error: "Task deadline has passed. Evidence cannot be submitted.",
@@ -239,74 +214,40 @@ router.post("/upload", (req, res, next) => {
     });
 
     /**
-     * 6. Map AI decision → task status
+     * 6. Map AI decision → task status and prepare update data
      */
     let newStatus = "review";
     const currentTimestamp = new Date().toISOString();
-    const updateExpressionParts = [
-      "submittedEvidenceURL = :url",
-      "#st = :status",
-      "validationResult = :validation"
-    ];
-    const expressionAttributeValues = {
-      ":url": evidenceURL,
-      ":status": newStatus,
-      ":validation": validationResult,
+    const updateData = {
+      submittedEvidenceURL: evidenceURL,
+      status: newStatus,
+      validationResult: validationResult,
     };
 
     if (validationResult.decision === "PASS") {
       newStatus = "completed";
-      updateExpressionParts.push("completedAt = :completedAt");
-      expressionAttributeValues[":completedAt"] = currentTimestamp;
-      expressionAttributeValues[":status"] = newStatus;
+      updateData.status = newStatus;
+      updateData.completedAt = currentTimestamp;
     } else if (validationResult.decision === "FAIL") {
       newStatus = "rejected";
-      updateExpressionParts.push("rejectedAt = :rejectedAt");
-      expressionAttributeValues[":rejectedAt"] = currentTimestamp;
-      expressionAttributeValues[":status"] = newStatus;
+      updateData.status = newStatus;
+      updateData.rejectedAt = currentTimestamp;
     }
 
     /**
-     * 7. Update DynamoDB task (with composite key: userId + taskId)
+     * 7. Update task using taskService to handle recurring tasks properly
      */
-    const updateParams = {
-      TableName: TABLE_NAME,
-      Key: {
-        userId: userId,
-        taskId: taskId
-      },
-      UpdateExpression: `SET ${updateExpressionParts.join(", ")}`,
-      ExpressionAttributeNames: {
-        "#st": "status",
-      },
-      ExpressionAttributeValues: expressionAttributeValues,
-      ReturnValues: "UPDATED_NEW",
-    };
-
-    const result = await dynamoDB.send(new UpdateCommand(updateParams));
+    const result = await taskService.updateTask(taskId, userId, updateData);
 
     /**
-     * 8. Delete EventBridge schedule if task is completed
-     * Note: Keep schedule for rejected/review status - user can resubmit evidence
-     */
-    if (newStatus === "completed") {
-      try {
-        await deleteTaskExpirationSchedule(userId, taskId);
-      } catch (scheduleError) {
-        console.error("Failed to delete EventBridge schedule:", scheduleError);
-        // Don't fail the response if schedule deletion fails
-      }
-    }
-
-    /**
-     * 9. Response
+     * 8. Response
      */
     return res.status(200).json({
       message: "Evidence uploaded and validated",
       evidenceURL,
       status: newStatus,
       validation: validationResult,
-      updatedAttributes: result.Attributes,
+      updatedAttributes: result,
     });
   } catch (error) {
     console.error("[Evidence Upload Error]", error);

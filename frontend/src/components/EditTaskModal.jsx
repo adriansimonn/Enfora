@@ -5,6 +5,7 @@ export default function EditTaskModal({ task, onClose, onSave, onDelete }) {
   const [title, setTitle] = useState(task.title || '');
   const [description, setDescription] = useState(task.description || '');
   const [deadline, setDeadline] = useState(task.deadline || '');
+  const [repeatsUntil, setRepeatsUntil] = useState(task.repeatsUntil || '');
   const [stakeAmount, setStakeAmount] = useState(task.stakeAmount?.toString() || '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -84,7 +85,7 @@ export default function EditTaskModal({ task, onClose, onSave, onDelete }) {
       const deadlineDate = new Date(deadline);
       const deadlineISO = deadlineDate.toISOString();
 
-      await onSave({
+      const taskData = {
         ...task,
         title,
         description,
@@ -92,7 +93,15 @@ export default function EditTaskModal({ task, onClose, onSave, onDelete }) {
         stakeAmount: parseFloat(stakeAmount),
         recurrenceRule,
         isRecurring: recurrenceRule !== null
-      });
+      };
+
+      // For recurring tasks, add repeatsUntil
+      if (recurrenceRule !== null && repeatsUntil) {
+        const repeatsUntilDate = new Date(repeatsUntil);
+        taskData.repeatsUntil = repeatsUntilDate.toISOString();
+      }
+
+      await onSave(taskData);
       onClose();
     } catch (err) {
       setError(err.message || 'Failed to update task');
@@ -162,7 +171,7 @@ export default function EditTaskModal({ task, onClose, onSave, onDelete }) {
 
             <div>
               <label htmlFor="deadline" className="block text-sm font-normal text-white mb-2">
-                Deadline
+                {recurrenceType !== 'does-not-repeat' ? 'First Due Date' : 'Deadline'}
               </label>
               <input
                 id="deadline"
@@ -173,6 +182,25 @@ export default function EditTaskModal({ task, onClose, onSave, onDelete }) {
                 className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/[0.12] focus:border-transparent transition-all [color-scheme:dark]"
               />
             </div>
+
+            {recurrenceType !== 'does-not-repeat' && (
+              <div>
+                <label htmlFor="repeatsUntil" className="block text-sm font-normal text-white mb-2">
+                  Repeats Until
+                </label>
+                <input
+                  id="repeatsUntil"
+                  type="datetime-local"
+                  value={repeatsUntil}
+                  onChange={(e) => setRepeatsUntil(e.target.value)}
+                  required
+                  className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/[0.12] focus:border-transparent transition-all [color-scheme:dark]"
+                />
+                <p className="text-gray-500 text-xs mt-2">
+                  The task will repeat until this date. Make sure this is after the first due date.
+                </p>
+              </div>
+            )}
 
             <div>
               <label htmlFor="stakeAmount" className="block text-sm font-normal text-white mb-2">

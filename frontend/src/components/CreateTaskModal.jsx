@@ -8,6 +8,7 @@ export default function CreateTaskModal({ onClose, onSubmit }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [deadline, setDeadline] = useState('');
+  const [repeatsUntil, setRepeatsUntil] = useState('');
   const [stakeAmount, setStakeAmount] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -18,7 +19,6 @@ export default function CreateTaskModal({ onClose, onSubmit }) {
   const [checkingPayment, setCheckingPayment] = useState(true);
   const [showPaymentRequired, setShowPaymentRequired] = useState(false);
   const [showAddPayment, setShowAddPayment] = useState(false);
-  const [agreementViewed, setAgreementViewed] = useState(false);
   const [agreementAccepted, setAgreementAccepted] = useState(false);
 
   useEffect(() => {
@@ -68,10 +68,6 @@ export default function CreateTaskModal({ onClose, onSubmit }) {
     setRecurrenceType('custom');
   };
 
-  const handleAgreementLinkClick = () => {
-    setAgreementViewed(true);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -88,19 +84,25 @@ export default function CreateTaskModal({ onClose, onSubmit }) {
       const recurrenceRule = getRecurrenceRule();
 
       // Convert datetime-local to ISO string with timezone
-      // datetime-local gives us a string like "2024-01-09T14:00" which is interpreted as local time
-      // We need to convert it to ISO format with timezone info
       const deadlineDate = new Date(deadline);
       const deadlineISO = deadlineDate.toISOString();
 
-      await onSubmit({
+      const taskData = {
         title,
         description,
         deadline: deadlineISO,
         stakeAmount: parseFloat(stakeAmount),
         recurrenceRule,
         isRecurring: recurrenceRule !== null
-      });
+      };
+
+      // For recurring tasks, add repeatsUntil
+      if (recurrenceRule !== null && repeatsUntil) {
+        const repeatsUntilDate = new Date(repeatsUntil);
+        taskData.repeatsUntil = repeatsUntilDate.toISOString();
+      }
+
+      await onSubmit(taskData);
       onClose();
     } catch (err) {
       setError(err.message || 'Failed to create task');
@@ -159,7 +161,7 @@ export default function CreateTaskModal({ onClose, onSubmit }) {
 
           <div>
             <label htmlFor="deadline" className="block text-sm font-normal text-white mb-2">
-              Deadline
+              {recurrenceType !== 'does-not-repeat' ? 'First Due Date' : 'Deadline'}
             </label>
             <input
               id="deadline"
@@ -170,6 +172,25 @@ export default function CreateTaskModal({ onClose, onSubmit }) {
               className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/[0.12] focus:border-transparent transition-all [color-scheme:dark]"
             />
           </div>
+
+          {recurrenceType !== 'does-not-repeat' && (
+            <div>
+              <label htmlFor="repeatsUntil" className="block text-sm font-normal text-white mb-2">
+                Repeats Until
+              </label>
+              <input
+                id="repeatsUntil"
+                type="datetime-local"
+                value={repeatsUntil}
+                onChange={(e) => setRepeatsUntil(e.target.value)}
+                required
+                className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/[0.12] focus:border-transparent transition-all [color-scheme:dark]"
+              />
+              <p className="text-gray-500 text-xs mt-2">
+                The task will repeat until this date. Make sure this is after the first due date.
+              </p>
+            </div>
+          )}
 
           <div>
             <label htmlFor="stakeAmount" className="block text-sm font-normal text-white mb-2">
@@ -224,8 +245,7 @@ export default function CreateTaskModal({ onClose, onSubmit }) {
               id="agreement"
               checked={agreementAccepted}
               onChange={(e) => setAgreementAccepted(e.target.checked)}
-              disabled={!agreementViewed}
-              className="mt-1 w-4 h-4 rounded border-white/[0.2] bg-white/[0.03] text-white focus:ring-2 focus:ring-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="mt-1 w-4 h-4 rounded border-white/[0.2] bg-white/[0.03] text-white focus:ring-2 focus:ring-white/20"
             />
             <label htmlFor="agreement" className="text-sm text-gray-300 leading-relaxed">
               I agree to the{' '}
@@ -233,7 +253,6 @@ export default function CreateTaskModal({ onClose, onSubmit }) {
                 href="/agreement"
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={handleAgreementLinkClick}
                 className="text-white underline hover:text-gray-200 transition-colors"
               >
                 Enfora Task Commitment, Evidence Submission & Verification Agreement

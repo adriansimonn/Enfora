@@ -1,18 +1,58 @@
 const { v4: uuidv4 } = require("uuid");
 const { PutCommand, QueryCommand, UpdateCommand, DeleteCommand, GetCommand, BatchWriteCommand } = require("@aws-sdk/lib-dynamodb");
 const dynamoDB = require("../config/dynamoClient");
-const { generateTaskInstances } = require("../utils/recurrenceHelper");
+const { calculateNextDueDate } = require("../utils/recurrenceHelper");
 const { createTaskExpirationSchedule, deleteTaskExpirationSchedule } = require("./schedulerService");
 
 const TABLE_NAME = "Tasks";
 
 exports.createTask = async (task) => {
-  const taskItem = {
-    ...task,
-    taskId: uuidv4(),
-    status: "pending",
-    createdAt: new Date().toISOString(),
-  };
+  const taskId = uuidv4();
+  const status = "pending";
+  const createdAt = new Date().toISOString();
+
+  // Build taskItem based on whether it's recurring or not
+  let taskItem;
+
+  if (task.isRecurring && task.recurrenceRule) {
+    // Recurring task
+    if (task.repeatsUntil) {
+      // Frontend sent both firstDueDate (as deadline) and repeatsUntil
+      // Destructure to remove deadline, repeatsUntil, and other fields we'll override
+      const { deadline: firstDueDate, repeatsUntil, dueDate: _, ...rest } = task;
+      taskItem = {
+        ...rest,
+        taskId,
+        status,
+        createdAt,
+        dueDate: firstDueDate, // First occurrence
+        repeatsUntil: repeatsUntil, // When to stop repeating (DIFFERENT from deadline)
+        deadline: firstDueDate, // Keep for compatibility
+      };
+    } else {
+      // Old format: deadline is the repeatsUntil
+      const { deadline, ...rest } = task;
+      taskItem = {
+        ...rest,
+        taskId,
+        status,
+        createdAt,
+        dueDate: deadline,
+        repeatsUntil: deadline,
+        deadline: deadline,
+      };
+    }
+  } else {
+    // Non-recurring task
+    const { ...rest } = task;
+    taskItem = {
+      ...rest,
+      taskId,
+      status,
+      createdAt,
+      dueDate: task.deadline,
+    };
+  }
 
   const params = {
     TableName: TABLE_NAME,
@@ -22,15 +62,11 @@ exports.createTask = async (task) => {
   try {
     await dynamoDB.send(new PutCommand(params));
 
-    // If this is a recurring task, generate instances
-    if (task.isRecurring && task.recurrenceRule) {
-      await createRecurringTaskInstances(taskItem);
-    }
-
-    // Create EventBridge schedule for task expiration
-    if (taskItem.deadline && taskItem.userId && taskItem.taskId) {
+    // Create EventBridge schedule for task expiration (use dueDate)
+    const expirationDate = taskItem.dueDate;
+    if (expirationDate && taskItem.userId && taskItem.taskId) {
       try {
-        await createTaskExpirationSchedule(taskItem.userId, taskItem.taskId, taskItem.deadline);
+        await createTaskExpirationSchedule(taskItem.userId, taskItem.taskId, expirationDate);
       } catch (scheduleError) {
         // If deadline is in the past, immediately mark task as failed
         if (scheduleError.isPastDeadline) {
@@ -70,78 +106,117 @@ exports.createTask = async (task) => {
 };
 
 /**
- * Create task instances for a recurring task
+ * Handle recurring task completion/failure
+ * Creates a child task copy with the completed/failed status for metrics
+ * Updates the parent task's dueDate to the next recurrence
  */
-async function createRecurringTaskInstances(parentTask) {
-  const instances = generateTaskInstances(parentTask);
+async function handleRecurringTaskCompletion(taskId, userId, newStatus, updateData = {}) {
+  // Get the current task
+  const getParams = {
+    TableName: TABLE_NAME,
+    Key: {
+      userId: userId,
+      taskId: taskId,
+    },
+  };
 
-  if (instances.length === 0) {
-    return;
+  const result = await dynamoDB.send(new GetCommand(getParams));
+  const task = result.Item;
+
+  if (!task) {
+    throw new Error("Task not found");
   }
 
-  // DynamoDB BatchWrite can handle max 25 items at a time
-  const batchSize = 25;
+  // Only handle if this is a recurring parent task
+  if (!task.isRecurring || !task.recurrenceRule) {
+    return null;
+  }
 
-  for (let i = 0; i < instances.length; i += batchSize) {
-    const batch = instances.slice(i, i + batchSize);
+  // Create a child task copy with the completed/failed status
+  const childTask = {
+    ...task,
+    taskId: uuidv4(),
+    parentTaskId: task.taskId,
+    status: newStatus,
+    isRecurring: false,
+    recurrenceRule: null,
+    repeatsUntil: null,
+    dueDate: task.dueDate, // Keep the original dueDate this was for
+    deadline: task.dueDate, // Set deadline to the dueDate
+    completedAt: newStatus === "completed" ? (updateData.completedAt || new Date().toISOString()) : null,
+    failedAt: newStatus === "failed" ? (updateData.failedAt || new Date().toISOString()) : null,
+    createdAt: new Date().toISOString(),
+    submittedEvidenceURL: updateData.submittedEvidenceURL || task.submittedEvidenceURL,
+    validationResult: updateData.validationResult || task.validationResult,
+  };
 
-    const instancesWithIds = batch.map(instance => ({
-      ...instance,
-      taskId: uuidv4(), // Generate unique ID for each instance
-      status: "pending",
-      createdAt: new Date().toISOString(),
-    }));
+  // Save the child task
+  const childParams = {
+    TableName: TABLE_NAME,
+    Item: childTask,
+  };
 
-    const writeRequests = instancesWithIds.map(instance => ({
-      PutRequest: {
-        Item: instance
-      }
-    }));
+  await dynamoDB.send(new PutCommand(childParams));
 
-    const batchParams = {
-      RequestItems: {
-        [TABLE_NAME]: writeRequests
-      }
+  // Calculate next due date for the parent task
+  const nextDueDate = calculateNextDueDate(task.dueDate, task.recurrenceRule, task.repeatsUntil);
+
+  if (nextDueDate) {
+    // Update parent task with next due date and reset to pending
+    const updateParams = {
+      TableName: TABLE_NAME,
+      Key: {
+        userId: userId,
+        taskId: taskId,
+      },
+      UpdateExpression: "SET dueDate = :dueDate, #st = :status, #dl = :deadline REMOVE submittedEvidenceURL, validationResult, completedAt, failedAt, disputeReasoning, disputedAt",
+      ExpressionAttributeNames: {
+        "#st": "status",
+        "#dl": "deadline",
+      },
+      ExpressionAttributeValues: {
+        ":dueDate": nextDueDate.toISOString(),
+        ":deadline": nextDueDate.toISOString(),
+        ":status": "pending",
+      },
+      ReturnValues: "ALL_NEW",
     };
 
+    // Delete the old schedule and create a new one for the next occurrence
     try {
-      await dynamoDB.send(new BatchWriteCommand(batchParams));
-
-      // Create EventBridge schedules for each instance
-      for (const instance of instancesWithIds) {
-        if (instance.deadline && instance.userId && instance.taskId) {
-          try {
-            await createTaskExpirationSchedule(instance.userId, instance.taskId, instance.deadline);
-          } catch (scheduleError) {
-            // If deadline is in the past, immediately mark instance as failed
-            if (scheduleError.isPastDeadline) {
-              const updateParams = {
-                TableName: TABLE_NAME,
-                Key: {
-                  userId: instance.userId,
-                  taskId: instance.taskId,
-                },
-                UpdateExpression: "SET #st = :status, failedAt = :failedAt",
-                ExpressionAttributeNames: {
-                  "#st": "status",
-                },
-                ExpressionAttributeValues: {
-                  ":status": "failed",
-                  ":failedAt": new Date().toISOString(),
-                },
-              };
-              await dynamoDB.send(new UpdateCommand(updateParams));
-            } else {
-              console.error(`Failed to create schedule for instance ${instance.taskId}:`, scheduleError);
-              // Continue with other instances even if one fails
-            }
-          }
-        }
-      }
-    } catch (error) {
-      console.error("Error creating recurring task instances:", error);
-      // Continue with next batch even if one fails
+      await deleteTaskExpirationSchedule(userId, taskId);
+      await createTaskExpirationSchedule(userId, taskId, nextDueDate.toISOString());
+    } catch (scheduleError) {
+      console.error("Failed to update EventBridge schedule:", scheduleError);
     }
+
+    return await dynamoDB.send(new UpdateCommand(updateParams));
+  } else {
+    // No more recurrences, mark parent task as completed/failed
+    const updateParams = {
+      TableName: TABLE_NAME,
+      Key: {
+        userId: userId,
+        taskId: taskId,
+      },
+      UpdateExpression: "SET #st = :status",
+      ExpressionAttributeNames: {
+        "#st": "status",
+      },
+      ExpressionAttributeValues: {
+        ":status": newStatus,
+      },
+      ReturnValues: "ALL_NEW",
+    };
+
+    // Delete the schedule since recurrence is complete
+    try {
+      await deleteTaskExpirationSchedule(userId, taskId);
+    } catch (scheduleError) {
+      console.error("Failed to delete EventBridge schedule:", scheduleError);
+    }
+
+    return await dynamoDB.send(new UpdateCommand(updateParams));
   }
 }
 
@@ -173,7 +248,16 @@ exports.updateTask = async (taskId, userId, updates) => {
     throw new Error("Task not found or unauthorized");
   }
 
-  // Build update expression dynamically
+  const task = existing.Item;
+
+  // Check if this is a recurring task being completed or failed
+  if (task.isRecurring && (updates.status === "completed" || updates.status === "failed")) {
+    // Handle recurring task completion/failure
+    const result = await handleRecurringTaskCompletion(taskId, userId, updates.status, updates);
+    return result.Attributes;
+  }
+
+  // Build update expression dynamically for non-recurring tasks or other updates
   const updateExpressionParts = [];
   const expressionAttributeNames = {};
   const expressionAttributeValues = {};
