@@ -115,8 +115,8 @@ exports.computeUserRankOnDemand = async (userId) => {
     const analyticsService = require("./analyticsService");
     const userAnalytics = await analyticsService.getUserAnalytics(userId);
 
-    if (!userAnalytics || userAnalytics.reliabilityScore === 0) {
-      return null; // User has no score
+    if (!userAnalytics) {
+      return null; // User has no analytics
     }
 
     // Scan UserAnalytics to count users with higher scores
@@ -246,10 +246,10 @@ exports.calculateLeaderboard = async () => {
   try {
     console.log("Starting leaderboard calculation...");
 
-    // Step 1: Scan UserAnalytics for all users with reliabilityScore > 0
+    // Step 1: Scan UserAnalytics for all users with reliabilityScore >= 0
     const scanParams = {
       TableName: ANALYTICS_TABLE,
-      FilterExpression: "reliabilityScore > :zero",
+      FilterExpression: "reliabilityScore >= :zero",
       ExpressionAttributeValues: {
         ":zero": 0
       },

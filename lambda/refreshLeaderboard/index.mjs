@@ -78,7 +78,7 @@ async function scanAllUsersWithScores() {
   do {
     const params = {
       TableName: ANALYTICS_TABLE,
-      FilterExpression: "reliabilityScore > :zero",
+      FilterExpression: "reliabilityScore >= :zero",
       ExpressionAttributeValues: marshall({ ":zero": 0 }),
       ProjectionExpression: "userId, reliabilityScore"
     };
