@@ -10,14 +10,7 @@ import taskCompletedImg from '../assets/homepageImages/4-TaskCompleted.png';
 import taskFailedImg from '../assets/homepageImages/5-TaskFailed.png';
 
 const MOTTOS = [
-  'Accountability, Automated.',
-  'Bet Against Your Failures.',
-  'Commit. Deliver. Repeat.',
-  'Enforce Your Productivity.',
-  'Your Goals. Enforced.',
-  'Accountability That Bites.',
-  'Own Your Outcomes.',
-  'Bet on Yourself.',
+  'Enforce Your Goals',
   'Enforce Your Progress.',
   'Enforce Your Success.'
 ];
