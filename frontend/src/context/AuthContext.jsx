@@ -1,7 +1,6 @@
 import { createContext, useContext, useState, useEffect, useRef } from 'react'
 import { login as loginAPI, register as registerAPI, logout as logoutAPI, refreshAccessToken } from '../services/auth'
 import { setAccessToken as setApiAccessToken, initializeCsrfToken } from '../services/api'
-import emblemLogo from '../assets/logos/emblem_logo_t.png'
 
 const AuthContext = createContext(null)
 
@@ -112,28 +111,6 @@ export function AuthProvider({ children }) {
     register,
     logout,
     isAuthenticated: !!accessToken
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-black to-zinc-900 flex items-center justify-center">
-        <div className="flex flex-col items-center">
-          <div className="relative">
-            {/* Pulsing glow effect */}
-            <div className="absolute inset-0 blur-xl opacity-50 animate-pulse">
-              <div className="w-32 h-32 bg-white/30 rounded-full"></div>
-            </div>
-            {/* Logo */}
-            <img
-              src={emblemLogo}
-              alt="Enfora Logo"
-              className="w-32 h-32 relative z-10 animate-pulse"
-            />
-          </div>
-          <p className="text-gray-400 mt-8 text-base animate-pulse">Loading...</p>
-        </div>
-      </div>
-    )
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
