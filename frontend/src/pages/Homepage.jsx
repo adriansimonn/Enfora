@@ -40,7 +40,7 @@ export default function Homepage() {
     {
       number: 2,
       title: 'Put money on the line',
-      description: "Choose how much you'll lose if you don't complete it. Make it hurt enough to matter.",
+      description: "Choose how much you'll lose if you don't complete it.",
       image: setStakeImg
     },
     {
@@ -68,7 +68,7 @@ export default function Homepage() {
       <Navigation />
 
       {/* Hero Section - black */}
-      <section className="relative grid lg:grid-cols-2 items-center lg:min-h-screen bg-black">
+      <section className="relative grid lg:grid-cols-2 items-center lg:min-h-screen bg-black selection:bg-white selection:text-black">
         {/* Left - Text & CTA */}
         <div className="px-6 lg:pl-16 xl:pl-24 pt-32 pb-16 lg:py-32 text-center lg:text-left">
           <h1 className="text-5xl lg:text-6xl font-light text-white mb-6 tracking-[-0.02em] leading-[1.1]">
@@ -121,7 +121,7 @@ export default function Homepage() {
       </section>
 
       {/* How To Use - black */}
-      <section className="bg-black text-white">
+      <section className="bg-black text-white selection:bg-white selection:text-black">
         <div className="max-w-6xl mx-auto px-6 py-28">
           <h2 className="text-3xl font-light mb-16 text-center tracking-[-0.01em]">
             How To Use Enfora
@@ -171,149 +171,112 @@ export default function Homepage() {
         </div>
       </section>
 
-      {/* Why It Actually Works - white */}
-      <section className="bg-white text-black">
-        <div className="max-w-4xl mx-auto px-6 py-28">
-          <h2 className="text-3xl font-light mb-4 text-center tracking-[-0.01em]">
-            Why It Actually Works
-          </h2>
-          <p className="text-[15px] text-gray-600 mb-16 text-center max-w-2xl mx-auto font-light leading-relaxed">
-            Enfora is built on <span className="text-black font-normal">loss aversion</span>, the
-            principle that losing money hurts far more than gaining it feels good. That asymmetry
-            is what turns your intentions into obligations.
-          </p>
-          <div className="grid md:grid-cols-3 gap-x-10 gap-y-12">
-            <div className="border-t border-black/[0.15] pt-6">
-              <p className="font-normal mb-2 text-[15px]">Consequences create urgency</p>
-              <p className="text-[13px] text-gray-600 leading-relaxed font-light">
-                When skipping a task costs you money, "later" stops being an option.
-              </p>
-            </div>
-            <div className="border-t border-black/[0.15] pt-6">
-              <p className="font-normal mb-2 text-[15px]">Deadlines become real</p>
-              <p className="text-[13px] text-gray-600 leading-relaxed font-light">
-                Enforcement is automatic. There is no snoozing, renegotiating, or quietly letting it slide.
-              </p>
-            </div>
-            <div className="border-t border-black/[0.15] pt-6">
-              <p className="font-normal mb-2 text-[15px]">Goals carry weight</p>
-              <p className="text-[13px] text-gray-600 leading-relaxed font-light">
-                Backing a goal with your own money forces you to commit to it seriously.
-              </p>
-            </div>
-          </div>
-          <p className="text-[16px] text-center font-light mt-16">
-            When failure has an immediate cost, success becomes non-negotiable.
-          </p>
-        </div>
-      </section>
-
-      {/* Who Enfora Is For - black */}
-      <section className="bg-black text-white">
+      {/* Who Enfora Is For - white */}
+      <section className="bg-white text-black selection:bg-black selection:text-white">
         <div className="max-w-5xl mx-auto px-6 py-28">
           <h2 className="text-3xl font-light mb-3 text-center tracking-[-0.01em]">
             Who Enfora Is For
           </h2>
-          <p className="text-[15px] text-gray-400 mb-16 text-center max-w-2xl mx-auto font-light leading-relaxed">
-            Enfora is <span className="text-white font-normal">not</span> for everyone.
+          <p className="text-[15px] text-gray-600 mb-16 text-center max-w-2xl mx-auto font-light leading-relaxed">
+            Enfora is <span className="text-black font-normal">not</span> for everyone.
             It is brute-force accountability, built for people willing to put real money
             behind their word.
           </p>
           <div className="grid md:grid-cols-2 gap-x-12 gap-y-10 max-w-3xl mx-auto">
-            <div className="border-l border-white/[0.15] pl-6">
+            <div className="border-l border-black/[0.15] pl-6">
               <h3 className="text-[16px] font-normal mb-1.5">Students</h3>
-              <p className="text-gray-400 text-[13px] leading-relaxed font-light">Exams to study for, assignments to finish, applications to submit on time.</p>
+              <p className="text-gray-600 text-[13px] leading-relaxed font-light">Exams to study for, assignments to finish, applications to submit on time.</p>
             </div>
 
-            <div className="border-l border-white/[0.15] pl-6">
+            <div className="border-l border-black/[0.15] pl-6">
               <h3 className="text-[16px] font-normal mb-1.5">Builders & Founders</h3>
-              <p className="text-gray-400 text-[13px] leading-relaxed font-light">Features to ship and launches that can't keep slipping another week.</p>
+              <p className="text-gray-600 text-[13px] leading-relaxed font-light">Features to ship and launches that can't keep slipping another week.</p>
             </div>
 
-            <div className="border-l border-white/[0.15] pl-6">
+            <div className="border-l border-black/[0.15] pl-6">
               <h3 className="text-[16px] font-normal mb-1.5">Fitness & Health</h3>
-              <p className="text-gray-400 text-[13px] leading-relaxed font-light">Workouts, routines, and habits that survive past the first two weeks.</p>
+              <p className="text-gray-600 text-[13px] leading-relaxed font-light">Workouts, routines, and habits that survive past the first two weeks.</p>
             </div>
 
-            <div className="border-l border-white/[0.15] pl-6">
+            <div className="border-l border-black/[0.15] pl-6">
               <h3 className="text-[16px] font-normal mb-1.5">Professionals</h3>
-              <p className="text-gray-400 text-[13px] leading-relaxed font-light">Deadlines, certifications, and side projects that keep getting deferred.</p>
+              <p className="text-gray-600 text-[13px] leading-relaxed font-light">Deadlines, certifications, and side projects that keep getting deferred.</p>
             </div>
 
-            <div className="border-l border-white/[0.15] pl-6 md:col-span-2">
+            <div className="border-l border-black/[0.15] pl-6 md:col-span-2">
               <h3 className="text-[16px] font-normal mb-1.5">Anyone tired of quitting on themselves</h3>
-              <p className="text-gray-400 text-[13px] leading-relaxed font-light">If you keep making promises to yourself and breaking them, Enfora is for you.</p>
+              <p className="text-gray-600 text-[13px] leading-relaxed font-light">If you keep making promises to yourself and breaking them, Enfora is for you.</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Track Your Discipline - white */}
-      <section className="bg-white text-black">
+      {/* Track Your Discipline - black */}
+      <section className="bg-black text-white selection:bg-white selection:text-black">
         <div className="max-w-4xl mx-auto px-6 py-28">
           <h2 className="text-3xl font-light mb-3 text-center tracking-[-0.01em]">
             Track Your Discipline
           </h2>
-          <p className="text-[15px] text-gray-600 mb-16 text-center font-light">
-            Enfora doesn't just enforce action, it shows you how reliable you actually are.
+          <p className="text-[15px] text-gray-400 mb-16 text-center font-light">
+            Metrics that show how reliable you actually are.
           </p>
           <div className="grid md:grid-cols-2 gap-x-16 gap-y-10">
-            <div className="border-t border-black/[0.15] pt-5">
+            <div className="border-t border-white/[0.15] pt-5">
               <p className="font-normal text-[15px] mb-1">Reliability Score</p>
-              <p className="text-[13px] text-gray-600 leading-relaxed font-light">Your most critical metric: compete on the leaderboard</p>
+              <p className="text-[13px] text-gray-400 leading-relaxed font-light">Your most critical metric: compete on the leaderboard</p>
             </div>
-            <div className="border-t border-black/[0.15] pt-5">
+            <div className="border-t border-white/[0.15] pt-5">
               <p className="font-normal text-[15px] mb-1">Stakes at Risk</p>
-              <p className="text-[13px] text-gray-600 leading-relaxed font-light">See how much you have on the line</p>
+              <p className="text-[13px] text-gray-400 leading-relaxed font-light">See how much you have on the line</p>
             </div>
-            <div className="border-t border-black/[0.15] pt-5">
+            <div className="border-t border-white/[0.15] pt-5">
               <p className="font-normal text-[15px] mb-1">Completion Rate</p>
-              <p className="text-[13px] text-gray-600 leading-relaxed font-light">Track your success percentage over time</p>
+              <p className="text-[13px] text-gray-400 leading-relaxed font-light">Track your success percentage over time</p>
             </div>
-            <div className="border-t border-black/[0.15] pt-5">
+            <div className="border-t border-white/[0.15] pt-5">
               <p className="font-normal text-[15px] mb-1">Money Saved</p>
-              <p className="text-[13px] text-gray-600 leading-relaxed font-light">Every completed task is money you didn't lose</p>
+              <p className="text-[13px] text-gray-400 leading-relaxed font-light">Every completed task is money you didn't lose</p>
             </div>
-            <div className="border-t border-black/[0.15] pt-5">
+            <div className="border-t border-white/[0.15] pt-5">
               <p className="font-normal text-[15px] mb-1">Active Streaks</p>
-              <p className="text-[13px] text-gray-600 leading-relaxed font-light">Build momentum with consistent follow-through</p>
+              <p className="text-[13px] text-gray-400 leading-relaxed font-light">Build momentum with consistent follow-through</p>
             </div>
-            <div className="border-t border-black/[0.15] pt-5">
+            <div className="border-t border-white/[0.15] pt-5">
               <p className="font-normal text-[15px] mb-1">Task History</p>
-              <p className="text-[13px] text-gray-600 leading-relaxed font-light">Full analytics on your performance</p>
+              <p className="text-[13px] text-gray-400 leading-relaxed font-light">Full analytics on your performance</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Built on Trust - black */}
-      <section className="bg-black text-white">
+      {/* How Your Money Is Handled - white */}
+      <section className="bg-white text-black selection:bg-black selection:text-white">
         <div className="max-w-4xl mx-auto px-6 py-28 pb-40">
           <h2 className="text-3xl font-light mb-3 text-center tracking-[-0.01em]">
-            Built on Trust
+            How Your Money Is Handled
           </h2>
-          <p className="text-[15px] text-gray-400 mb-16 text-center font-light">
-            You're always in control. We're just here to hold you accountable.
+          <p className="text-[15px] text-gray-600 mb-16 text-center font-light">
+            Nothing is charged up front. You only pay if a deadline passes without accepted proof.
           </p>
           <div className="grid md:grid-cols-2 gap-x-16 gap-y-12">
-            <div className="border-t border-white/[0.15] pt-6">
+            <div className="border-t border-black/[0.15] pt-6">
               <h3 className="text-[16px] font-normal mb-2">Secure Payments and 2FA</h3>
-              <p className="text-gray-400 text-[13px] leading-relaxed font-light">Bank-level encryption for all transactions and accounts shielded by two-factor authentication.</p>
+              <p className="text-gray-600 text-[13px] leading-relaxed font-light">Bank-level encryption for all transactions and accounts shielded by two-factor authentication.</p>
             </div>
 
-            <div className="border-t border-white/[0.15] pt-6">
+            <div className="border-t border-black/[0.15] pt-6">
               <h3 className="text-[16px] font-normal mb-2">No Hidden Fees</h3>
-              <p className="text-gray-400 text-[13px] leading-relaxed font-light">What you stake is what you risk. Nothing more.</p>
+              <p className="text-gray-600 text-[13px] leading-relaxed font-light">What you stake is what you risk. Nothing more.</p>
             </div>
 
-            <div className="border-t border-white/[0.15] pt-6">
+            <div className="border-t border-black/[0.15] pt-6">
               <h3 className="text-[16px] font-normal mb-2">Funds Only Charged on Failure</h3>
-              <p className="text-gray-400 text-[13px] leading-relaxed font-light">Complete your task and you never pay anything.</p>
+              <p className="text-gray-600 text-[13px] leading-relaxed font-light">Complete your task and you never pay anything.</p>
             </div>
 
-            <div className="border-t border-white/[0.15] pt-6">
+            <div className="border-t border-black/[0.15] pt-6">
               <h3 className="text-[16px] font-normal mb-2">Transparent & Fair System</h3>
-              <p className="text-gray-400 text-[13px] leading-relaxed font-light">Clear enforcement rules and fair evidence review powered by AI and human review panels.</p>
+              <p className="text-gray-600 text-[13px] leading-relaxed font-light">Clear enforcement rules and fair evidence review powered by AI and human review panels.</p>
             </div>
           </div>
         </div>
