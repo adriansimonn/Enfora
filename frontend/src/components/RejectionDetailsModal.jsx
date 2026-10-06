@@ -1,36 +1,35 @@
 export default function RejectionDetailsModal({ task, onClose, onDispute }) {
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-black border border-white/[0.06] rounded-2xl shadow-2xl p-6 max-w-md w-full">
-        <h2 className="text-2xl font-bold mb-6 text-red-400 flex items-center gap-2">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          Evidence Rejected
-        </h2>
-
-        <div className="mb-6">
-          <h3 className="font-semibold text-gray-300 mb-2">Task:</h3>
-          <p className="text-white">{task.title}</p>
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-black border border-white/[0.08] rounded-xl max-w-md w-full">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-white/[0.08]">
+          <h2 className="text-xl font-light text-white tracking-[-0.01em]">Evidence Rejected</h2>
         </div>
 
-        <div className="mb-6">
-          <h3 className="font-semibold text-gray-300 mb-2">Rejection Reason:</h3>
-          <p className="text-gray-400 bg-zinc-800 p-4 rounded-xl border border-zinc-700">
-            {task.validationResult?.rationale || "Evidence did not meet the requirements for this task."}
-          </p>
+        <div className="p-6 space-y-6">
+          <div>
+            <p className="text-[13px] text-gray-500 font-light mb-1">Task</p>
+            <p className="text-[15px] font-normal text-white">{task.title}</p>
+          </div>
+
+          <div>
+            <p className="text-[13px] text-gray-500 font-light mb-2">Rejection Reason</p>
+            <p className="border-l border-red-400/60 pl-4 text-[14px] text-gray-300 font-light leading-relaxed">
+              {task.validationResult?.rationale || "Evidence did not meet the requirements for this task."}
+            </p>
+          </div>
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex gap-3 px-6 pb-6">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-medium rounded-xl transition-colors border border-zinc-700"
+            className="flex-1 px-5 py-2.5 bg-white/[0.03] text-white text-sm font-normal rounded-lg border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Close
           </button>
           <button
             onClick={onDispute}
-            className="flex-1 px-4 py-2.5 bg-white text-black font-semibold rounded-xl"
+            className="flex-1 px-5 py-2.5 bg-white text-black text-sm font-medium rounded-lg hover:bg-gray-100 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Dispute
           </button>

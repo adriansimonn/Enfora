@@ -56,99 +56,77 @@ export default function TaskCard({ task, onAction, onEdit }) {
     return text;
   };
 
+  const isEditable = task.status !== "COMPLETED" && task.status !== "REVIEW" && task.status !== "FAILED";
+
+  const formatDateTime = (value) =>
+    new Date(value).toLocaleString(undefined, {
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric'
+    });
+
   return (
-    <div className="rounded-2xl border border-white/[0.06] p-6 bg-white/[0.015] backdrop-blur flex flex-col gap-3 hover:border-white/[0.12] transition-all duration-300 hover:bg-white/[0.025] relative h-full">
-      {/* Edit Button - hidden for completed, review, and failed tasks */}
-      {task.status !== "COMPLETED" && task.status !== "REVIEW" && task.status !== "FAILED" && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onEdit?.(task);
-          }}
-          className="absolute top-4 right-4 p-1.5 text-gray-400 hover:text-white hover:bg-white/[0.06] rounded-lg transition-all duration-200"
-          title="Edit task"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-          </svg>
-        </button>
-      )}
-
-      <div className={`flex justify-between items-start ${task.status !== "COMPLETED" && task.status !== "REVIEW" && task.status !== "FAILED" ? "pr-8" : ""}`}>
-        <h3 className="font-normal text-lg text-white">{task.title}</h3>
+    <div className="border-t border-white/[0.25] pt-5 flex flex-col h-full">
+      <div className="flex items-center justify-between mb-3 min-h-[28px]">
         <StatusBadge status={task.status} />
-      </div>
 
-      <div className="text-sm text-gray-400 font-light">
-        {task.isRecurring && task.recurrenceRule ? (
-          <>
-            <div>
-              Due: {new Date(task.dueDate || task.deadline).toLocaleString(undefined, {
-                year: 'numeric',
-                month: 'numeric',
-                day: 'numeric',
-                hour: 'numeric',
-                minute: 'numeric'
-              })}
-            </div>
-            <div className="mt-1">
-              Repeats until: {new Date(task.repeatsUntil || task.deadline).toLocaleString(undefined, {
-                year: 'numeric',
-                month: 'numeric',
-                day: 'numeric',
-                hour: 'numeric',
-                minute: 'numeric'
-              })}
-            </div>
-          </>
-        ) : (
-          <div>
-            Due: {new Date(task.deadline).toLocaleString(undefined, {
-              year: 'numeric',
-              month: 'numeric',
-              day: 'numeric',
-              hour: 'numeric',
-              minute: 'numeric'
-            })}
-          </div>
+        {/* Edit Button - hidden for completed, review, and failed tasks */}
+        {isEditable && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit?.(task);
+            }}
+            className="p-1.5 -mr-1.5 text-gray-500 hover:text-white transition-colors duration-200"
+            title="Edit task"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+          </button>
         )}
       </div>
 
-      {task.isRecurring && task.recurrenceRule && (
-        <div className="flex items-center gap-1.5 text-sm text-blue-400 font-light">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-          <span>{formatRecurrenceRule(task.recurrenceRule)}</span>
-        </div>
-      )}
+      <h3 className="text-[17px] font-normal text-white leading-snug mb-2">{task.title}</h3>
 
-      {task.parentTaskId && (
-        <div className="flex items-center gap-1.5 text-sm text-purple-400 font-light">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
-          <span>Recurring instance</span>
-        </div>
-      )}
+      <div className="text-[13px] text-gray-400 font-light leading-relaxed">
+        {task.isRecurring && task.recurrenceRule ? (
+          <>
+            <div>Due: {formatDateTime(task.dueDate || task.deadline)}</div>
+            <div>Repeats until: {formatDateTime(task.repeatsUntil || task.deadline)}</div>
+          </>
+        ) : (
+          <div>Due: {formatDateTime(task.deadline)}</div>
+        )}
 
-      <div className="font-normal text-gray-300">
-        Stake: ${task.stakeAmount}
+        {task.isRecurring && task.recurrenceRule && (
+          <div className="text-gray-500">{formatRecurrenceRule(task.recurrenceRule)}</div>
+        )}
+
+        {task.parentTaskId && (
+          <div className="text-gray-500">Recurring instance</div>
+        )}
+      </div>
+
+      <div className="mt-3 text-[13px] text-gray-400 font-light">
+        Stake: <span className="text-white font-normal tabular-nums">${task.stakeAmount}</span>
       </div>
 
       <div className="flex-grow"></div>
 
       {isRejected ? (
-        <div className="flex gap-2 mt-2">
+        <div className="flex gap-2 mt-5">
           <button
             onClick={() => onAction?.(task)}
-            className="flex-1 rounded-lg py-2.5 text-sm font-medium bg-white text-black hover:bg-gray-100 transition-all duration-200"
+            className="flex-1 py-2 text-sm font-normal text-white bg-white/[0.03] rounded-lg border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-200"
           >
             {buttonLabel}
           </button>
           <button
             onClick={() => onAction?.(task, true)}
-            className="flex-1 rounded-lg py-2.5 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-all duration-200"
+            className="flex-1 py-2 text-sm font-medium bg-white text-black rounded-lg hover:bg-gray-100 transition-all duration-200"
           >
             Retry
           </button>
@@ -157,11 +135,13 @@ export default function TaskCard({ task, onAction, onEdit }) {
         <button
           disabled={isActionDisabled}
           onClick={() => onAction?.(task)}
-          className={`mt-2 rounded-lg py-2.5 text-sm font-medium transition-all duration-200
+          className={`mt-5 py-2 text-sm rounded-lg transition-all duration-200
             ${
               isActionDisabled
                 ? "bg-white/[0.03] text-gray-500 cursor-not-allowed border border-white/[0.08]"
-                : "bg-white text-black hover:bg-gray-100"
+                : task.status === "PENDING"
+                ? "bg-white text-black font-medium hover:bg-gray-100"
+                : "bg-white/[0.03] text-white font-normal border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12]"
             }`}
         >
           {buttonLabel}

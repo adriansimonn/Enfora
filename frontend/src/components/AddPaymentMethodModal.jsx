@@ -11,10 +11,11 @@ const CARD_ELEMENT_OPTIONS = {
   style: {
     base: {
       color: '#ffffff',
-      fontSize: '16px',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      fontSize: '15px',
+      fontWeight: '300',
+      fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
       '::placeholder': {
-        color: '#6b7280',
+        color: '#4b5563',
       },
     },
     invalid: {
@@ -73,33 +74,31 @@ function PaymentForm({ onSuccess, onClose }) {
   return (
     <form onSubmit={handleSubmit} className="p-6 space-y-6">
       <div>
-        <label className="block text-sm font-normal text-white mb-2">
+        <label className="block text-[13px] font-normal text-gray-300 mb-2">
           Card Information
         </label>
-        <div className="p-4 bg-white/[0.03] border border-white/[0.08] rounded-xl">
+        <div className="px-4 py-3 bg-white/[0.03] border border-white/[0.08] rounded-lg">
           <CardElement options={CARD_ELEMENT_OPTIONS} />
         </div>
       </div>
 
       {error && (
-        <div className="p-4 bg-red-500/10 border border-red-500/50 rounded-xl">
-          <p className="text-red-400 text-sm">{error}</p>
-        </div>
+        <p className="border-l border-red-400/60 pl-4 text-[13px] text-red-400 font-light leading-relaxed">{error}</p>
       )}
 
-      <div className="flex gap-3">
+      <div className="flex gap-3 pt-2">
         <button
           type="button"
           onClick={onClose}
           disabled={loading}
-          className="flex-1 px-4 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-medium rounded-xl transition-colors border border-zinc-700 disabled:opacity-50"
+          className="flex-1 px-5 py-2.5 bg-white/[0.03] text-white text-sm font-normal rounded-lg border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={!stripe || loading}
-          className="flex-1 px-4 py-3 bg-white disabled:bg-zinc-800 disabled:cursor-not-allowed text-black disabled:text-gray-500 font-medium rounded-xl transition-all"
+          className="flex-1 px-5 py-2.5 bg-white text-black text-sm font-medium rounded-lg hover:bg-gray-100 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {loading ? 'Adding...' : 'Add Card'}
         </button>
@@ -111,17 +110,17 @@ function PaymentForm({ onSuccess, onClose }) {
 // Wrapper component with Elements provider
 export default function AddPaymentMethodModal({ onClose, onSuccess }) {
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-black border border-white/[0.06] rounded-2xl shadow-2xl max-w-lg w-full">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-black border border-white/[0.08] rounded-xl max-w-lg w-full">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-white/[0.06]">
-          <h2 className="text-2xl font-light text-white tracking-[-0.01em]">Add Payment Method</h2>
+        <div className="flex items-center justify-between px-6 py-5 border-b border-white/[0.08]">
+          <h2 className="text-xl font-light text-white tracking-[-0.01em]">Add Payment Method</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition-all duration-200 p-1.5 hover:bg-white/[0.06] rounded-xl"
+            className="p-1 -mr-1 text-gray-500 hover:text-white transition-colors duration-200"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>

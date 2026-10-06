@@ -12,19 +12,19 @@ export default function UserTag({ tag }) {
   const getColorClasses = (color) => {
     const colorMap = {
       // Role tags
-      'red-bright': 'bg-red-500 text-white border-red-600',
-      'red-dark': 'bg-red-800 text-white border-red-900',
-      'blue': 'bg-blue-500 text-white border-blue-600',
+      'red-bright': 'bg-red-500/15 text-red-300 border-red-500/30',
+      'red-dark': 'bg-red-900/30 text-red-300/80 border-red-800/60',
+      'blue': 'bg-blue-500/15 text-blue-300 border-blue-500/30',
 
       // Reliability tier tags - matching the analytics panel colors
-      'red': 'bg-gradient-to-r from-red-400 to-red-500 text-white border-red-500/50',
-      'yellow': 'bg-gradient-to-r from-yellow-400 to-yellow-500 text-white border-yellow-500/50',
-      'green': 'bg-gradient-to-r from-green-400 to-green-500 text-white border-green-500/50',
-      'blue-tier': 'bg-gradient-to-r from-blue-400 to-blue-500 text-white border-blue-500/50',
-      'platinum': 'platinum-badge-gradient text-white border-white/20',
+      'red': 'text-red-400 border-red-400/30',
+      'yellow': 'text-yellow-400 border-yellow-400/30',
+      'green': 'text-green-400 border-green-400/30',
+      'blue-tier': 'text-blue-400 border-blue-400/30',
+      'platinum': 'platinum-text-gradient border-white/25',
 
       // Default fallback
-      'default': 'bg-white/10 text-gray-300 border-white/20'
+      'default': 'text-gray-400 border-white/[0.15]'
     };
 
     return colorMap[color] || colorMap['default'];
@@ -35,7 +35,7 @@ export default function UserTag({ tag }) {
   return (
     <span
       className={`
-        inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+        inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-normal tracking-[0.02em]
         border transition-all duration-200
         ${colorClasses}
       `}

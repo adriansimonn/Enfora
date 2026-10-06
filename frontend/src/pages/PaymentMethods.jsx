@@ -40,87 +40,67 @@ export default function PaymentMethods() {
     }
   };
 
-  const getCardBrandIcon = (brand) => {
-    const icons = {
-      visa: '💳',
-      mastercard: '💳',
-      amex: '💳',
-      discover: '💳',
-    };
-    return icons[brand?.toLowerCase()] || '💳';
-  };
-
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-black text-white selection:bg-white selection:text-black">
       <Navigation />
-      <div className="max-w-4xl mx-auto px-6 py-12">
+      <div className="max-w-4xl mx-auto px-6 pt-16 pb-28">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-light tracking-[-0.02em] mb-2">Payment Methods</h1>
-          <p className="text-gray-400">Manage your payment methods for task stakes</p>
+        <div className="mb-14">
+          <h1 className="text-4xl font-light tracking-[-0.02em] leading-[1.1] mb-3">Payment Methods</h1>
+          <p className="text-[15px] text-gray-400 font-light">Manage your payment methods for task stakes</p>
         </div>
 
         {/* Loading State */}
         {loading && (
-          <div className="text-center py-12">
-            <p className="text-gray-400">Loading...</p>
-          </div>
+          <p className="py-6 text-[15px] text-gray-500 font-light">Loading...</p>
         )}
 
         {/* Error State */}
         {error && !loading && (
-          <div className="p-4 bg-red-500/10 border border-red-500/50 rounded-xl mb-6">
-            <p className="text-red-400">{error}</p>
-          </div>
+          <p className="border-l border-red-400/60 pl-4 text-[13px] text-red-400 font-light">{error}</p>
         )}
 
         {/* Content */}
         {!loading && !error && (
           <>
             {paymentMethod ? (
-              <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-4">
-                    <div className="text-4xl">{getCardBrandIcon(paymentMethod.brand)}</div>
-                    <div>
-                      <h3 className="text-xl font-medium mb-1">
-                        {paymentMethod.brand?.charAt(0).toUpperCase() + paymentMethod.brand?.slice(1)} •••• {paymentMethod.last4}
-                      </h3>
-                      <p className="text-gray-400 text-sm">
-                        Expires {String(paymentMethod.expMonth).padStart(2, '0')}/{paymentMethod.expYear}
-                      </p>
-                      <p className="text-gray-500 text-xs mt-2">
-                        Default payment method
-                      </p>
-                    </div>
-                  </div>
+              <div className="border-t border-white/[0.15] pt-6 flex flex-col sm:flex-row sm:items-start justify-between gap-6">
+                <div>
+                  <p className="text-[13px] text-gray-500 font-light mb-2">
+                    Default payment method
+                  </p>
+                  <h3 className="text-2xl font-light tracking-[-0.01em] tabular-nums mb-1">
+                    {paymentMethod.brand?.charAt(0).toUpperCase() + paymentMethod.brand?.slice(1)} &bull;&bull;&bull;&bull; {paymentMethod.last4}
+                  </h3>
+                  <p className="text-[13px] text-gray-400 font-light tabular-nums">
+                    Expires {String(paymentMethod.expMonth).padStart(2, '0')}/{paymentMethod.expYear}
+                  </p>
+                </div>
 
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setShowAddModal(true)}
-                      className="px-4 py-2 bg-white/[0.06] hover:bg-white/[0.12] text-white text-sm font-medium rounded-lg transition-all border border-white/[0.08]"
-                    >
-                      Update
-                    </button>
-                    <button
-                      onClick={handleRemove}
-                      className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-sm font-medium rounded-lg transition-all border border-red-500/50"
-                    >
-                      Remove
-                    </button>
-                  </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowAddModal(true)}
+                    className="px-4 py-2 bg-white/[0.03] text-white text-sm font-normal rounded-lg border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-200"
+                  >
+                    Update
+                  </button>
+                  <button
+                    onClick={handleRemove}
+                    className="px-4 py-2 text-red-400 text-sm font-normal rounded-lg border border-red-400/30 hover:bg-red-400/[0.06] hover:border-red-400/50 transition-all duration-200"
+                  >
+                    Remove
+                  </button>
                 </div>
               </div>
             ) : (
-              <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-12 text-center">
-                <div className="text-6xl mb-4">💳</div>
-                <h3 className="text-xl font-medium mb-2">No payment method on file</h3>
-                <p className="text-gray-400 mb-6">
+              <div className="border-t border-white/[0.15] pt-6">
+                <h3 className="text-[16px] font-normal mb-1.5">No payment method on file</h3>
+                <p className="text-[13px] text-gray-400 font-light leading-relaxed mb-6">
                   Add a payment method to create tasks with stake amounts
                 </p>
                 <button
                   onClick={() => setShowAddModal(true)}
-                  className="px-6 py-3 bg-white hover:bg-gray-100 text-black font-medium rounded-xl transition-all inline-block"
+                  className="px-6 py-2.5 bg-white text-black text-sm font-medium rounded-lg hover:bg-gray-100 transition-all duration-200"
                 >
                   Add Payment Method
                 </button>
@@ -128,11 +108,18 @@ export default function PaymentMethods() {
             )}
 
             {/* Security Notice */}
-            <div className="mt-8 p-4 bg-white/[0.02] border border-white/[0.04] rounded-xl">
-              <p className="text-gray-400 text-sm text-center">
-                <span className="font-medium text-white">Your payment information is securely processed by <a href="https://stripe.com" target="_blank">Stripe</a>. We never store your full card details.</span>
-              </p>
-            </div>
+            <p className="mt-16 text-[13px] text-gray-500 font-light leading-relaxed">
+              Your payment information is securely processed by{' '}
+              <a
+                href="https://stripe.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-300 underline underline-offset-4 decoration-white/20 hover:text-white hover:decoration-white/60 transition-colors duration-200"
+              >
+                Stripe
+              </a>
+              . We never store your full card details.
+            </p>
           </>
         )}
 

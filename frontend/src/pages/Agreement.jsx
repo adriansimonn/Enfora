@@ -1,36 +1,41 @@
+import Navigation from '../components/Navigation';
+
 export default function Agreement() {
   return (
-    <div className="min-h-screen bg-black text-white">
-      <div className="max-w-4xl mx-auto px-6 py-12">
-        <h1 className="text-4xl font-light mb-2 tracking-tight">
+    <div className="min-h-screen bg-black text-white selection:bg-white selection:text-black">
+      <Navigation />
+      <div className="max-w-3xl mx-auto px-6 pt-16 pb-28">
+        <h1 className="text-4xl font-light mb-4 tracking-[-0.02em] leading-[1.15]">
           Enfora Task Commitment, Evidence Submission & Verification Agreement
         </h1>
-        <p className="text-gray-400 mb-8">Last Updated: January 5, 2026</p>
+        <p className="text-[13px] text-gray-500 font-light mb-14">Last Updated: January 5, 2026</p>
 
-        <div className="space-y-8 text-gray-300 leading-relaxed">
-          <p>
-            This <strong>Task Commitment, Evidence Submission & Verification Agreement</strong> ("Agreement")
-            governs your creation of tasks, submission of evidence, and participation in enforcement
-            mechanisms on Enfora ("Enfora," "we," "us," or "our").
-          </p>
+        <div className="space-y-10 text-[15px] text-gray-400 font-light leading-relaxed [&_strong]:font-normal [&_strong]:text-white">
+          <div className="space-y-4">
+            <p>
+              This <strong>Task Commitment, Evidence Submission & Verification Agreement</strong> ("Agreement")
+              governs your creation of tasks, submission of evidence, and participation in enforcement
+              mechanisms on Enfora ("Enfora," "we," "us," or "our").
+            </p>
 
-          <p>
-            By clicking "I Agree", creating a task, or uploading evidence on Enfora, you ("User," "you," or
-            "your") acknowledge that you have read, understood, and agree to be legally bound by this
-            Agreement in its entirety.
-          </p>
+            <p>
+              By clicking "I Agree", creating a task, or uploading evidence on Enfora, you ("User," "you," or
+              "your") acknowledge that you have read, understood, and agree to be legally bound by this
+              Agreement in its entirety.
+            </p>
 
-          <p>
-            If you do not agree, <strong>do not create a task or submit evidence</strong>.
-          </p>
+            <p>
+              If you do not agree, <strong>do not create a task or submit evidence</strong>.
+            </p>
+          </div>
 
-          <section className="pt-8">
-            <h2 className="text-2xl font-light mb-4 text-white">1. Platform Description and Purpose</h2>
+          <section className="border-t border-white/[0.08] pt-10">
+            <h2 className="text-2xl font-light mb-5 text-white tracking-[-0.01em]">1. Platform Description and Purpose</h2>
             <p className="mb-4">
               Enfora is a <strong>commitment enforcement platform</strong> designed to increase accountability by
               requiring users to:
             </p>
-            <ul className="list-disc pl-8 space-y-2">
+            <ul className="list-disc pl-5 space-y-1.5 marker:text-gray-600">
               <li>Define a task with a specific description and deadline</li>
               <li>Attach a predefined financial stake</li>
               <li>Submit qualifying evidence of task completion</li>
@@ -43,17 +48,17 @@ export default function Agreement() {
             </p>
           </section>
 
-          <section className="pt-8">
-            <h2 className="text-2xl font-light mb-4 text-white">2. Task Creation and Binding Commitment</h2>
+          <section className="border-t border-white/[0.08] pt-10">
+            <h2 className="text-2xl font-light mb-5 text-white tracking-[-0.01em]">2. Task Creation and Binding Commitment</h2>
 
-            <h3 className="text-xl font-light mb-3 text-white">2.1 Binding Nature of Tasks</h3>
+            <h3 className="text-[16px] font-normal mb-2 text-white">2.1 Binding Nature of Tasks</h3>
             <p className="mb-3">When you create a task on Enfora, you acknowledge and agree that:</p>
-            <ol className="list-decimal pl-8 space-y-2">
+            <ol className="list-decimal pl-5 space-y-1.5 marker:text-gray-600">
               <li>The task constitutes a binding commitment governed by this Agreement.</li>
               <li>Tasks may not be created for actions completed prior to task creation.</li>
             </ol>
 
-            <h3 className="text-xl font-light mb-3 mt-6 text-white">2.2 Prohibition on Retroactive Tasks</h3>
+            <h3 className="text-[16px] font-normal mb-2 mt-8 text-white">2.2 Prohibition on Retroactive Tasks</h3>
             <p className="mb-3">
               You explicitly agree not to create tasks for activities already completed, partially completed, or
               staged prior to the task's creation timestamp.
@@ -64,22 +69,22 @@ export default function Agreement() {
             </p>
           </section>
 
-          <section className="pt-8">
-            <h2 className="text-2xl font-light mb-4 text-white">3. Definition of Task Completion and Task Failure</h2>
+          <section className="border-t border-white/[0.08] pt-10">
+            <h2 className="text-2xl font-light mb-5 text-white tracking-[-0.01em]">3. Definition of Task Completion and Task Failure</h2>
 
-            <h3 className="text-xl font-light mb-3 text-white">3.1 Successful Task Completion</h3>
+            <h3 className="text-[16px] font-normal mb-2 text-white">3.1 Successful Task Completion</h3>
             <p className="mb-3">A task is considered <strong>successfully completed</strong> only if:</p>
-            <ul className="list-disc pl-8 space-y-2">
+            <ul className="list-disc pl-5 space-y-1.5 marker:text-gray-600">
               <li>Evidence is submitted <strong>before the deadline</strong>, and</li>
               <li>The evidence is <strong>accepted</strong> through AI validation or human review</li>
             </ul>
 
-            <h3 className="text-xl font-light mb-3 mt-6 text-white">3.2 Failed Task (Explicit Definition)</h3>
+            <h3 className="text-[16px] font-normal mb-2 mt-8 text-white">3.2 Failed Task (Explicit Definition)</h3>
             <p className="mb-3">
               A task is considered <strong>failed</strong> if <strong>the deadline passes without any accepted evidence</strong>.
             </p>
             <p className="mb-3">This includes, but is not limited to:</p>
-            <ul className="list-disc pl-8 space-y-2">
+            <ul className="list-disc pl-5 space-y-1.5 marker:text-gray-600">
               <li>No evidence submitted before the deadline</li>
               <li>Evidence submitted but rejected with no successful appeal</li>
               <li>Invalid, insufficient, manipulated, or fraudulent evidence</li>
@@ -90,29 +95,29 @@ export default function Agreement() {
             </p>
           </section>
 
-          <section className="pt-8">
-            <h2 className="text-2xl font-light mb-4 text-white">4. Evidence Submission Rules</h2>
+          <section className="border-t border-white/[0.08] pt-10">
+            <h2 className="text-2xl font-light mb-5 text-white tracking-[-0.01em]">4. Evidence Submission Rules</h2>
 
-            <h3 className="text-xl font-light mb-3 text-white">4.1 Permitted Evidence Types</h3>
+            <h3 className="text-[16px] font-normal mb-2 text-white">4.1 Permitted Evidence Types</h3>
             <p className="mb-3">Only the following evidence types are permitted:</p>
-            <ul className="list-disc pl-8 space-y-2">
+            <ul className="list-disc pl-5 space-y-1.5 marker:text-gray-600">
               <li>Images</li>
               <li>Documents</li>
             </ul>
             <p className="mt-3">No other evidence formats are supported or accepted.</p>
 
-            <h3 className="text-xl font-light mb-3 mt-6 text-white">4.2 Accuracy and Authenticity</h3>
+            <h3 className="text-[16px] font-normal mb-2 mt-8 text-white">4.2 Accuracy and Authenticity</h3>
             <p className="mb-3">By uploading evidence, you affirm that:</p>
-            <ul className="list-disc pl-8 space-y-2">
+            <ul className="list-disc pl-5 space-y-1.5 marker:text-gray-600">
               <li>The evidence directly relates to the specific task</li>
               <li>The evidence was created <strong>after</strong> the task was created</li>
               <li>The evidence accurately reflects genuine task completion</li>
               <li>The evidence has not been reused, altered, staged, falsified, or manipulated</li>
             </ul>
 
-            <h3 className="text-xl font-light mb-3 mt-6 text-white">4.3 Metadata and Integrity Analysis</h3>
+            <h3 className="text-[16px] font-normal mb-2 mt-8 text-white">4.3 Metadata and Integrity Analysis</h3>
             <p className="mb-3">You acknowledge that Enfora may analyze:</p>
-            <ul className="list-disc pl-8 space-y-2">
+            <ul className="list-disc pl-5 space-y-1.5 marker:text-gray-600">
               <li>File metadata (including creation and modification timestamps)</li>
               <li>Structural, visual, and textual indicators</li>
               <li>Consistency with the task description and timeline</li>
@@ -120,15 +125,15 @@ export default function Agreement() {
             <p className="mt-3">Evidence indicating prior creation, reuse, or manipulation may be rejected.</p>
           </section>
 
-          <section className="pt-8">
-            <h2 className="text-2xl font-light mb-4 text-white">5. Automated AI Evidence Validation</h2>
+          <section className="border-t border-white/[0.08] pt-10">
+            <h2 className="text-2xl font-light mb-5 text-white tracking-[-0.01em]">5. Automated AI Evidence Validation</h2>
 
-            <h3 className="text-xl font-light mb-3 text-white">5.1 AI Provider Disclosure</h3>
+            <h3 className="text-[16px] font-normal mb-2 text-white">5.1 AI Provider Disclosure</h3>
             <p className="mb-3">
               Automated evidence validation on Enfora is performed using <strong>OpenAI models</strong>.
             </p>
             <p className="mb-3">By uploading evidence, you explicitly consent to:</p>
-            <ul className="list-disc pl-8 space-y-2">
+            <ul className="list-disc pl-5 space-y-1.5 marker:text-gray-600">
               <li>Your evidence being processed by OpenAI systems</li>
               <li>Compliance with OpenAI's applicable usage terms and policies</li>
             </ul>
@@ -138,56 +143,56 @@ export default function Agreement() {
                 href="https://openai.com/policies/usage-policies"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-400 hover:text-blue-300 underline"
+                className="text-gray-300 underline underline-offset-4 decoration-white/20 hover:text-white hover:decoration-white/60 transition-colors duration-200 break-all"
               >
                 https://openai.com/policies/usage-policies
               </a>
             </p>
 
-            <h3 className="text-xl font-light mb-3 mt-6 text-white">5.2 Nature of AI Decisions</h3>
+            <h3 className="text-[16px] font-normal mb-2 mt-8 text-white">5.2 Nature of AI Decisions</h3>
             <p className="mb-3">You acknowledge that:</p>
-            <ul className="list-disc pl-8 space-y-2">
+            <ul className="list-disc pl-5 space-y-1.5 marker:text-gray-600">
               <li>AI validation is probabilistic and non-deterministic</li>
               <li>AI systems evaluate evidence using confidence thresholds, not certainty</li>
               <li>AI decisions may be incorrect</li>
             </ul>
 
-            <h3 className="text-xl font-light mb-3 mt-6 text-white">5.3 AI Validation Outcomes</h3>
+            <h3 className="text-[16px] font-normal mb-2 mt-8 text-white">5.3 AI Validation Outcomes</h3>
             <p className="mb-3">AI validation may result in:</p>
-            <ul className="list-disc pl-8 space-y-2">
+            <ul className="list-disc pl-5 space-y-1.5 marker:text-gray-600">
               <li><strong>Accepted</strong> - Task marked completed</li>
               <li><strong>Rejected</strong> - Evidence deemed insufficient or invalid</li>
             </ul>
             <p className="mt-3">Rejected evidence may be escalated under Section 7.</p>
           </section>
 
-          <section className="pt-8">
-            <h2 className="text-2xl font-light mb-4 text-white">6. User Right to Human Review</h2>
+          <section className="border-t border-white/[0.08] pt-10">
+            <h2 className="text-2xl font-light mb-5 text-white tracking-[-0.01em]">6. User Right to Human Review</h2>
 
-            <h3 className="text-xl font-light mb-3 text-white">6.1 Right to Request Review</h3>
+            <h3 className="text-[16px] font-normal mb-2 text-white">6.1 Right to Request Review</h3>
             <p>
               If AI validation rejects your evidence, you have the <strong>explicit right</strong> to request human review.
             </p>
 
-            <h3 className="text-xl font-light mb-3 mt-6 text-white">6.2 Effect on Deadlines and Charges</h3>
+            <h3 className="text-[16px] font-normal mb-2 mt-8 text-white">6.2 Effect on Deadlines and Charges</h3>
             <p className="mb-3">Once a task enters <strong>human review status</strong>:</p>
-            <ul className="list-disc pl-8 space-y-2">
+            <ul className="list-disc pl-5 space-y-1.5 marker:text-gray-600">
               <li>The task deadline is <strong>temporarily suspended</strong></li>
               <li>No penalty or charge will be applied while review is pending</li>
               <li>The task outcome will be determined <strong>solely by human reviewers</strong></li>
             </ul>
 
-            <h3 className="text-xl font-light mb-3 mt-6 text-white">6.3 Finality of Human Review</h3>
+            <h3 className="text-[16px] font-normal mb-2 mt-8 text-white">6.3 Finality of Human Review</h3>
             <p>
               Human reviewer decisions are <strong>final, binding, and non-appealable</strong>, except where required by
               applicable law.
             </p>
           </section>
 
-          <section className="pt-8">
-            <h2 className="text-2xl font-light mb-4 text-white">7. Human Review Consent and Disclosure</h2>
+          <section className="border-t border-white/[0.08] pt-10">
+            <h2 className="text-2xl font-light mb-5 text-white tracking-[-0.01em]">7. Human Review Consent and Disclosure</h2>
             <p className="mb-3">By creating tasks or uploading evidence on Enfora, you explicitly consent to:</p>
-            <ul className="list-disc pl-8 space-y-2">
+            <ul className="list-disc pl-5 space-y-1.5 marker:text-gray-600">
               <li>Human reviewers viewing all task details</li>
               <li>Human reviewers accessing uploaded evidence</li>
               <li>Human reviewers evaluating behavioral patterns to detect fraud, abuse, or manipulation</li>
@@ -195,35 +200,35 @@ export default function Agreement() {
             <p className="mt-3">This access is strictly for enforcement, validation, and fraud prevention purposes.</p>
           </section>
 
-          <section className="pt-8">
-            <h2 className="text-2xl font-light mb-4 text-white">8. Financial Stakes, Penalties, and Chargebacks</h2>
+          <section className="border-t border-white/[0.08] pt-10">
+            <h2 className="text-2xl font-light mb-5 text-white tracking-[-0.01em]">8. Financial Stakes, Penalties, and Chargebacks</h2>
 
-            <h3 className="text-xl font-light mb-3 text-white">8.1 Authorization to Charge</h3>
+            <h3 className="text-[16px] font-normal mb-2 text-white">8.1 Authorization to Charge</h3>
             <p className="mb-3">By attaching a financial stake to a task, you authorize Enfora to:</p>
-            <ul className="list-disc pl-8 space-y-2">
+            <ul className="list-disc pl-5 space-y-1.5 marker:text-gray-600">
               <li>Charge or allocate funds automatically upon task failure</li>
               <li>Process penalties without further approval</li>
             </ul>
 
-            <h3 className="text-xl font-light mb-3 mt-6 text-white">8.2 Non-Refundable Nature</h3>
+            <h3 className="text-[16px] font-normal mb-2 mt-8 text-white">8.2 Non-Refundable Nature</h3>
             <p>
               Penalties resulting from failed tasks are <strong>final and non-refundable</strong>, except where prohibited by
               law.
             </p>
 
-            <h3 className="text-xl font-light mb-3 mt-6 text-white">8.3 Chargebacks and Payment Disputes</h3>
+            <h3 className="text-[16px] font-normal mb-2 mt-8 text-white">8.3 Chargebacks and Payment Disputes</h3>
             <p className="mb-3">You agree that:</p>
-            <ul className="list-disc pl-8 space-y-2">
+            <ul className="list-disc pl-5 space-y-1.5 marker:text-gray-600">
               <li>Initiating a chargeback or payment dispute related to Enfora penalties constitutes a material breach of this Agreement</li>
               <li>Any chargeback will result in <strong>immediate and permanent account suspension</strong></li>
               <li>Permanently suspended accounts forfeit all platform access and privileges</li>
             </ul>
           </section>
 
-          <section className="pt-8">
-            <h2 className="text-2xl font-light mb-4 text-white">9. Prohibited Conduct</h2>
+          <section className="border-t border-white/[0.08] pt-10">
+            <h2 className="text-2xl font-light mb-5 text-white tracking-[-0.01em]">9. Prohibited Conduct</h2>
             <p className="mb-3">You explicitly agree not to:</p>
-            <ul className="list-disc pl-8 space-y-2">
+            <ul className="list-disc pl-5 space-y-1.5 marker:text-gray-600">
               <li>Submit pre-created or reused evidence</li>
               <li>Stage or falsify task completion</li>
               <li>Attempt to deceive AI or human reviewers</li>
@@ -236,10 +241,10 @@ export default function Agreement() {
             </p>
           </section>
 
-          <section className="pt-8">
-            <h2 className="text-2xl font-light mb-4 text-white">10. Metrics, Scores, and Leaderboards</h2>
+          <section className="border-t border-white/[0.08] pt-10">
+            <h2 className="text-2xl font-light mb-5 text-white tracking-[-0.01em]">10. Metrics, Scores, and Leaderboards</h2>
             <p className="mb-3">All metrics, scores, streaks, and rankings:</p>
-            <ul className="list-disc pl-8 space-y-2">
+            <ul className="list-disc pl-5 space-y-1.5 marker:text-gray-600">
               <li>Are informational only</li>
               <li>May change due to recalibration or system updates</li>
               <li>Have no monetary value</li>
@@ -248,13 +253,13 @@ export default function Agreement() {
             <p className="mt-3">Metrics may not be disputed.</p>
           </section>
 
-          <section className="pt-8">
-            <h2 className="text-2xl font-light mb-4 text-white">11. No Warranty</h2>
+          <section className="border-t border-white/[0.08] pt-10">
+            <h2 className="text-2xl font-light mb-5 text-white tracking-[-0.01em]">11. No Warranty</h2>
             <p className="mb-3">
               Enfora is provided <strong>"AS IS"</strong> and <strong>"AS AVAILABLE."</strong>
             </p>
             <p className="mb-3">We make no warranties regarding:</p>
-            <ul className="list-disc pl-8 space-y-2">
+            <ul className="list-disc pl-5 space-y-1.5 marker:text-gray-600">
               <li>Evidence acceptance</li>
               <li>AI or human review accuracy</li>
               <li>Task outcomes</li>
@@ -263,37 +268,37 @@ export default function Agreement() {
             <p className="mt-3">Use of Enfora is entirely at your own risk.</p>
           </section>
 
-          <section className="pt-8">
-            <h2 className="text-2xl font-light mb-4 text-white">12. Limitation of Liability</h2>
+          <section className="border-t border-white/[0.08] pt-10">
+            <h2 className="text-2xl font-light mb-5 text-white tracking-[-0.01em]">12. Limitation of Liability</h2>
             <p className="mb-3">To the maximum extent permitted by law:</p>
-            <ul className="list-disc pl-8 space-y-2">
+            <ul className="list-disc pl-5 space-y-1.5 marker:text-gray-600">
               <li>Enfora shall not be liable for indirect or consequential damages</li>
               <li>Total liability shall not exceed fees paid in the prior 30 days</li>
             </ul>
           </section>
 
-          <section className="pt-8">
-            <h2 className="text-2xl font-light mb-4 text-white">13. Indemnification</h2>
+          <section className="border-t border-white/[0.08] pt-10">
+            <h2 className="text-2xl font-light mb-5 text-white tracking-[-0.01em]">13. Indemnification</h2>
             <p className="mb-3">You agree to indemnify and hold harmless Enfora from claims arising from:</p>
-            <ul className="list-disc pl-8 space-y-2">
+            <ul className="list-disc pl-5 space-y-1.5 marker:text-gray-600">
               <li>Your tasks</li>
               <li>Your evidence</li>
               <li>Your violations of this Agreement</li>
             </ul>
           </section>
 
-          <section className="pt-8">
-            <h2 className="text-2xl font-light mb-4 text-white">14. Governing Law</h2>
+          <section className="border-t border-white/[0.08] pt-10">
+            <h2 className="text-2xl font-light mb-5 text-white tracking-[-0.01em]">14. Governing Law</h2>
             <p>
               This Agreement shall be governed by the laws of the applicable jurisdiction in which Enfora
               operates, without regard to conflict of law principles.
             </p>
           </section>
 
-          <section className="pt-8 pb-12">
-            <h2 className="text-2xl font-light mb-4 text-white">15. Acceptance</h2>
+          <section className="border-t border-white/[0.08] pt-10">
+            <h2 className="text-2xl font-light mb-5 text-white tracking-[-0.01em]">15. Acceptance</h2>
             <p className="mb-3">By clicking "I Agree", you confirm that you:</p>
-            <ul className="list-disc pl-8 space-y-2">
+            <ul className="list-disc pl-5 space-y-1.5 marker:text-gray-600">
               <li>Understand Enfora's enforcement mechanics</li>
               <li>Accept the risk of penalties</li>
               <li>Consent to AI and human review</li>

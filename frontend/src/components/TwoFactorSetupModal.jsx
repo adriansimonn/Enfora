@@ -84,17 +84,24 @@ export default function TwoFactorSetupModal({ method, onClose, onSuccess }) {
     onClose()
   }
 
+  const authenticatorSteps = [
+    'Download an authenticator app like Google Authenticator, Authy, or 1Password',
+    'Click Continue to get your QR code',
+    'Scan the QR code with your authenticator app',
+    'Enter the verification code from your app'
+  ]
+
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-black border border-white/[0.06] rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-black border border-white/[0.08] rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-white/[0.06] sticky top-0 bg-black z-10">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-white/[0.08] sticky top-0 bg-black z-10">
           <h2 className="text-xl font-light text-white tracking-[-0.01em]">
             {method === 'authenticator' ? 'Setup Authenticator App' : 'Setup Email 2FA'}
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition-all duration-200 p-1 hover:bg-white/[0.06] rounded-lg"
+            className="p-1 -mr-1 text-gray-500 hover:text-white transition-colors duration-200"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -105,29 +112,29 @@ export default function TwoFactorSetupModal({ method, onClose, onSuccess }) {
         {/* Content */}
         <div className="p-6">
           {error && (
-            <div className="mb-4 p-4 rounded-xl border bg-red-500/10 border-red-500/20 text-red-400">
-              <p className="font-light text-sm">{error}</p>
-            </div>
+            <p className="border-l border-red-400/60 pl-4 text-[13px] text-red-400 font-light leading-relaxed mb-6">{error}</p>
           )}
 
           {/* Authenticator App Setup */}
           {method === 'authenticator' && (
             <>
               {step === 1 && (
-                <div className="space-y-4">
-                  <p className="text-gray-300 font-light text-sm">
+                <div className="space-y-6">
+                  <p className="text-[14px] text-gray-300 font-light">
                     To set up two-factor authentication with an authenticator app:
                   </p>
-                  <ol className="list-decimal list-inside space-y-2 text-gray-300 font-light text-sm">
-                    <li>Download an authenticator app like Google Authenticator, Authy, or 1Password</li>
-                    <li>Click Continue to get your QR code</li>
-                    <li>Scan the QR code with your authenticator app</li>
-                    <li>Enter the verification code from your app</li>
+                  <ol className="divide-y divide-white/[0.08] border-y border-white/[0.08]">
+                    {authenticatorSteps.map((text, index) => (
+                      <li key={index} className="flex gap-5 items-baseline py-3.5">
+                        <span className="flex-shrink-0 text-white/30 font-light text-[15px] tabular-nums">0{index + 1}</span>
+                        <span className="text-[14px] text-gray-300 font-light leading-relaxed">{text}</span>
+                      </li>
+                    ))}
                   </ol>
                   <button
                     onClick={handleStartAuthenticatorSetup}
                     disabled={loading}
-                    className="w-full px-6 py-3 bg-white text-black rounded-xl hover:bg-gray-200 transition-all duration-200 font-normal disabled:opacity-50 disabled:cursor-not-allowed mt-4"
+                    className="w-full px-5 py-2.5 bg-white text-black text-sm font-medium rounded-lg hover:bg-gray-100 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     {loading ? 'Loading...' : 'Continue'}
                   </button>
@@ -135,19 +142,19 @@ export default function TwoFactorSetupModal({ method, onClose, onSuccess }) {
               )}
 
               {step === 2 && (
-                <div className="space-y-4">
-                  <p className="text-gray-300 font-light text-sm mb-4">
+                <div className="space-y-6">
+                  <p className="text-[14px] text-gray-300 font-light">
                     Scan this QR code with your authenticator app:
                   </p>
-                  <div className="flex justify-center p-4 bg-white rounded-xl">
-                    <img src={qrCode} alt="QR Code" className="w-64 h-64" />
+                  <div className="flex justify-center p-4 bg-white rounded-lg">
+                    <img src={qrCode} alt="QR Code" className="w-56 h-56" />
                   </div>
-                  <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4">
-                    <p className="text-xs text-gray-400 font-light mb-2">Or enter this code manually:</p>
-                    <code className="text-white font-mono text-sm break-all">{secret}</code>
+                  <div className="border-l border-white/[0.15] pl-4">
+                    <p className="text-[12px] text-gray-500 font-light mb-1">Or enter this code manually:</p>
+                    <code className="text-white font-mono text-[13px] break-all">{secret}</code>
                   </div>
                   <div>
-                    <label className="block text-sm font-normal text-gray-300 mb-2">
+                    <label className="block text-[13px] font-normal text-gray-300 mb-2">
                       Enter the 6-digit code from your app
                     </label>
                     <input
@@ -156,13 +163,13 @@ export default function TwoFactorSetupModal({ method, onClose, onSuccess }) {
                       onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                       maxLength={6}
                       placeholder="000000"
-                      className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl text-white text-center text-2xl tracking-widest font-light focus:outline-none focus:border-white/[0.12] transition-all"
+                      className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.08] rounded-lg text-white text-center text-2xl tracking-widest font-light tabular-nums placeholder-gray-600 focus:outline-none focus:border-white/[0.25] transition-colors duration-200"
                     />
                   </div>
                   <button
                     onClick={handleVerifyAuthenticator}
                     disabled={loading || verificationCode.length !== 6}
-                    className="w-full px-6 py-3 bg-white text-black rounded-xl hover:bg-gray-200 transition-all duration-200 font-normal disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full px-5 py-2.5 bg-white text-black text-sm font-medium rounded-lg hover:bg-gray-100 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     {loading ? 'Verifying...' : 'Verify & Enable'}
                   </button>
@@ -170,49 +177,43 @@ export default function TwoFactorSetupModal({ method, onClose, onSuccess }) {
               )}
 
               {step === 3 && (
-                <div className="space-y-4">
-                  <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4">
-                    <p className="text-green-400 font-light text-sm">
-                      Authenticator app successfully configured!
-                    </p>
-                  </div>
-                  <p className="text-gray-300 font-light text-sm">
+                <div className="space-y-6">
+                  <p className="border-l border-green-400/60 pl-4 text-[13px] text-green-400 font-light leading-relaxed">
+                    Authenticator app successfully configured!
+                  </p>
+                  <p className="text-[14px] text-gray-300 font-light leading-relaxed">
                     Save these backup codes in a secure location. You can use them to access your account if you lose your authenticator device.
                   </p>
-                  <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4">
-                    <div className="grid grid-cols-2 gap-2">
-                      {backupCodes.map((code, index) => (
-                        <code key={index} className="text-white font-mono text-sm p-2 bg-white/[0.03] rounded">
-                          {code}
-                        </code>
-                      ))}
-                    </div>
+                  <div className="grid grid-cols-2 gap-px bg-white/[0.08] border border-white/[0.08] rounded-lg overflow-hidden">
+                    {backupCodes.map((code, index) => (
+                      <code key={index} className="bg-black px-3 py-2.5 text-center text-white font-mono text-[13px]">
+                        {code}
+                      </code>
+                    ))}
                   </div>
                   <div className="flex gap-2">
                     <button
                       onClick={handleDownloadBackupCodes}
-                      className="flex-1 px-4 py-2 bg-white/[0.03] hover:bg-white/[0.06] text-white rounded-lg transition-all duration-200 border border-white/[0.08] font-normal"
+                      className="flex-1 px-5 py-2.5 bg-white/[0.03] text-white text-sm font-normal rounded-lg border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       Download
                     </button>
                     <button
                       onClick={handleCopyBackupCodes}
-                      className="flex-1 px-4 py-2 bg-white/[0.03] hover:bg-white/[0.06] text-white rounded-lg transition-all duration-200 border border-white/[0.08] font-normal"
+                      className="flex-1 px-5 py-2.5 bg-white/[0.03] text-white text-sm font-normal rounded-lg border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       Copy
                     </button>
                   </div>
                   {!savedBackupCodes && (
-                    <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4">
-                      <p className="text-yellow-400 font-light text-sm">
-                        Please save your backup codes before continuing
-                      </p>
-                    </div>
+                    <p className="border-l border-yellow-400/60 pl-4 text-[13px] text-yellow-400 font-light leading-relaxed">
+                      Please save your backup codes before continuing
+                    </p>
                   )}
                   <button
                     onClick={handleComplete}
                     disabled={!savedBackupCodes}
-                    className="w-full px-6 py-3 bg-white text-black rounded-xl hover:bg-gray-200 transition-all duration-200 font-normal disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full px-5 py-2.5 bg-white text-black text-sm font-medium rounded-lg hover:bg-gray-100 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     Done
                   </button>
@@ -225,19 +226,17 @@ export default function TwoFactorSetupModal({ method, onClose, onSuccess }) {
           {method === 'email' && (
             <>
               {step === 1 && (
-                <div className="space-y-4">
-                  <p className="text-gray-300 font-light text-sm">
+                <div className="space-y-6">
+                  <p className="text-[14px] text-gray-300 font-light leading-relaxed">
                     When you sign in, we'll send a verification code to your email address.
                   </p>
-                  <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
-                    <p className="text-blue-400 font-light text-sm">
-                      Make sure you have access to your email before enabling this feature.
-                    </p>
-                  </div>
+                  <p className="border-l border-white/[0.15] pl-4 text-[13px] text-gray-400 font-light leading-relaxed">
+                    Make sure you have access to your email before enabling this feature.
+                  </p>
                   <button
                     onClick={handleSetupEmailFactor}
                     disabled={loading}
-                    className="w-full px-6 py-3 bg-white text-black rounded-xl hover:bg-gray-200 transition-all duration-200 font-normal disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full px-5 py-2.5 bg-white text-black text-sm font-medium rounded-lg hover:bg-gray-100 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     {loading ? 'Enabling...' : 'Enable Email 2FA'}
                   </button>
@@ -245,49 +244,43 @@ export default function TwoFactorSetupModal({ method, onClose, onSuccess }) {
               )}
 
               {step === 2 && (
-                <div className="space-y-4">
-                  <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4">
-                    <p className="text-green-400 font-light text-sm">
-                      Email 2FA successfully enabled!
-                    </p>
-                  </div>
-                  <p className="text-gray-300 font-light text-sm">
+                <div className="space-y-6">
+                  <p className="border-l border-green-400/60 pl-4 text-[13px] text-green-400 font-light leading-relaxed">
+                    Email 2FA successfully enabled!
+                  </p>
+                  <p className="text-[14px] text-gray-300 font-light leading-relaxed">
                     Save these backup codes in a secure location. You can use them to access your account if you don't have access to your email.
                   </p>
-                  <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4">
-                    <div className="grid grid-cols-2 gap-2">
-                      {backupCodes.map((code, index) => (
-                        <code key={index} className="text-white font-mono text-sm p-2 bg-white/[0.03] rounded">
-                          {code}
-                        </code>
-                      ))}
-                    </div>
+                  <div className="grid grid-cols-2 gap-px bg-white/[0.08] border border-white/[0.08] rounded-lg overflow-hidden">
+                    {backupCodes.map((code, index) => (
+                      <code key={index} className="bg-black px-3 py-2.5 text-center text-white font-mono text-[13px]">
+                        {code}
+                      </code>
+                    ))}
                   </div>
                   <div className="flex gap-2">
                     <button
                       onClick={handleDownloadBackupCodes}
-                      className="flex-1 px-4 py-2 bg-white/[0.03] hover:bg-white/[0.06] text-white rounded-lg transition-all duration-200 border border-white/[0.08] font-normal"
+                      className="flex-1 px-5 py-2.5 bg-white/[0.03] text-white text-sm font-normal rounded-lg border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       Download
                     </button>
                     <button
                       onClick={handleCopyBackupCodes}
-                      className="flex-1 px-4 py-2 bg-white/[0.03] hover:bg-white/[0.06] text-white rounded-lg transition-all duration-200 border border-white/[0.08] font-normal"
+                      className="flex-1 px-5 py-2.5 bg-white/[0.03] text-white text-sm font-normal rounded-lg border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       Copy
                     </button>
                   </div>
                   {!savedBackupCodes && (
-                    <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4">
-                      <p className="text-yellow-400 font-light text-sm">
-                        Please save your backup codes before continuing
-                      </p>
-                    </div>
+                    <p className="border-l border-yellow-400/60 pl-4 text-[13px] text-yellow-400 font-light leading-relaxed">
+                      Please save your backup codes before continuing
+                    </p>
                   )}
                   <button
                     onClick={handleComplete}
                     disabled={!savedBackupCodes}
-                    className="w-full px-6 py-3 bg-white text-black rounded-xl hover:bg-gray-200 transition-all duration-200 font-normal disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full px-5 py-2.5 bg-white text-black text-sm font-medium rounded-lg hover:bg-gray-100 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     Done
                   </button>

@@ -91,7 +91,7 @@ export default function Signup() {
   }
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-black selection:bg-white selection:text-black">
       <Navigation />
 
       {showVerification && (
@@ -110,15 +110,15 @@ export default function Signup() {
         />
       )}
 
-      <div className="flex items-center justify-center py-16 px-4">
-        <div className="w-full max-w-md p-9 space-y-6 bg-white/[0.015] backdrop-blur border border-white/[0.06] rounded-2xl">
-          <h1 className="text-3xl font-light text-center text-white tracking-[-0.01em]">
+      <div className="flex justify-center px-6 pt-24 pb-28">
+        <div className="w-full max-w-sm">
+          <h1 className="text-4xl font-light text-white tracking-[-0.02em] leading-[1.1] mb-10">
             Create Account
           </h1>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="username" className="block text-sm font-normal mb-2 text-white">
+              <label htmlFor="username" className="block text-[13px] font-normal mb-2 text-gray-300">
                 Username
               </label>
               <input
@@ -127,16 +127,16 @@ export default function Signup() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
-                className="w-full px-4 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/[0.12] text-white placeholder-gray-500 transition-all duration-200"
+                className="w-full px-4 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[15px] text-white font-light placeholder-gray-600 focus:outline-none focus:border-white/[0.25] transition-colors duration-200"
                 placeholder="exampleusername123"
                 pattern="[a-zA-Z0-9_-]{3,30}"
                 title="3-30 characters: letters, numbers, hyphens, underscores only"
               />
-              <p className="mt-1.5 text-xs text-gray-500 font-light">3-30 characters: letters, numbers, hyphens, underscores</p>
+              <p className="mt-2 text-[12px] text-gray-500 font-light">3-30 characters: letters, numbers, hyphens, underscores</p>
             </div>
 
             <div>
-              <label htmlFor="displayName" className="block text-sm font-normal mb-2 text-white">
+              <label htmlFor="displayName" className="block text-[13px] font-normal mb-2 text-gray-300">
                 Display Name
               </label>
               <input
@@ -144,14 +144,14 @@ export default function Signup() {
                 type="text"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                className="w-full px-4 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/[0.12] text-white placeholder-gray-500 transition-all duration-200"
+                className="w-full px-4 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[15px] text-white font-light placeholder-gray-600 focus:outline-none focus:border-white/[0.25] transition-colors duration-200"
                 placeholder="Your Name (optional)"
               />
-              <p className="mt-1.5 text-xs text-gray-500 font-light">Defaults to username if not provided</p>
+              <p className="mt-2 text-[12px] text-gray-500 font-light">Defaults to username if not provided</p>
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-normal mb-2 text-white">
+              <label htmlFor="email" className="block text-[13px] font-normal mb-2 text-gray-300">
                 Email
               </label>
               <input
@@ -160,13 +160,13 @@ export default function Signup() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-4 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/[0.12] text-white placeholder-gray-500 transition-all duration-200"
+                className="w-full px-4 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[15px] text-white font-light placeholder-gray-600 focus:outline-none focus:border-white/[0.25] transition-colors duration-200"
                 placeholder="you@example.com"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-normal mb-2 text-white">
+              <label htmlFor="password" className="block text-[13px] font-normal mb-2 text-gray-300">
                 Password
               </label>
               <input
@@ -175,13 +175,13 @@ export default function Signup() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full px-4 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/[0.12] text-white placeholder-gray-500 transition-all duration-200"
+                className="w-full px-4 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[15px] text-white font-light placeholder-gray-600 focus:outline-none focus:border-white/[0.25] transition-colors duration-200"
                 placeholder="••••••••"
               />
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-normal mb-2 text-white">
+              <label htmlFor="confirmPassword" className="block text-[13px] font-normal mb-2 text-gray-300">
                 Confirm Password
               </label>
               <input
@@ -190,13 +190,13 @@ export default function Signup() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
-                className="w-full px-4 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/[0.12] text-white placeholder-gray-500 transition-all duration-200"
+                className="w-full px-4 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[15px] text-white font-light placeholder-gray-600 focus:outline-none focus:border-white/[0.25] transition-colors duration-200"
                 placeholder="••••••••"
               />
             </div>
 
             {error && (
-              <div className="p-3.5 bg-red-500/10 border border-red-500/[0.3] rounded-lg text-red-400 text-sm font-light">
+              <div className="border-l border-red-400/60 pl-4 text-[13px] text-red-400 font-light">
                 {error}
               </div>
             )}
@@ -204,16 +204,16 @@ export default function Signup() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 px-4 bg-white text-black disabled:bg-white/[0.03] disabled:text-gray-500 disabled:cursor-not-allowed rounded-lg font-medium hover:bg-gray-100 transition-all duration-200"
+              className="w-full py-2.5 px-4 bg-white text-black text-sm font-medium rounded-lg hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
             >
               {loading ? 'Creating Account...' : 'Create Account'}
             </button>
           </form>
 
-          <div className="text-center pt-2">
+          <div className="mt-8 pt-6 border-t border-white/[0.08]">
             <button
               onClick={() => navigate('/login')}
-              className="text-sm text-gray-400 hover:text-white transition-all duration-200 font-light"
+              className="text-[13px] text-gray-400 hover:text-white transition-colors duration-200 font-light"
             >
               Already have an account? <span className="text-white font-normal">Log in</span>
             </button>

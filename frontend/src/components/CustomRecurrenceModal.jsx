@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Select from './Select';
 
 export default function CustomRecurrenceModal({ onClose, onSave, initialRule = null }) {
   const [frequency, setFrequency] = useState(initialRule?.frequency || 'days');
@@ -49,26 +50,26 @@ export default function CustomRecurrenceModal({ onClose, onSave, initialRule = n
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
-      <div className="bg-black border border-white/[0.06] rounded-2xl shadow-2xl max-w-md w-full">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+      <div className="bg-black border border-white/[0.08] rounded-xl max-w-md w-full">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-white/[0.06]">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-white/[0.08]">
           <h2 className="text-xl font-light text-white tracking-[-0.01em]">Custom Recurrence</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition-all duration-200 p-1.5 hover:bg-white/[0.06] rounded-xl"
+            className="p-1 -mr-1 text-gray-500 hover:text-white transition-colors duration-200"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
         {/* Form */}
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-8">
           {/* Repeat Every */}
           <div>
-            <label className="block text-sm font-normal text-white mb-2">
+            <label className="block text-[13px] font-normal text-gray-300 mb-2">
               Repeat every
             </label>
             <div className="flex gap-2">
@@ -77,23 +78,25 @@ export default function CustomRecurrenceModal({ onClose, onSave, initialRule = n
                 min="1"
                 value={interval}
                 onChange={(e) => setInterval(e.target.value)}
-                className="w-20 px-3 py-2 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/[0.12]"
+                className="w-20 tabular-nums px-3 py-2 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[15px] text-white font-light focus:outline-none focus:border-white/[0.25] transition-colors duration-200 [color-scheme:dark]"
               />
-              <select
+              <Select
+                id="frequency"
                 value={frequency}
-                onChange={(e) => setFrequency(e.target.value)}
-                className="flex-1 px-3 py-2 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/[0.12]"
-              >
-                <option value="days">{interval == 1 ? 'day' : 'days'}</option>
-                <option value="weeks">{interval == 1 ? 'week' : 'weeks'}</option>
-              </select>
+                onChange={setFrequency}
+                options={[
+                  { value: 'days', label: interval == 1 ? 'day' : 'days' },
+                  { value: 'weeks', label: interval == 1 ? 'week' : 'weeks' },
+                ]}
+                className="flex-1 px-3 py-2 text-[15px]"
+              />
             </div>
           </div>
 
           {/* Repeat On (for weeks only) */}
           {frequency === 'weeks' && (
             <div>
-              <label className="block text-sm font-normal text-white mb-3">
+              <label className="block text-[13px] font-normal text-gray-300 mb-3">
                 Repeat on
               </label>
               <div className="flex gap-2">
@@ -102,10 +105,10 @@ export default function CustomRecurrenceModal({ onClose, onSave, initialRule = n
                     key={day.value}
                     type="button"
                     onClick={() => toggleDay(day.value)}
-                    className={`w-10 h-10 rounded-full font-medium transition-all ${
+                    className={`w-9 h-9 rounded-full text-[13px] font-normal transition-all duration-200 ${
                       selectedDays.includes(day.value)
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-zinc-800 text-gray-400 hover:bg-zinc-700'
+                        ? 'bg-white text-black'
+                        : 'border border-white/[0.08] text-gray-400 hover:text-white hover:border-white/[0.15]'
                     }`}
                     title={day.name}
                   >
@@ -118,7 +121,7 @@ export default function CustomRecurrenceModal({ onClose, onSave, initialRule = n
 
           {/* Ends */}
           <div>
-            <label className="block text-sm font-normal text-white mb-3">
+            <label className="block text-[13px] font-normal text-gray-300 mb-3">
               Ends
             </label>
             <div className="space-y-3">
@@ -130,9 +133,9 @@ export default function CustomRecurrenceModal({ onClose, onSave, initialRule = n
                   value="never"
                   checked={endType === 'never'}
                   onChange={(e) => setEndType(e.target.value)}
-                  className="w-4 h-4 text-blue-600 focus:ring-blue-500 focus:ring-2 bg-zinc-800 border-zinc-600"
+                  className="w-4 h-4 accent-white cursor-pointer"
                 />
-                <span className="text-gray-300 group-hover:text-white transition-colors">
+                <span className="text-[14px] text-gray-300 font-light group-hover:text-white transition-colors duration-200">
                   Never
                 </span>
               </label>
@@ -145,9 +148,9 @@ export default function CustomRecurrenceModal({ onClose, onSave, initialRule = n
                   value="date"
                   checked={endType === 'date'}
                   onChange={(e) => setEndType(e.target.value)}
-                  className="w-4 h-4 text-blue-600 focus:ring-blue-500 focus:ring-2 bg-zinc-800 border-zinc-600"
+                  className="w-4 h-4 accent-white cursor-pointer"
                 />
-                <span className="text-gray-300 group-hover:text-white transition-colors">
+                <span className="text-[14px] text-gray-300 font-light group-hover:text-white transition-colors duration-200">
                   On
                 </span>
                 <input
@@ -157,7 +160,7 @@ export default function CustomRecurrenceModal({ onClose, onSave, initialRule = n
                     setEndDate(e.target.value);
                     setEndType('date');
                   }}
-                  className="flex-1 px-3 py-2 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/[0.12]"
+                  className="flex-1 px-3 py-2 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[15px] text-white font-light focus:outline-none focus:border-white/[0.25] transition-colors duration-200 [color-scheme:dark]"
                 />
               </label>
 
@@ -169,9 +172,9 @@ export default function CustomRecurrenceModal({ onClose, onSave, initialRule = n
                   value="count"
                   checked={endType === 'count'}
                   onChange={(e) => setEndType(e.target.value)}
-                  className="w-4 h-4 text-blue-600 focus:ring-blue-500 focus:ring-2 bg-zinc-800 border-zinc-600"
+                  className="w-4 h-4 accent-white cursor-pointer"
                 />
-                <span className="text-gray-300 group-hover:text-white transition-colors">
+                <span className="text-[14px] text-gray-300 font-light group-hover:text-white transition-colors duration-200">
                   After
                 </span>
                 <input
@@ -182,9 +185,9 @@ export default function CustomRecurrenceModal({ onClose, onSave, initialRule = n
                     setEndCount(e.target.value);
                     setEndType('count');
                   }}
-                  className="w-20 px-3 py-2 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/[0.12]"
+                  className="w-20 tabular-nums px-3 py-2 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[15px] text-white font-light focus:outline-none focus:border-white/[0.25] transition-colors duration-200 [color-scheme:dark]"
                 />
-                <span className="text-gray-300 group-hover:text-white transition-colors">
+                <span className="text-[14px] text-gray-300 font-light group-hover:text-white transition-colors duration-200">
                   occurrences
                 </span>
               </label>
@@ -193,18 +196,18 @@ export default function CustomRecurrenceModal({ onClose, onSave, initialRule = n
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3 p-6 pt-0">
+        <div className="flex gap-3 px-6 pb-6">
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 px-4 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-medium rounded-xl transition-colors border border-zinc-700"
+            className="flex-1 px-5 py-2.5 bg-white/[0.03] text-white text-sm font-normal rounded-lg border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={handleSave}
-            className="flex-1 px-4 py-2.5 bg-white text-black font-medium hover:bg-gray-100 transition-all duration-200 font-medium rounded-xl hover:bg-gray-100 transition-colors"
+            className="flex-1 px-5 py-2.5 bg-white text-black text-sm font-medium rounded-lg hover:bg-gray-100 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Done
           </button>

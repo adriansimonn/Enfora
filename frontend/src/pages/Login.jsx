@@ -53,18 +53,18 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-black selection:bg-white selection:text-black">
       <Navigation />
 
-      <div className="flex items-center justify-center py-16 px-4">
-        <div className="w-full max-w-md p-9 space-y-6 bg-white/[0.015] backdrop-blur border border-white/[0.06] rounded-2xl">
-          <h1 className="text-3xl font-light text-center text-white tracking-[-0.01em]">
+      <div className="flex justify-center px-6 pt-24 pb-28">
+        <div className="w-full max-w-sm">
+          <h1 className="text-4xl font-light text-white tracking-[-0.02em] leading-[1.1] mb-10">
             Log In
           </h1>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="email" className="block text-sm font-normal mb-2 text-white">
+              <label htmlFor="email" className="block text-[13px] font-normal mb-2 text-gray-300">
                 Email
               </label>
               <input
@@ -73,13 +73,13 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-4 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/[0.12] text-white placeholder-gray-500 transition-all duration-200"
+                className="w-full px-4 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[15px] text-white font-light placeholder-gray-600 focus:outline-none focus:border-white/[0.25] transition-colors duration-200"
                 placeholder="you@example.com"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-normal mb-2 text-white">
+              <label htmlFor="password" className="block text-[13px] font-normal mb-2 text-gray-300">
                 Password
               </label>
               <input
@@ -88,13 +88,13 @@ export default function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full px-4 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/[0.12] text-white placeholder-gray-500 transition-all duration-200"
+                className="w-full px-4 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[15px] text-white font-light placeholder-gray-600 focus:outline-none focus:border-white/[0.25] transition-colors duration-200"
                 placeholder="••••••••"
               />
             </div>
 
             {error && (
-              <div className="p-3.5 bg-red-500/10 border border-red-500/[0.3] rounded-lg text-red-400 text-sm font-light">
+              <div className="border-l border-red-400/60 pl-4 text-[13px] text-red-400 font-light">
                 {error}
               </div>
             )}
@@ -102,16 +102,16 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 px-4 bg-white text-black disabled:bg-white/[0.03] disabled:text-gray-500 disabled:cursor-not-allowed rounded-lg font-medium hover:bg-gray-100 transition-all duration-200"
+              className="w-full py-2.5 px-4 bg-white text-black text-sm font-medium rounded-lg hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
             >
               {loading ? 'Logging in...' : 'Log In'}
             </button>
           </form>
 
-          <div className="text-center pt-2">
+          <div className="mt-8 pt-6 border-t border-white/[0.08]">
             <button
               onClick={() => navigate('/signup')}
-              className="text-sm text-gray-400 hover:text-white transition-all duration-200 font-light"
+              className="text-[13px] text-gray-400 hover:text-white transition-colors duration-200 font-light"
             >
               Don't have an account? <span className="text-white font-normal">Sign up</span>
             </button>

@@ -31,18 +31,18 @@ export default function Analytics({ userId, onShowReliabilityModal, onReliabilit
 
   if (loading) {
     return (
-      <div className="bg-white/[0.015] border border-white/[0.06] rounded-2xl p-9 mb-8">
-        <h2 className="text-2xl font-light text-white mb-6 tracking-[-0.01em]">Analytics</h2>
-        <div className="text-center py-8 text-gray-400 font-light">Loading analytics...</div>
+      <div>
+        {!userId && <h2 className="text-2xl font-light text-white mb-10 tracking-[-0.01em]">Your Analytics</h2>}
+        <p className="text-[15px] text-gray-500 font-light">Loading analytics...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-white/[0.015] border border-white/[0.06] rounded-2xl p-9 mb-8">
-        <h2 className="text-2xl font-light text-white mb-6 tracking-[-0.01em]">Analytics</h2>
-        <div className="text-center py-8 text-red-400 font-light">{error}</div>
+      <div>
+        {!userId && <h2 className="text-2xl font-light text-white mb-10 tracking-[-0.01em]">Your Analytics</h2>}
+        <p className="border-l border-red-400/60 pl-4 text-[13px] text-red-400 font-light">{error}</p>
       </div>
     );
   }
@@ -203,32 +203,24 @@ export default function Analytics({ userId, onShowReliabilityModal, onReliabilit
     return interpolateColor(score, 1000, 1500, 2000, colors.green, colors.green, colors.blue);
   };
 
-  const MetricCard = ({ title, value, subtitle, icon, color = "white", style = {}, onClick }) => {
+  const MetricCard = ({ title, value, subtitle, color = "white", style = {} }) => {
     return (
-      <div
-        className={`bg-white/[0.03] border border-white/[0.08] rounded-xl p-5 hover:border-white/[0.12] transition-all duration-200 ${onClick ? 'cursor-pointer hover:bg-white/[0.04]' : ''}`}
-        onClick={onClick}
-      >
-        <div className="flex items-start justify-between mb-2">
-          <div className="flex-1">
-            <p className="text-sm text-gray-400 mb-1.5 font-light">{title}</p>
-            <p className="text-2xl font-light" style={{ color, ...style }}>{value}</p>
-            {subtitle && <p className="text-xs text-gray-500 mt-1.5 font-light">{subtitle}</p>}
-          </div>
-          {icon && <div className="text-gray-500 ml-2">{icon}</div>}
-        </div>
+      <div className="border-t border-white/[0.25] pt-5">
+        <p className="text-[13px] text-gray-400 mb-2 font-light">{title}</p>
+        <p className="text-3xl font-light tabular-nums tracking-[-0.01em]" style={{ color, ...style }}>{value}</p>
+        {subtitle && <p className="text-[12px] text-gray-500 mt-1.5 font-light">{subtitle}</p>}
       </div>
     );
   };
 
   return (
-    <div className="bg-white/[0.015] border border-white/[0.06] rounded-2xl p-9 mb-8">
+    <div>
       {!userId && (
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-10">
           <h2 className="text-2xl font-light text-white tracking-[-0.01em]">Your Analytics</h2>
           <button
             onClick={loadAnalytics}
-            className="px-5 py-2.5 bg-white/[0.03] text-white rounded-lg hover:bg-white/[0.06] transition-all duration-200 text-sm flex items-center gap-2 border border-white/[0.08] hover:border-white/[0.12] font-normal"
+            className="px-4 py-2 bg-white/[0.03] text-white text-sm font-normal rounded-lg border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-200 flex items-center gap-2"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -239,75 +231,53 @@ export default function Analytics({ userId, onShowReliabilityModal, onReliabilit
       )}
 
       {/* Overall Metrics */}
-      <div className="mb-6">
-        <h3 className="text-lg font-normal text-white mb-4">Overall</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div
-            className="bg-gradient-to-br from-white/[0.04] to-white/[0.02] border-2 border-white/[0.1] rounded-2xl p-7 hover:border-white/[0.15] transition-all duration-200 cursor-pointer hover:bg-gradient-to-br hover:from-white/[0.06] hover:to-white/[0.03]"
-            onClick={() => onShowReliabilityModal && onShowReliabilityModal(analytics.reliabilityScore)}
-          >
-            <div className="flex items-start justify-between mb-2">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <p className="text-base font-normal text-gray-300">Reliability Score</p>
-                  <span className="px-2.5 py-1 bg-blue-500/20 text-blue-400 text-xs font-medium rounded-full border border-blue-500/20">
-                    Critical Metric
-                  </span>
-                </div>
-                <p
-                  className={`text-4xl font-light mb-2 ${analytics.reliabilityScore >= 3500 ? 'reliability-score-gradient' : ''}`}
-                  style={analytics.reliabilityScore >= 3500 ? {} : { color: getReliabilityScoreColor(analytics.reliabilityScore) }}
-                >
-                  {analytics.reliabilityScore}
-                </p>
-                <p className="text-xs text-gray-400 font-light">Click to learn more</p>
-              </div>
-              <div className="text-gray-400 ml-2">
-                <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                </svg>
-              </div>
-            </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-10">
+        <button
+          type="button"
+          className="group text-left border-t border-white/[0.25] pt-5"
+          onClick={() => onShowReliabilityModal && onShowReliabilityModal(analytics.reliabilityScore)}
+        >
+          <div className="flex items-baseline gap-3 mb-2">
+            <p className="text-[15px] font-normal text-white">Reliability Score</p>
+            <span className="text-[11px] uppercase tracking-[0.08em] text-gray-500">Critical Metric</span>
           </div>
-          <MetricCard
-            title="Discipline Score"
-            value={analytics.disciplineScore}
-            subtitle={`Completions minus failures over time`}
-            color={getDisciplineColor(analytics.disciplineScore)}
-            icon={
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-              </svg>
-            }
-          />
+          <p
+            className={`text-6xl font-light tabular-nums tracking-[-0.02em] leading-none my-4 ${analytics.reliabilityScore >= 3500 ? 'reliability-score-gradient' : ''}`}
+            style={analytics.reliabilityScore >= 3500 ? {} : { color: getReliabilityScoreColor(analytics.reliabilityScore) }}
+          >
+            {analytics.reliabilityScore}
+          </p>
+          <p className="text-[13px] text-gray-500 font-light group-hover:text-white transition-colors duration-200">
+            Click to learn more &rarr;
+          </p>
+        </button>
+        <div className="border-t border-white/[0.25] pt-5">
+          <p className="text-[15px] font-normal text-white mb-2">Discipline Score</p>
+          <p
+            className="text-6xl font-light tabular-nums tracking-[-0.02em] leading-none my-4"
+            style={{ color: getDisciplineColor(analytics.disciplineScore) }}
+          >
+            {analytics.disciplineScore}
+          </p>
+          <p className="text-[13px] text-gray-500 font-light">Completions minus failures over time</p>
         </div>
       </div>
 
       {/* Completion Metrics */}
-      <div className="mb-6">
-        <h3 className="text-lg font-normal text-white mb-4">Completion Metrics</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="mt-20">
+        <h3 className="text-[15px] font-normal text-white mb-6">Completion Metrics</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-10">
           <MetricCard
             title="Completed Tasks"
             value={Math.round(analytics.finishedTasksCount * (analytics.completionRate / 100))}
             subtitle="Tasks successfully completed"
             color={getCompletedTasksColor(Math.round(analytics.finishedTasksCount * (analytics.completionRate / 100)))}
-            icon={
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            }
           />
           <MetricCard
             title="Completion Rate"
             value={formatPercentage(analytics.completionRate)}
             subtitle="Of all past tasks"
             color={getCompletionRateColor(analytics.completionRate)}
-            icon={
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-            }
           />
           <MetricCard
             title="Avg. Time Before Deadline"
@@ -318,62 +288,37 @@ export default function Analytics({ userId, onShowReliabilityModal, onReliabilit
             color={analytics.averageCompletionTimeBeforeDeadline > 0
               ? getAverageTimeColor(analytics.averageCompletionTimeBeforeDeadline)
               : "rgb(255, 255, 255)"}
-            icon={
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            }
           />
           <MetricCard
             title="Current Streak"
             value={analytics.currentCompletionStreak}
             subtitle={`task${analytics.currentCompletionStreak !== 1 ? 's' : ''} in a row`}
             color={getStreakColor(analytics.currentCompletionStreak)}
-            icon={
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
-              </svg>
-            }
           />
         </div>
       </div>
 
       {/* Financial Metrics */}
-      <div>
-        <h3 className="text-lg font-normal text-white mb-4">Financial Metrics</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="mt-20">
+        <h3 className="text-[15px] font-normal text-white mb-6">Financial Metrics</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-10">
           <MetricCard
             title="Total Stake Lost"
             value={formatCurrency(analytics.totalStakeLost)}
             subtitle="Lifetime losses"
             color={getStakeLostColor(analytics.totalStakeLost, analytics.averageStakePerTask, analytics.finishedTasksCount)}
-            icon={
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
-              </svg>
-            }
           />
           <MetricCard
             title="Total Stake at Risk"
             value={formatCurrency(analytics.totalStakeAtRisk)}
             subtitle="From pending tasks"
             color={getStakeAtRiskColor(analytics.totalStakeAtRisk, analytics.averageStakePerTask, analytics.pendingTasksCount)}
-            icon={
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            }
           />
           <MetricCard
             title="Average Stake per Task"
             value={formatCurrency(analytics.averageStakePerTask)}
             subtitle="Across all tasks"
             color="rgb(255, 255, 255)"
-            icon={
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            }
           />
         </div>
       </div>

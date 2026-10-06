@@ -80,16 +80,16 @@ export default function Navigation() {
                     Payments
                   </button>
                   {activeDropdown === 'payments' && (
-                    <div className="absolute right-0 mt-2 w-48 bg-black border border-white/[0.1] rounded-xl py-1.5 z-50">
+                    <div className="absolute right-0 mt-2 w-48 bg-black border border-white/[0.08] rounded-xl p-1 z-50">
                       <button
                         onClick={() => handleNavigate('/payments')}
-                        className="w-full text-left px-4 py-2.5 text-gray-300 hover:bg-white/[0.06] hover:text-white transition-all duration-200 font-light rounded-lg mx-1 my-0.5"
+                        className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-white/[0.06] hover:text-white transition-all duration-200 font-light rounded-lg"
                       >
                         Payment History
                       </button>
                       <button
                         onClick={() => handleNavigate('/payments/methods')}
-                        className="w-full text-left px-4 py-2.5 text-gray-300 hover:bg-white/[0.06] hover:text-white transition-all duration-200 font-light rounded-lg mx-1 my-0.5"
+                        className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-white/[0.06] hover:text-white transition-all duration-200 font-light rounded-lg"
                       >
                         Payment Methods
                       </button>
@@ -111,35 +111,35 @@ export default function Navigation() {
                         loading="lazy"
                       />
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center border border-white/[0.1]">
-                        <span className="text-xs font-medium text-white">
+                      <div className="w-8 h-8 rounded-full bg-white/[0.06] flex items-center justify-center border border-white/[0.1]">
+                        <span className="text-xs font-normal text-gray-300">
                           {user.displayName?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}
                         </span>
                       </div>
                     )}
                   </button>
                   {activeDropdown === 'account' && (
-                    <div className="absolute right-0 mt-2 w-56 bg-black border border-white/[0.1] rounded-xl py-1.5 z-50">
-                      <div className="px-4 py-2.5 border-b border-white/[0.06] mx-1">
+                    <div className="absolute right-0 mt-2 w-56 bg-black border border-white/[0.08] rounded-xl p-1 z-50">
+                      <div className="px-3 py-2.5 mb-1 border-b border-white/[0.08]">
                         <p className="text-xs text-gray-500 font-light">Signed in as</p>
                         <p className="text-sm text-gray-300 truncate font-light">{user.email}</p>
                       </div>
                       <button
                         onClick={() => handleNavigate(user.username ? `/profile/${user.username}` : '/account/profile')}
-                        className="w-full text-left px-4 py-2.5 text-gray-300 hover:bg-white/[0.06] hover:text-white transition-all duration-200 font-light rounded-lg mx-1 my-0.5"
+                        className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-white/[0.06] hover:text-white transition-all duration-200 font-light rounded-lg"
                       >
                         Profile
                       </button>
                       <button
                         onClick={() => handleNavigate('/account/settings')}
-                        className="w-full text-left px-4 py-2.5 text-gray-300 hover:bg-white/[0.06] hover:text-white transition-all duration-200 font-light rounded-lg mx-1 my-0.5"
+                        className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-white/[0.06] hover:text-white transition-all duration-200 font-light rounded-lg"
                       >
                         Settings
                       </button>
-                      <div className="border-t border-white/[0.06] my-1.5 mx-1"></div>
+                      <div className="border-t border-white/[0.08] my-1"></div>
                       <button
                         onClick={handleLogout}
-                        className="w-full text-left px-4 py-2.5 text-red-400 hover:bg-white/[0.06] hover:text-red-300 transition-all duration-200 font-light rounded-lg mx-1 my-0.5"
+                        className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-white/[0.06] hover:text-red-300 transition-all duration-200 font-light rounded-lg"
                       >
                         Logout
                       </button>

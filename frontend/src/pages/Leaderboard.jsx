@@ -96,17 +96,17 @@ export default function Leaderboard() {
 
   const getRankDisplay = (rank, isMyRank) => {
     if (rank === 1) {
-      return { number: '1', className: 'rank-gold-gradient text-5xl font-bold' };
+      return { number: '1', className: 'rank-gold-gradient font-normal' };
     }
     if (rank === 2) {
-      return { number: '2', className: 'rank-silver-gradient text-4xl font-bold' };
+      return { number: '2', className: 'rank-silver-gradient font-normal' };
     }
     if (rank === 3) {
-      return { number: '3', className: 'rank-bronze-gradient text-4xl font-bold' };
+      return { number: '3', className: 'rank-bronze-gradient font-normal' };
     }
     return {
-      number: `#${rank}`,
-      className: `text-xl font-bold ${isMyRank ? 'text-blue-400' : 'text-white'}`
+      number: `${rank}`,
+      className: isMyRank ? 'text-white' : 'text-white/30 group-hover:text-white/70'
     };
   };
 
@@ -117,103 +117,93 @@ export default function Leaderboard() {
   const LeaderboardRow = ({ entry, isMyRank = false }) => {
     const rankDisplay = getRankDisplay(entry.rank, isMyRank);
     const scoreColor = getReliabilityScoreColor(entry.reliabilityScore);
-    const isTop3 = entry.rank <= 3;
 
     return (
       <div
-        className={`
-          bg-white/[0.03] border rounded-xl p-4
-          transition-all duration-200 cursor-pointer
-          ${isMyRank
-            ? 'border-blue-500/50 bg-blue-500/10 hover:bg-blue-500/15'
-            : isTop3
-            ? 'border-white/[0.12] hover:bg-white/[0.06]'
-            : 'border-white/[0.08] hover:bg-white/[0.05]'
-          }
-        `}
+        className={`group flex items-center gap-5 py-5 px-4 cursor-pointer transition-colors duration-200 ${
+          isMyRank ? 'bg-white/[0.04]' : 'hover:bg-white/[0.02]'
+        }`}
         onClick={() => handleProfileClick(entry.username)}
       >
-        <div className="flex items-center gap-4">
-          {/* Rank */}
-          <div className="flex-shrink-0 w-12 text-center flex items-center justify-center">
-            <span className={rankDisplay.className}>
-              {rankDisplay.number}
-            </span>
-          </div>
+        {/* Rank */}
+        <div className="flex-shrink-0 w-10">
+          <span className={`text-xl font-light tabular-nums transition-colors duration-300 ${rankDisplay.className}`}>
+            {rankDisplay.number}
+          </span>
+        </div>
 
-          {/* Profile Picture */}
-          <div className="flex-shrink-0">
-            {entry.profilePictureUrl ? (
-              <img
-                src={entry.profilePictureUrl}
-                alt={entry.displayName}
-                className="w-12 h-12 rounded-full object-cover border border-white/[0.1]"
-                loading="lazy"
-              />
-            ) : (
-              <div className="w-12 h-12 rounded-full bg-white/[0.06] border border-white/[0.1] flex items-center justify-center">
-                <span className="text-xl text-gray-400">
-                  {entry.displayName?.[0]?.toUpperCase() || '?'}
-                </span>
-              </div>
+        {/* Profile Picture */}
+        <div className="flex-shrink-0">
+          {entry.profilePictureUrl ? (
+            <img
+              src={entry.profilePictureUrl}
+              alt={entry.displayName}
+              className="w-10 h-10 rounded-full object-cover border border-white/[0.08]"
+              loading="lazy"
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-white/[0.04] border border-white/[0.08] flex items-center justify-center">
+              <span className="text-[15px] font-light text-gray-400">
+                {entry.displayName?.[0]?.toUpperCase() || '?'}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* User Info */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <p className="text-[15px] text-white font-normal truncate">
+              {entry.displayName}
+            </p>
+            {isMyRank && (
+              <span className="px-2 py-0.5 text-[11px] uppercase tracking-[0.08em] text-gray-300 rounded-full border border-white/[0.15]">
+                You
+              </span>
             )}
           </div>
+          <p className="text-[13px] text-gray-500 font-light truncate">@{entry.username}</p>
 
-          {/* User Info */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <p className="text-white font-normal truncate">
-                {entry.displayName}
-              </p>
-              {isMyRank && (
-                <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 text-xs font-medium rounded-full border border-blue-500/30">
-                  You
-                </span>
-              )}
-            </div>
-            <p className="text-sm text-gray-400 truncate">@{entry.username}</p>
+          {/* User Tags */}
+          {(() => {
+            const displayTags = mergeTagsWithTier(entry.tags, entry.reliabilityScore);
+            return displayTags.length > 0 ? (
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {displayTags.map((tag, index) => (
+                  <UserTag key={index} tag={tag} />
+                ))}
+              </div>
+            ) : null;
+          })()}
+        </div>
 
-            {/* User Tags */}
-            {(() => {
-              const displayTags = mergeTagsWithTier(entry.tags, entry.reliabilityScore);
-              return displayTags.length > 0 ? (
-                <div className="flex flex-wrap gap-1.5 mt-1.5">
-                  {displayTags.map((tag, index) => (
-                    <UserTag key={index} tag={tag} />
-                  ))}
-                </div>
-              ) : null;
-            })()}
-          </div>
-
-          {/* Reliability Score */}
-          <div className="flex-shrink-0 text-right">
-            <p
-              className={`text-2xl font-light ${entry.reliabilityScore >= 3500 ? 'reliability-score-gradient' : ''}`}
-              style={entry.reliabilityScore >= 3500 ? {} : { color: scoreColor }}
-            >
-              {entry.reliabilityScore}
-            </p>
-            <p className="text-xs text-gray-500">Score</p>
-          </div>
+        {/* Reliability Score */}
+        <div className="flex-shrink-0 text-right">
+          <p
+            className={`text-2xl font-light tabular-nums tracking-[-0.01em] ${entry.reliabilityScore >= 3500 ? 'reliability-score-gradient' : ''}`}
+            style={entry.reliabilityScore >= 3500 ? {} : { color: scoreColor }}
+          >
+            {entry.reliabilityScore}
+          </p>
+          <p className="text-[11px] uppercase tracking-[0.08em] text-gray-500">Score</p>
         </div>
       </div>
     );
   };
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-black text-white selection:bg-white selection:text-black">
       <Navigation />
 
-      <div className="max-w-4xl mx-auto px-6 py-12">
+      <div className="max-w-4xl mx-auto px-6 pt-16 pb-28">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-light tracking-[-0.02em] mb-2">Leaderboard</h1>
-          <p className="text-gray-400">
+        <div className="mb-14">
+          <h1 className="text-4xl font-light tracking-[-0.02em] leading-[1.1] mb-3">Leaderboard</h1>
+          <p className="text-[15px] text-gray-400 font-light">
             Top 100 users ranked by reliability score
             {leaderboard?.lastUpdated && (
-              <span className="ml-2 text-gray-500 text-sm">
-                • Updated {(() => {
+              <span className="ml-2 text-gray-500 text-[13px]">
+                &middot; Updated {(() => {
                   const date = new Date(leaderboard.lastUpdated);
                   // Add 1 minute to account for delay
                   date.setMinutes(date.getMinutes() + 1);
@@ -233,16 +223,12 @@ export default function Leaderboard() {
 
         {/* Loading State */}
         {loading && (
-          <div className="text-center py-12">
-            <p className="text-gray-400">Loading leaderboard...</p>
-          </div>
+          <p className="py-6 text-[15px] text-gray-500 font-light">Loading leaderboard...</p>
         )}
 
         {/* Error State */}
         {error && !loading && (
-          <div className="p-4 bg-red-500/10 border border-red-500/50 rounded-xl mb-6">
-            <p className="text-red-400">{error}</p>
-          </div>
+          <p className="border-l border-red-400/60 pl-4 text-[13px] text-red-400 font-light">{error}</p>
         )}
 
         {/* Content */}
@@ -250,32 +236,33 @@ export default function Leaderboard() {
           <>
             {/* My Rank Card (if authenticated and not in top 100) */}
             {user && myRank && !leaderboard.rankings.find(r => r.userId === user.userId) && (
-              <div className="mb-6">
-                <h2 className="text-lg font-normal text-white mb-3">Your Rank</h2>
-                <LeaderboardRow entry={myRank} isMyRank={true} />
+              <div className="mb-14">
+                <h2 className="text-[15px] font-normal text-white mb-3">Your Rank</h2>
+                <div className="-mx-4 border-y border-white/[0.08]">
+                  <LeaderboardRow entry={myRank} isMyRank={true} />
+                </div>
               </div>
             )}
 
             {/* Top 100 List */}
-            <div className="space-y-3">
-              {leaderboard.rankings.length > 0 ? (
-                leaderboard.rankings.map((entry) => (
+            {leaderboard.rankings.length > 0 ? (
+              <div className="-mx-4 divide-y divide-white/[0.08] border-y border-white/[0.08]">
+                {leaderboard.rankings.map((entry) => (
                   <LeaderboardRow
                     key={entry.userId}
                     entry={entry}
                     isMyRank={user && entry.userId === user.userId}
                   />
-                ))
-              ) : (
-                <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-12 text-center">
-                  <div className="text-6xl mb-4">🏆</div>
-                  <h3 className="text-xl font-medium mb-2">No rankings yet</h3>
-                  <p className="text-gray-400">
-                    Be the first to complete tasks and earn a reliability score!
-                  </p>
-                </div>
-              )}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="border-t border-white/[0.15] pt-6">
+                <h3 className="text-[16px] font-normal mb-1.5">No rankings yet</h3>
+                <p className="text-[13px] text-gray-400 font-light leading-relaxed">
+                  Be the first to complete tasks and earn a reliability score!
+                </p>
+              </div>
+            )}
           </>
         )}
       </div>

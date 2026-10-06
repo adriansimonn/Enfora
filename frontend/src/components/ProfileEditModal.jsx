@@ -93,18 +93,18 @@ export default function ProfileEditModal({ profile, onClose, onUpdate }) {
   const bioCharactersRemaining = 250 - bio.length
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-black border border-white/[0.06] rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-black border border-white/[0.08] rounded-xl max-w-2xl w-full max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-white/[0.06] flex-shrink-0">
-          <h2 className="text-2xl font-light text-white tracking-[-0.01em]">Edit Profile</h2>
+        <div className="flex items-center justify-between px-6 py-5 border-b border-white/[0.08] flex-shrink-0">
+          <h2 className="text-xl font-light text-white tracking-[-0.01em]">Edit Profile</h2>
           <button
             onClick={onClose}
             disabled={loading}
-            className="text-gray-400 hover:text-white transition-colors disabled:opacity-50"
+            className="p-1 -mr-1 text-gray-500 hover:text-white transition-colors duration-200 disabled:opacity-40"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
@@ -113,22 +113,22 @@ export default function ProfileEditModal({ profile, onClose, onUpdate }) {
         <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto flex-1">
           {/* Profile Picture */}
           <div>
-            <label className="block text-sm font-medium text-white mb-3">Profile Picture</label>
+            <label className="block text-[13px] font-normal text-gray-300 mb-3">Profile Picture</label>
             <div className="flex items-center gap-6">
               {profilePicturePreview ? (
                 <img
                   src={profilePicturePreview}
                   alt="Profile preview"
-                  className="w-24 h-24 rounded-full object-cover border-4 border-zinc-700"
+                  className="w-20 h-20 rounded-full object-cover border border-white/[0.08]"
                 />
               ) : (
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center border-4 border-zinc-700">
-                  <span className="text-3xl font-bold text-white">
+                <div className="w-20 h-20 rounded-full bg-white/[0.04] flex items-center justify-center border border-white/[0.08]">
+                  <span className="text-2xl font-light text-gray-300">
                     {displayName.charAt(0).toUpperCase()}
                   </span>
                 </div>
               )}
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col items-start gap-2">
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -136,30 +136,32 @@ export default function ProfileEditModal({ profile, onClose, onUpdate }) {
                   onChange={handleFileChange}
                   className="hidden"
                 />
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="px-4 py-2.5 bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-200 hover:bg-zinc-700 text-white rounded-xl transition-colors text-sm"
-                >
-                  Upload Photo
-                </button>
-                {(profilePicturePreview || profile.profilePictureUrl) && (
+                <div className="flex items-center gap-4">
                   <button
                     type="button"
-                    onClick={handleRemoveProfilePicture}
-                    className="px-4 py-2 bg-red-900/30 hover:bg-red-900/50 text-red-400 rounded-xl transition-colors text-sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="px-4 py-2 bg-white/[0.03] text-white text-sm font-normal rounded-lg border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-200"
                   >
-                    Remove Photo
+                    Upload Photo
                   </button>
-                )}
-                <p className="text-xs text-gray-400">Max size: 5MB. Formats: JPEG, PNG, WebP</p>
+                  {(profilePicturePreview || profile.profilePictureUrl) && (
+                    <button
+                      type="button"
+                      onClick={handleRemoveProfilePicture}
+                      className="text-sm font-light text-red-400 hover:text-red-300 transition-colors duration-200"
+                    >
+                      Remove Photo
+                    </button>
+                  )}
+                </div>
+                <p className="text-[12px] text-gray-500 font-light">Max size: 5MB. Formats: JPEG, PNG, WebP</p>
               </div>
             </div>
           </div>
 
           {/* Username */}
           <div>
-            <label htmlFor="username" className="block text-sm font-medium text-white mb-2">
+            <label htmlFor="username" className="block text-[13px] font-normal text-gray-300 mb-2">
               Username
             </label>
             <input
@@ -169,15 +171,15 @@ export default function ProfileEditModal({ profile, onClose, onUpdate }) {
               onChange={(e) => setUsername(e.target.value)}
               required
               pattern="[a-zA-Z0-9_-]{3,30}"
-              className="w-full px-4 py-2 bg-white/[0.03] border border-white/[0.08] rounded-xl focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/[0.12] text-white"
+              className="w-full px-4 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[15px] text-white font-light placeholder-gray-600 focus:outline-none focus:border-white/[0.25] transition-colors duration-200"
               placeholder="exampleusername123"
             />
-            <p className="mt-1 text-xs text-gray-400">3-30 characters: letters, numbers, hyphens, underscores</p>
+            <p className="mt-2 text-[12px] text-gray-500 font-light">3-30 characters: letters, numbers, hyphens, underscores</p>
           </div>
 
           {/* Display Name */}
           <div>
-            <label htmlFor="displayName" className="block text-sm font-medium text-white mb-2">
+            <label htmlFor="displayName" className="block text-[13px] font-normal text-gray-300 mb-2">
               Display Name
             </label>
             <input
@@ -186,14 +188,14 @@ export default function ProfileEditModal({ profile, onClose, onUpdate }) {
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               required
-              className="w-full px-4 py-2 bg-white/[0.03] border border-white/[0.08] rounded-xl focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/[0.12] text-white"
+              className="w-full px-4 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[15px] text-white font-light placeholder-gray-600 focus:outline-none focus:border-white/[0.25] transition-colors duration-200"
               placeholder="Your Name"
             />
           </div>
 
           {/* Bio */}
           <div>
-            <label htmlFor="bio" className="block text-sm font-medium text-white mb-2">
+            <label htmlFor="bio" className="block text-[13px] font-normal text-gray-300 mb-2">
               Bio
             </label>
             <textarea
@@ -202,28 +204,28 @@ export default function ProfileEditModal({ profile, onClose, onUpdate }) {
               onChange={(e) => setBio(e.target.value)}
               rows={4}
               maxLength={250}
-              className="w-full px-4 py-2 bg-white/[0.03] border border-white/[0.08] rounded-xl focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/[0.12] text-white resize-none"
+              className="w-full px-4 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[15px] text-white font-light placeholder-gray-600 focus:outline-none focus:border-white/[0.25] transition-colors duration-200 resize-none"
               placeholder="Tell people about yourself..."
             />
-            <p className={`mt-1 text-xs ${bioCharactersRemaining < 20 ? 'text-yellow-400' : 'text-gray-400'}`}>
+            <p className={`mt-2 text-[12px] font-light tabular-nums ${bioCharactersRemaining < 20 ? 'text-yellow-400' : 'text-gray-500'}`}>
               {bioCharactersRemaining} characters remaining
             </p>
           </div>
 
           {error && (
-            <div className="p-3 bg-red-500/10 border border-red-500/50 rounded-xl text-red-400 text-sm">
+            <p className="border-l border-red-400/60 pl-4 text-[13px] text-red-400 font-light leading-relaxed">
               {error}
-            </div>
+            </p>
           )}
         </form>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 p-6 border-t border-zinc-800 flex-shrink-0">
+        <div className="flex items-center justify-end gap-3 px-6 py-5 border-t border-white/[0.08] flex-shrink-0">
           <button
             type="button"
             onClick={onClose}
             disabled={loading}
-            className="px-6 py-2.5 bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-200 hover:bg-zinc-700 text-white rounded-xl transition-colors disabled:opacity-50"
+            className="px-5 py-2.5 bg-white/[0.03] text-white text-sm font-normal rounded-lg border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Cancel
           </button>
@@ -231,7 +233,7 @@ export default function ProfileEditModal({ profile, onClose, onUpdate }) {
             type="submit"
             onClick={handleSubmit}
             disabled={loading}
-            className="px-6 py-2 bg-white hover:bg-gray-100 text-black rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-5 py-2.5 bg-white text-black text-sm font-medium rounded-lg hover:bg-gray-100 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {loading ? 'Saving...' : 'Save Changes'}
           </button>

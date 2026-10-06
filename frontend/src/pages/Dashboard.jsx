@@ -12,6 +12,8 @@ import LoadingModal from "../components/LoadingModal";
 import TaskDetailsModal from "../components/TaskDetailsModal";
 import ConfirmationModal from "../components/ConfirmationModal";
 import TwoFactorEncouragementBanner from "../components/TwoFactorEncouragementBanner";
+import ReliabilityScoreModal from "../components/ReliabilityScoreModal";
+import Select from "../components/Select";
 import { fetchTasks, createTask, updateTask, deleteTask, submitDispute } from "../services/api";
 import { get2FAStatus } from "../services/twoFactor";
 
@@ -324,61 +326,58 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-black text-white selection:bg-white selection:text-black">
       <Navigation />
 
       {show2FABanner && (
         <TwoFactorEncouragementBanner onDismiss={handleDismissBanner} />
       )}
 
-      <div className="p-6 max-w-7xl mx-auto">
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-4">
-            <div>
-              <h1 className="text-3xl font-light text-white mb-2 tracking-[-0.01em]">
-                Your Tasks
-              </h1>
-              <p className="text-gray-400 font-light text-[15px]">Manage and track your task completion, tasks that are pending are yet to be completed.</p>
-            </div>
+      <div className="max-w-6xl mx-auto px-6 pt-16 pb-28">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-14">
+          <div>
+            <h1 className="text-4xl font-light text-white mb-3 tracking-[-0.02em] leading-[1.1]">
+              Your Tasks
+            </h1>
+            <p className="text-[15px] text-gray-400 font-light leading-relaxed max-w-xl">Manage and track your task completion, tasks that are pending are yet to be completed.</p>
+          </div>
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <label htmlFor="sortBy" className="sr-only">Sort by</label>
+            <Select
+              id="sortBy"
+              value={sortBy}
+              onChange={setSortBy}
+              options={[
+                { value: 'status', label: 'Sort by status' },
+                { value: 'dueDate', label: 'Sort by due date' },
+                { value: 'stakeAmount', label: 'Sort by stake' },
+              ]}
+              className="px-4 py-2.5 text-sm"
+            />
             <button
               onClick={() => setShowCreateModal(true)}
-              className="px-6 py-2.5 bg-white text-black font-medium rounded-lg flex items-center gap-2 hover:bg-gray-100 transition-all duration-200"
+              className="px-5 py-2.5 bg-white text-black text-sm font-medium rounded-lg flex items-center gap-2 hover:bg-gray-100 transition-all duration-200"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
               </svg>
               Create Task
             </button>
           </div>
-          <div className="flex justify-end">
-            <div className="flex items-center gap-2">
-              <label htmlFor="sortBy" className="text-sm text-gray-400 font-light">Sort by:</label>
-              <select
-                id="sortBy"
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="px-4 py-2 bg-white/[0.03] text-white border border-white/[0.08] rounded-lg focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/[0.12] font-light transition-all duration-200"
-              >
-                <option value="status">Status</option>
-                <option value="dueDate">Due Date</option>
-                <option value="stakeAmount">Stake Amount</option>
-              </select>
-            </div>
-          </div>
         </div>
 
         {loading && (
-          <div className="text-center py-12 text-gray-400 font-light">
+          <p className="py-6 text-[15px] text-gray-500 font-light">
             Loading your tasks...
-          </div>
+          </p>
         )}
 
         {error && (
-          <div className="text-center py-12">
-            <div className="text-red-400 mb-4 font-light">{error}</div>
+          <div className="flex items-center justify-between gap-6 border-l border-red-400/60 pl-4">
+            <p className="text-[13px] text-red-400 font-light">{error}</p>
             <button
               onClick={loadTasks}
-              className="px-6 py-2.5 bg-white text-black rounded-lg font-medium hover:bg-gray-100 transition-all duration-200"
+              className="px-4 py-2 bg-white/[0.03] text-white text-sm font-normal rounded-lg border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-200"
             >
               Retry
             </button>
@@ -386,13 +385,15 @@ export default function Dashboard() {
         )}
 
         {!loading && !error && tasks.length === 0 && (
-          <div className="text-center py-12 text-gray-400 font-light">
-            No tasks yet. Create your first task to get started!
+          <div className="border-t border-white/[0.15] pt-6">
+            <p className="text-[15px] text-gray-400 font-light">
+              No tasks yet. Create your first task to get started!
+            </p>
           </div>
         )}
 
         {!loading && !error && tasks.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-12">
             {getSortedTasks().map(task => (
               <TaskCard
                 key={task.id}
@@ -405,12 +406,14 @@ export default function Dashboard() {
         )}
 
         {/* Analytics Section */}
-        <Analytics
-          onShowReliabilityModal={(score) => {
-            setReliabilityScore(score)
-            setShowReliabilityModal(true)
-          }}
-        />
+        <div className="mt-28">
+          <Analytics
+            onShowReliabilityModal={(score) => {
+              setReliabilityScore(score)
+              setShowReliabilityModal(true)
+            }}
+          />
+        </div>
       </div>
 
       {selectedTask && (
@@ -477,10 +480,10 @@ export default function Dashboard() {
         message={modalMessage}
         confirmText="OK"
         cancelText="Close"
-        confirmButtonClass="bg-green-600 hover:bg-green-700"
+        confirmButtonClass="bg-white text-black hover:bg-gray-100"
         icon={
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         }
       />
@@ -494,11 +497,11 @@ export default function Dashboard() {
         message={modalMessage}
         confirmText="OK"
         cancelText="Close"
-        confirmButtonClass="bg-blue-600 hover:bg-blue-700"
+        confirmButtonClass="bg-white text-black hover:bg-gray-100"
         isDestructive={true}
         icon={
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         }
       />
@@ -510,173 +513,6 @@ export default function Dashboard() {
           onClose={() => setShowReliabilityModal(false)}
         />
       )}
-    </div>
-  );
-}
-
-// ReliabilityScoreModal Component
-function ReliabilityScoreModal({ score, onClose }) {
-  useEffect(() => {
-    const handleEscape = (e) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [onClose]);
-
-  const getTierInfo = (score) => {
-    if (score >= 3500) return { name: "Platinum", range: "3500+", color: "from-purple-400 via-pink-400 to-purple-400" };
-    if (score >= 2000) return { name: "Elite", range: "2000-3499", color: "from-blue-400 to-blue-500" };
-    if (score >= 1000) return { name: "Reliable", range: "1000-1999", color: "from-green-400 to-green-500" };
-    if (score >= 300) return { name: "Building Discipline", range: "300-999", color: "from-yellow-400 to-yellow-500" };
-    return { name: "Inconsistent or Beginner", range: "<300", color: "from-red-400 to-red-500" };
-  };
-
-  const getReliabilityScoreColor = (score) => {
-    // Color definitions (RGB values)
-    const colors = {
-      red: { r: 248, g: 113, b: 113 },
-      orange: { r: 251, g: 146, b: 60 },
-      yellow: { r: 250, g: 204, b: 21 },
-      green: { r: 74, g: 222, b: 128 },
-      blue: { r: 96, g: 165, b: 250 },
-    };
-
-    const interpolateColor = (value, min, mid, max, colorMin, colorMid, colorMax) => {
-      const clampedValue = Math.max(min, Math.min(max, value));
-      let t, color1, color2;
-
-      if (clampedValue <= mid) {
-        t = (clampedValue - min) / (mid - min);
-        color1 = colorMin;
-        color2 = colorMid;
-      } else {
-        t = (clampedValue - mid) / (max - mid);
-        color1 = colorMid;
-        color2 = colorMax;
-      }
-
-      const r = Math.round(color1.r + (color2.r - color1.r) * t);
-      const g = Math.round(color1.g + (color2.g - color1.g) * t);
-      const b = Math.round(color1.b + (color2.b - color1.b) * t);
-
-      return `rgb(${r}, ${g}, ${b})`;
-    };
-
-    if (score >= 3500) return null;
-    if (score >= 2000) return 'rgb(96, 165, 250)';
-
-    if (score < 1000) {
-      if (score <= 300) {
-        return interpolateColor(score, 0, 150, 300, colors.red, colors.red, colors.orange);
-      } else if (score <= 600) {
-        return interpolateColor(score, 300, 450, 600, colors.orange, colors.orange, colors.yellow);
-      } else {
-        return interpolateColor(score, 600, 800, 1000, colors.yellow, colors.yellow, colors.green);
-      }
-    }
-
-    return interpolateColor(score, 1000, 1500, 2000, colors.green, colors.green, colors.blue);
-  };
-
-  const currentTier = getTierInfo(score);
-
-  const tiers = [
-    { name: "Inconsistent or Beginner", range: "<300", color: "from-red-400 to-red-500", isCurrent: score < 300 },
-    { name: "Building Discipline", range: "300-999", color: "from-yellow-400 to-yellow-500", isCurrent: score >= 300 && score < 1000 },
-    { name: "Reliable", range: "1000-1999", color: "from-green-400 to-green-500", isCurrent: score >= 1000 && score < 2000 },
-    { name: "Elite", range: "2000-3499", color: "from-blue-400 to-blue-500", isCurrent: score >= 2000 && score < 3500 },
-    { name: "Platinum", range: "3500+", color: "from-purple-400 via-white-400 to-blue-400", isCurrent: score >= 3500 },
-  ];
-
-  return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-black border border-white/[0.06] rounded-2xl shadow-2xl max-w-lg w-full max-h-[85vh] flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-white/[0.06] flex-shrink-0">
-          <h2 className="text-xl font-light text-white tracking-[-0.01em]">Reliability Score</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-white transition-all duration-200 p-1 hover:bg-white/[0.06] rounded-lg"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="p-6 space-y-5 overflow-y-auto flex-1">
-          {/* Description */}
-          <div>
-            <p className="text-sm text-gray-300 mb-3 font-light">
-              The Reliability Score is Enfora's flagship metric that measures your consistency and discipline
-              in creating and completing tasks.
-            </p>
-            <div className="flex items-center gap-2 mb-4">
-              <span className="text-sm text-gray-400 font-light">Current score:</span>
-              <span
-                className={`text-2xl font-light ${score >= 3500 ? 'bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent' : ''}`}
-                style={score >= 3500 ? {} : { color: getReliabilityScoreColor(score) }}
-              >
-                {score}
-              </span>
-              <span className={`px-2.5 py-1 rounded-full text-xs font-medium bg-gradient-to-r ${currentTier.color} text-white`}>
-                {currentTier.name}
-              </span>
-            </div>
-          </div>
-
-          {/* Tiers */}
-          <div>
-            <h3 className="text-base font-normal text-white mb-3">Score Tiers</h3>
-            <div className="space-y-2.5">
-              {tiers.map((tier, index) => (
-                <div
-                  key={index}
-                  className={`border rounded-xl p-4 transition-all ${
-                    tier.isCurrent
-                      ? 'border-white/[0.12] bg-white/[0.04]'
-                      : 'border-white/[0.06] bg-white/[0.015]'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 flex-1">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                        tier.name === "Platinum"
-                          ? 'platinum-badge-gradient border-2 border-transparent'
-                          : `bg-gradient-to-r ${tier.color}`
-                      }`}>
-                        {tier.isCurrent && (
-                          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        )}
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h4 className={`text-sm ${
-                            tier.name === "Platinum"
-                              ? 'platinum-text-gradient font-black'
-                              : 'text-white font-normal'
-                          }`}>{tier.name}</h4>
-                          {tier.isCurrent && (
-                            <span className="text-xs text-green-400 font-normal">Current</span>
-                          )}
-                        </div>
-                        <p className="text-xs text-gray-400 font-light">{tier.range} points</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

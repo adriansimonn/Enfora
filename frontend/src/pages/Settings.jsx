@@ -239,106 +239,102 @@ export default function Settings() {
   }
 
   const sections = [
-    { id: 'account', label: 'Account', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' },
-    { id: 'security', label: 'Security', icon: 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z' },
-    { id: 'notifications', label: 'Notifications', icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9' }
+    { id: 'account', label: 'Account' },
+    { id: 'security', label: 'Security' },
+    { id: 'notifications', label: 'Notifications' }
   ]
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-black text-white selection:bg-white selection:text-black">
       <Navigation />
 
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="max-w-5xl mx-auto px-6 pt-16 pb-28">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-light text-white mb-2 tracking-[-0.01em]">Settings</h1>
-          <p className="text-gray-400 font-light">Manage your account settings and preferences</p>
+        <div className="mb-14">
+          <h1 className="text-4xl font-light text-white mb-3 tracking-[-0.02em] leading-[1.1]">Settings</h1>
+          <p className="text-[15px] text-gray-400 font-light">Manage your account settings and preferences</p>
         </div>
 
         {/* Message Banner */}
         {message.text && (
-          <div className={`mb-6 p-4 rounded-xl border ${
+          <div className={`mb-10 border-l pl-4 ${
             message.type === 'success'
-              ? 'bg-green-500/10 border-green-500/20 text-green-400'
-              : 'bg-red-500/10 border-red-500/20 text-red-400'
+              ? 'border-green-400/60 text-green-400'
+              : 'border-red-400/60 text-red-400'
           }`}>
-            <p className="font-light">{message.text}</p>
+            <p className="text-[13px] font-light">{message.text}</p>
           </div>
         )}
 
-        <div className="flex gap-6">
+        <div className="flex flex-col md:flex-row gap-10 md:gap-16">
           {/* Sidebar Navigation */}
-          <div className="w-64 flex-shrink-0">
-            <div className="bg-white/[0.015] backdrop-blur border border-white/[0.06] rounded-2xl p-2 sticky top-6">
+          <div className="md:w-44 flex-shrink-0">
+            <nav className="flex md:flex-col gap-6 md:gap-0 border-b md:border-b-0 md:border-l border-white/[0.08] md:sticky md:top-6">
               {sections.map((section) => (
                 <button
                   key={section.id}
                   onClick={() => setActiveSection(section.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                  className={`-mb-px md:mb-0 md:-ml-px py-3 md:py-2 md:pl-4 text-left text-sm border-b md:border-b-0 md:border-l transition-colors duration-200 ${
                     activeSection === section.id
-                      ? 'bg-white/[0.08] text-white'
-                      : 'text-gray-400 hover:bg-white/[0.04] hover:text-gray-300'
+                      ? 'border-white text-white font-normal'
+                      : 'border-transparent text-gray-500 hover:text-gray-300 font-light'
                   }`}
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d={section.icon} />
-                  </svg>
-                  <span className="font-normal">{section.label}</span>
+                  {section.label}
                 </button>
               ))}
-            </div>
+            </nav>
           </div>
 
           {/* Main Content */}
-          <div className="flex-1">
-            <div className="bg-white/[0.015] backdrop-blur border border-white/[0.06] rounded-2xl p-8">
+          <div className="flex-1 min-w-0 max-w-2xl">
 
               {/* Account Section */}
               {activeSection === 'account' && (
-                <div className="space-y-8">
+                <div>
                   <div>
-                    <h2 className="text-2xl font-light text-white mb-6 tracking-[-0.01em]">Account Information</h2>
+                    <h2 className="text-2xl font-light text-white mb-8 tracking-[-0.01em]">Account Information</h2>
                     <form onSubmit={handleAccountUpdate} className="space-y-6">
                       <div>
-                        <label className="block text-sm font-normal text-gray-300 mb-2">Email</label>
+                        <label className="block text-[13px] font-normal text-gray-300 mb-2">Email</label>
                         <input
                           type="email"
                           value={accountData.email}
                           disabled
-                          className="w-full px-4 py-3 bg-white/[0.02] border border-white/[0.06] rounded-xl text-gray-500 cursor-not-allowed font-light"
+                          className="w-full px-4 py-2.5 bg-transparent border border-white/[0.06] rounded-lg text-[15px] text-gray-500 cursor-not-allowed font-light"
                         />
-                        <p className="mt-2 text-xs text-gray-500 font-light">Email cannot be changed</p>
+                        <p className="mt-2 text-[12px] text-gray-500 font-light">Email cannot be changed</p>
                       </div>
 
                       <div>
-                        <label className="block text-sm font-normal text-gray-300 mb-2">Username</label>
+                        <label className="block text-[13px] font-normal text-gray-300 mb-2">Username</label>
                         <input
                           type="text"
                           value={accountData.username}
                           onChange={(e) => setAccountData({ ...accountData, username: e.target.value })}
-                          className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl text-white focus:outline-none focus:border-white/[0.12] transition-all font-light"
+                          className="w-full px-4 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[15px] text-white font-light placeholder-gray-600 focus:outline-none focus:border-white/[0.25] transition-colors duration-200"
                           placeholder="Your username"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-sm font-normal text-gray-300 mb-2">Display Name</label>
+                        <label className="block text-[13px] font-normal text-gray-300 mb-2">Display Name</label>
                         <input
                           type="text"
                           value={accountData.displayName}
                           onChange={(e) => setAccountData({ ...accountData, displayName: e.target.value })}
-                          className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl text-white focus:outline-none focus:border-white/[0.12] transition-all font-light"
+                          className="w-full px-4 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[15px] text-white font-light placeholder-gray-600 focus:outline-none focus:border-white/[0.25] transition-colors duration-200"
                           placeholder="Your display name"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-sm font-normal text-gray-300 mb-2">Bio</label>
+                        <label className="block text-[13px] font-normal text-gray-300 mb-2">Bio</label>
                         <textarea
                           value={accountData.bio}
                           onChange={(e) => setAccountData({ ...accountData, bio: e.target.value })}
                           rows={4}
-                          className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl text-white focus:outline-none focus:border-white/[0.12] transition-all resize-none font-light"
+                          className="w-full px-4 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[15px] text-white font-light placeholder-gray-600 focus:outline-none focus:border-white/[0.25] transition-colors duration-200 resize-none"
                           placeholder="Tell us about yourself"
                         />
                       </div>
@@ -346,7 +342,7 @@ export default function Settings() {
                       <button
                         type="submit"
                         disabled={loading}
-                        className="px-6 py-3 bg-white text-black rounded-xl hover:bg-gray-200 transition-all duration-200 font-normal disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-6 py-2.5 bg-white text-black text-sm font-medium rounded-lg hover:bg-gray-100 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         {loading ? 'Saving...' : 'Save Changes'}
                       </button>
@@ -354,61 +350,59 @@ export default function Settings() {
                   </div>
 
                   {/* Delete Account Section */}
-                  <div className="border-t border-white/[0.06] pt-8">
-                    <h3 className="text-xl font-light text-white mb-4 tracking-[-0.01em]">Delete Account</h3>
-                    <div className="border border-red-500/20 bg-red-500/5 rounded-xl p-6">
-                      <p className="text-sm text-gray-400 font-light mb-4">
-                        Once you delete your account, there is no going back. All your data will be permanently removed.
-                      </p>
-                      <button
-                        onClick={handleDeleteAccount}
-                        disabled={loading}
-                        className="px-6 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-all duration-200 font-normal disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        Delete Account
-                      </button>
-                    </div>
+                  <div className="mt-20 border-t border-white/[0.08] pt-10">
+                    <h3 className="text-xl font-light text-white mb-2 tracking-[-0.01em]">Delete Account</h3>
+                    <p className="text-[13px] text-gray-400 font-light leading-relaxed mb-6">
+                      Once you delete your account, there is no going back. All your data will be permanently removed.
+                    </p>
+                    <button
+                      onClick={handleDeleteAccount}
+                      disabled={loading}
+                      className="px-6 py-2.5 text-red-400 text-sm font-normal rounded-lg border border-red-400/30 hover:bg-red-400/[0.06] hover:border-red-400/50 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      Delete Account
+                    </button>
                   </div>
                 </div>
               )}
 
               {/* Security Section */}
               {activeSection === 'security' && (
-                <div className="space-y-8">
+                <div>
                   {/* Password Change */}
                   <div>
-                    <h2 className="text-2xl font-light text-white mb-6 tracking-[-0.01em]">Change Password</h2>
+                    <h2 className="text-2xl font-light text-white mb-8 tracking-[-0.01em]">Change Password</h2>
                     <form onSubmit={handlePasswordChange} className="space-y-6">
                       <div>
-                        <label className="block text-sm font-normal text-gray-300 mb-2">Current Password</label>
+                        <label className="block text-[13px] font-normal text-gray-300 mb-2">Current Password</label>
                         <input
                           type="password"
                           value={passwordData.currentPassword}
                           onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                          className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl text-white focus:outline-none focus:border-white/[0.12] transition-all font-light"
+                          className="w-full px-4 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[15px] text-white font-light placeholder-gray-600 focus:outline-none focus:border-white/[0.25] transition-colors duration-200"
                           placeholder="Enter current password"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-sm font-normal text-gray-300 mb-2">New Password</label>
+                        <label className="block text-[13px] font-normal text-gray-300 mb-2">New Password</label>
                         <input
                           type="password"
                           value={passwordData.newPassword}
                           onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                          className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl text-white focus:outline-none focus:border-white/[0.12] transition-all font-light"
+                          className="w-full px-4 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[15px] text-white font-light placeholder-gray-600 focus:outline-none focus:border-white/[0.25] transition-colors duration-200"
                           placeholder="Enter new password"
                         />
-                        <p className="mt-2 text-xs text-gray-500 font-light">Must be at least 8 characters long</p>
+                        <p className="mt-2 text-[12px] text-gray-500 font-light">Must be at least 8 characters long</p>
                       </div>
 
                       <div>
-                        <label className="block text-sm font-normal text-gray-300 mb-2">Confirm New Password</label>
+                        <label className="block text-[13px] font-normal text-gray-300 mb-2">Confirm New Password</label>
                         <input
                           type="password"
                           value={passwordData.confirmPassword}
                           onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                          className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl text-white focus:outline-none focus:border-white/[0.12] transition-all font-light"
+                          className="w-full px-4 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[15px] text-white font-light placeholder-gray-600 focus:outline-none focus:border-white/[0.25] transition-colors duration-200"
                           placeholder="Confirm new password"
                         />
                       </div>
@@ -416,7 +410,7 @@ export default function Settings() {
                       <button
                         type="submit"
                         disabled={loading}
-                        className="px-6 py-3 bg-white text-black rounded-xl hover:bg-gray-200 transition-all duration-200 font-normal disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-6 py-2.5 bg-white text-black text-sm font-medium rounded-lg hover:bg-gray-100 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         {loading ? 'Changing...' : 'Change Password'}
                       </button>
@@ -424,96 +418,80 @@ export default function Settings() {
                   </div>
 
                   {/* Two-Factor Authentication */}
-                  <div className="border-t border-white/[0.06] pt-8">
-                    <h3 className="text-xl font-light text-white mb-4 tracking-[-0.01em]">Two-Factor Authentication</h3>
-                    <p className="text-sm text-gray-400 font-light mb-6">
+                  <div className="mt-20 border-t border-white/[0.08] pt-10">
+                    <h3 className="text-xl font-light text-white mb-2 tracking-[-0.01em]">Two-Factor Authentication</h3>
+                    <p className="text-[13px] text-gray-400 font-light leading-relaxed mb-8">
                       Add an extra layer of security to your account by enabling two-factor authentication.
                     </p>
 
-                    <div className="space-y-4">
-                      {!twoFactorSettings.twoFactorEnabled ? (
-                        <>
-                          {/* Authenticator App 2FA */}
-                          <div className="border border-white/[0.06] bg-white/[0.02] rounded-xl p-6">
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                <h4 className="text-base font-normal text-white mb-2">Authenticator App</h4>
-                                <p className="text-sm text-gray-400 font-light mb-4">
-                                  Use an authenticator app like Google Authenticator or Authy to generate verification codes.
-                                </p>
-                                <div className="flex items-center gap-2 text-sm text-gray-500 font-light">
-                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                  </svg>
-                                  Not enabled
-                                </div>
-                              </div>
-                              <button
-                                onClick={() => handleEnable2FA('authenticator')}
-                                disabled={loading}
-                                className="px-4 py-2 bg-white text-black hover:bg-gray-200 rounded-lg transition-all duration-200 font-normal disabled:opacity-50 disabled:cursor-not-allowed"
-                              >
-                                Enable
-                              </button>
-                            </div>
+                    {!twoFactorSettings.twoFactorEnabled ? (
+                      <div className="divide-y divide-white/[0.08] border-y border-white/[0.08]">
+                        {/* Authenticator App 2FA */}
+                        <div className="flex items-start justify-between gap-6 py-5">
+                          <div className="flex-1">
+                            <h4 className="text-[15px] font-normal text-white mb-1">Authenticator App</h4>
+                            <p className="text-[13px] text-gray-400 font-light leading-relaxed mb-3">
+                              Use an authenticator app like Google Authenticator or Authy to generate verification codes.
+                            </p>
+                            <span className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.08em] text-gray-500">
+                              <span className="w-1.5 h-1.5 rounded-full bg-gray-600" />
+                              Not enabled
+                            </span>
                           </div>
-
-                          {/* Email 2FA */}
-                          <div className="border border-white/[0.06] bg-white/[0.02] rounded-xl p-6">
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                <h4 className="text-base font-normal text-white mb-2">Email Verification</h4>
-                                <p className="text-sm text-gray-400 font-light mb-4">
-                                  Receive verification codes via email when signing in.
-                                </p>
-                                <div className="flex items-center gap-2 text-sm text-gray-500 font-light">
-                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                  </svg>
-                                  Not enabled
-                                </div>
-                              </div>
-                              <button
-                                onClick={() => handleEnable2FA('email')}
-                                disabled={loading}
-                                className="px-4 py-2 bg-white text-black hover:bg-gray-200 rounded-lg transition-all duration-200 font-normal disabled:opacity-50 disabled:cursor-not-allowed"
-                              >
-                                Enable
-                              </button>
-                            </div>
-                          </div>
-                        </>
-                      ) : (
-                        <div className="border border-green-500/20 bg-green-500/5 rounded-xl p-6">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-2">
-                                <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                <h4 className="text-base font-normal text-white">
-                                  {twoFactorSettings.twoFactorMethod === 'authenticator' ? 'Authenticator App' : 'Email Verification'}
-                                </h4>
-                              </div>
-                              <p className="text-sm text-green-400 font-light mb-4">
-                                Two-factor authentication is currently enabled
-                              </p>
-                              <p className="text-sm text-gray-400 font-light">
-                                Your account is protected with {twoFactorSettings.twoFactorMethod === 'authenticator' ? 'authenticator app verification' : 'email verification codes'}.
-                                {twoFactorSettings.hasBackupCodes && ` You have ${twoFactorSettings.backupCodesCount} backup codes remaining.`}
-                              </p>
-                            </div>
-                            <button
-                              onClick={handleDisable2FA}
-                              disabled={loading}
-                              className="px-4 py-2 rounded-lg transition-all duration-200 font-normal bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              Disable
-                            </button>
-                          </div>
+                          <button
+                            onClick={() => handleEnable2FA('authenticator')}
+                            disabled={loading}
+                            className="px-4 py-2 bg-white/[0.03] text-white text-sm font-normal rounded-lg border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+                          >
+                            Enable
+                          </button>
                         </div>
-                      )}
-                    </div>
+
+                        {/* Email 2FA */}
+                        <div className="flex items-start justify-between gap-6 py-5">
+                          <div className="flex-1">
+                            <h4 className="text-[15px] font-normal text-white mb-1">Email Verification</h4>
+                            <p className="text-[13px] text-gray-400 font-light leading-relaxed mb-3">
+                              Receive verification codes via email when signing in.
+                            </p>
+                            <span className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.08em] text-gray-500">
+                              <span className="w-1.5 h-1.5 rounded-full bg-gray-600" />
+                              Not enabled
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => handleEnable2FA('email')}
+                            disabled={loading}
+                            className="px-4 py-2 bg-white/[0.03] text-white text-sm font-normal rounded-lg border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+                          >
+                            Enable
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-start justify-between gap-6 border-t border-white/[0.15] pt-5">
+                        <div className="flex-1">
+                          <h4 className="text-[15px] font-normal text-white mb-2">
+                            {twoFactorSettings.twoFactorMethod === 'authenticator' ? 'Authenticator App' : 'Email Verification'}
+                          </h4>
+                          <span className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.08em] text-green-400 mb-3">
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
+                            Two-factor authentication is currently enabled
+                          </span>
+                          <p className="text-[13px] text-gray-400 font-light leading-relaxed">
+                            Your account is protected with {twoFactorSettings.twoFactorMethod === 'authenticator' ? 'authenticator app verification' : 'email verification codes'}.
+                            {twoFactorSettings.hasBackupCodes && ` You have ${twoFactorSettings.backupCodesCount} backup codes remaining.`}
+                          </p>
+                        </div>
+                        <button
+                          onClick={handleDisable2FA}
+                          disabled={loading}
+                          className="px-4 py-2 text-red-400 text-sm font-normal rounded-lg border border-red-400/30 hover:bg-red-400/[0.06] hover:border-red-400/50 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          Disable
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -521,18 +499,18 @@ export default function Settings() {
               {/* Notifications Section */}
               {activeSection === 'notifications' && (
                 <div>
-                  <h2 className="text-2xl font-light text-white mb-6 tracking-[-0.01em]">Notification Preferences</h2>
-                  <form onSubmit={handleNotificationUpdate} className="space-y-6">
-                    <div className="space-y-4">
+                  <h2 className="text-2xl font-light text-white mb-8 tracking-[-0.01em]">Notification Preferences</h2>
+                  <form onSubmit={handleNotificationUpdate}>
+                    <div className="divide-y divide-white/[0.08] border-y border-white/[0.08]">
                       {[
                         { key: 'emailNotifications', label: 'Email Notifications', description: 'Receive email notifications for important updates' },
                         { key: 'taskReminders', label: 'Task Reminders', description: 'Get reminders for upcoming task deadlines' },
                         { key: 'achievementAlerts', label: 'Achievement Alerts', description: 'Be notified when you earn new achievements' }
                       ].map((item) => (
-                        <div key={item.key} className="flex items-center justify-between p-4 bg-white/[0.02] border border-white/[0.06] rounded-xl">
+                        <div key={item.key} className="flex items-center justify-between gap-6 py-5">
                           <div className="flex-1">
-                            <label className="block text-sm font-normal text-gray-300 mb-1">{item.label}</label>
-                            <p className="text-xs text-gray-500 font-light">{item.description}</p>
+                            <label className="block text-[15px] font-normal text-white mb-1">{item.label}</label>
+                            <p className="text-[13px] text-gray-400 font-light">{item.description}</p>
                           </div>
                           <label className="relative inline-flex items-center cursor-pointer">
                             <input
@@ -541,7 +519,7 @@ export default function Settings() {
                               onChange={(e) => setNotificationSettings({ ...notificationSettings, [item.key]: e.target.checked })}
                               className="sr-only peer"
                             />
-                            <div className="w-11 h-6 bg-white/[0.1] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+                            <div className="w-10 h-6 bg-white/[0.1] rounded-full peer transition-colors duration-200 peer-checked:bg-white after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-white after:rounded-full after:h-[18px] after:w-[18px] after:transition-all after:duration-200 peer-checked:after:translate-x-4 peer-checked:after:bg-black"></div>
                           </label>
                         </div>
                       ))}
@@ -550,7 +528,7 @@ export default function Settings() {
                     <button
                       type="submit"
                       disabled={loading}
-                      className="px-6 py-3 bg-white text-black rounded-xl hover:bg-gray-200 transition-all duration-200 font-normal disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="mt-8 px-6 py-2.5 bg-white text-black text-sm font-medium rounded-lg hover:bg-gray-100 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       {loading ? 'Saving...' : 'Save Preferences'}
                     </button>
@@ -558,7 +536,6 @@ export default function Settings() {
                 </div>
               )}
 
-            </div>
           </div>
         </div>
       </div>
@@ -577,52 +554,50 @@ export default function Settings() {
 
       {/* Disable 2FA Confirmation Modal */}
       {showDisableConfirm && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-black border border-white/[0.06] rounded-2xl shadow-2xl max-w-md w-full">
-            <div className="flex items-center justify-between p-6 border-b border-white/[0.06]">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-black border border-white/[0.08] rounded-xl max-w-md w-full">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-white/[0.08]">
               <h2 className="text-xl font-light text-white tracking-[-0.01em]">Disable 2FA</h2>
               <button
                 onClick={() => {
                   setShowDisableConfirm(false)
                   setDisablePassword('')
                 }}
-                className="text-gray-400 hover:text-white transition-all duration-200 p-1 hover:bg-white/[0.06] rounded-lg"
+                className="p-1 -mr-1 text-gray-500 hover:text-white transition-colors duration-200"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
-            <div className="p-6 space-y-4">
-              <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
-                <p className="text-red-400 font-light text-sm">
-                  This will make your account less secure. Enter your password to confirm.
-                </p>
-              </div>
+            <div className="p-6 space-y-6">
+              <p className="border-l border-red-400/60 pl-4 text-[13px] text-red-400 font-light leading-relaxed">
+                This will make your account less secure. Enter your password to confirm.
+              </p>
               <div>
-                <label className="block text-sm font-normal text-gray-300 mb-2">Password</label>
+                <label className="block text-[13px] font-normal text-gray-300 mb-2">Password</label>
                 <input
                   type="password"
                   value={disablePassword}
                   onChange={(e) => setDisablePassword(e.target.value)}
-                  className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl text-white focus:outline-none focus:border-white/[0.12] transition-all font-light"
+                  className="w-full px-4 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[15px] text-white font-light placeholder-gray-600 focus:outline-none focus:border-white/[0.25] transition-colors duration-200"
                   placeholder="Enter your password"
                 />
               </div>
-              <div className="flex gap-3">
+              <div className="flex gap-3 pt-2">
                 <button
                   onClick={() => {
                     setShowDisableConfirm(false)
                     setDisablePassword('')
                   }}
-                  className="flex-1 px-4 py-3 bg-white/[0.03] hover:bg-white/[0.06] text-white rounded-lg transition-all duration-200 border border-white/[0.08] font-normal"
+                  className="flex-1 px-4 py-2.5 bg-white/[0.03] text-white text-sm font-normal rounded-lg border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-200"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleConfirmDisable2FA}
                   disabled={loading || !disablePassword}
-                  className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all duration-200 font-normal disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-400 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {loading ? 'Disabling...' : 'Disable 2FA'}
                 </button>
@@ -634,14 +609,14 @@ export default function Settings() {
 
       {/* Account Deletion Modal */}
       {showDeletionModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-black border border-white/[0.06] rounded-2xl shadow-2xl max-w-md w-full">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-black border border-white/[0.08] rounded-xl max-w-md w-full">
             {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-white/[0.06]">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-white/[0.08]">
               <h2 className="text-xl font-light text-white tracking-[-0.01em]">Delete Account</h2>
               <button
                 onClick={handleCancelDeletion}
-                className="text-gray-400 hover:text-white transition-all duration-200 p-1 hover:bg-white/[0.06] rounded-lg"
+                className="p-1 -mr-1 text-gray-500 hover:text-white transition-colors duration-200"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -652,31 +627,31 @@ export default function Settings() {
             {/* Content */}
             <div className="p-6">
               {deletionStep === 1 && (
-                <div className="space-y-4">
-                  <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
-                    <p className="text-red-400 font-light text-sm mb-2">
-                      <strong>Warning:</strong> This action cannot be undone!
+                <div className="space-y-6">
+                  <div className="border-l border-red-400/60 pl-4">
+                    <p className="text-[13px] text-red-400 font-light mb-2">
+                      <span className="font-normal">Warning:</span> This action cannot be undone!
                     </p>
-                    <ul className="text-red-400 font-light text-sm space-y-1 list-disc list-inside">
+                    <ul className="text-[13px] text-gray-400 font-light space-y-1 list-disc pl-4 marker:text-gray-600">
                       <li>All your data will be permanently deleted</li>
                       <li>Your tasks and progress will be lost</li>
                       <li>You cannot recover your account after deletion</li>
                     </ul>
                   </div>
-                  <p className="text-gray-300 font-light text-sm">
+                  <p className="text-[14px] text-gray-300 font-light leading-relaxed">
                     To proceed, we'll send a verification code to your email address.
                   </p>
-                  <div className="flex gap-3">
+                  <div className="flex gap-3 pt-2">
                     <button
                       onClick={handleCancelDeletion}
-                      className="flex-1 px-4 py-3 bg-white/[0.03] hover:bg-white/[0.06] text-white rounded-lg transition-all duration-200 border border-white/[0.08] font-normal"
+                      className="flex-1 px-4 py-2.5 bg-white/[0.03] text-white text-sm font-normal rounded-lg border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-200"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleRequestDeletionCode}
                       disabled={loading}
-                      className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all duration-200 font-normal disabled:opacity-50"
+                      className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-400 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       {loading ? 'Sending...' : 'Continue'}
                     </button>
@@ -685,35 +660,35 @@ export default function Settings() {
               )}
 
               {deletionStep === 2 && (
-                <div className="space-y-4">
-                  <p className="text-gray-300 font-light text-sm">
-                    We've sent a 6-digit verification code to <strong>{deletionEmail}</strong>
+                <div className="space-y-6">
+                  <p className="text-[14px] text-gray-300 font-light leading-relaxed">
+                    We've sent a 6-digit verification code to <span className="text-white font-normal">{deletionEmail}</span>
                   </p>
                   <div>
-                    <label className="block text-sm font-normal text-gray-300 mb-2">Verification Code</label>
+                    <label className="block text-[13px] font-normal text-gray-300 mb-2">Verification Code</label>
                     <input
                       type="text"
                       value={deletionCode}
                       onChange={(e) => setDeletionCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                       maxLength={6}
                       placeholder="Enter 6-digit code"
-                      className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl text-white text-center text-2xl tracking-widest font-light focus:outline-none focus:border-white/[0.12] transition-all"
+                      className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.08] rounded-lg text-white text-center text-2xl tracking-widest font-light tabular-nums placeholder-gray-600 focus:outline-none focus:border-white/[0.25] transition-colors duration-200"
                     />
+                    <p className="mt-2 text-[12px] text-gray-500 font-light">
+                      The code will expire in 10 minutes
+                    </p>
                   </div>
-                  <p className="text-xs text-gray-500 font-light">
-                    The code will expire in 10 minutes
-                  </p>
-                  <div className="flex gap-3">
+                  <div className="flex gap-3 pt-2">
                     <button
                       onClick={handleCancelDeletion}
-                      className="flex-1 px-4 py-3 bg-white/[0.03] hover:bg-white/[0.06] text-white rounded-lg transition-all duration-200 border border-white/[0.08] font-normal"
+                      className="flex-1 px-4 py-2.5 bg-white/[0.03] text-white text-sm font-normal rounded-lg border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-200"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleVerifyCode}
                       disabled={deletionCode.length !== 6}
-                      className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all duration-200 font-normal disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-400 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       Verify Code
                     </button>
@@ -722,35 +697,33 @@ export default function Settings() {
               )}
 
               {deletionStep === 3 && (
-                <div className="space-y-4">
-                  <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
-                    <p className="text-red-400 font-light text-sm">
-                      <strong>Final Step:</strong> Type your username to confirm deletion
-                    </p>
-                  </div>
+                <div className="space-y-6">
+                  <p className="border-l border-red-400/60 pl-4 text-[13px] text-red-400 font-light">
+                    <span className="font-normal">Final Step:</span> Type your username to confirm deletion
+                  </p>
                   <div>
-                    <label className="block text-sm font-normal text-gray-300 mb-2">
-                      Type <strong>{user?.username}</strong> to confirm
+                    <label className="block text-[13px] font-normal text-gray-300 mb-2">
+                      Type <span className="text-white">{user?.username}</span> to confirm
                     </label>
                     <input
                       type="text"
                       value={deletionUsername}
                       onChange={(e) => setDeletionUsername(e.target.value)}
                       placeholder="Enter your username"
-                      className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl text-white font-light focus:outline-none focus:border-white/[0.12] transition-all"
+                      className="w-full px-4 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[15px] text-white font-light placeholder-gray-600 focus:outline-none focus:border-white/[0.25] transition-colors duration-200"
                     />
                   </div>
-                  <div className="flex gap-3">
+                  <div className="flex gap-3 pt-2">
                     <button
                       onClick={handleCancelDeletion}
-                      className="flex-1 px-4 py-3 bg-white/[0.03] hover:bg-white/[0.06] text-white rounded-lg transition-all duration-200 border border-white/[0.08] font-normal"
+                      className="flex-1 px-4 py-2.5 bg-white/[0.03] text-white text-sm font-normal rounded-lg border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-200"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleConfirmDeletion}
                       disabled={loading || deletionUsername !== user?.username}
-                      className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all duration-200 font-normal disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-400 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       {loading ? 'Deleting...' : 'Delete Account'}
                     </button>

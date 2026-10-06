@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import CustomRecurrenceModal from './CustomRecurrenceModal';
+import Select from './Select';
 import PaymentMethodRequired from './PaymentMethodRequired';
 import AddPaymentMethodModal from './AddPaymentMethodModal';
 import { getPaymentMethod } from '../services/payment';
@@ -112,171 +113,180 @@ export default function CreateTaskModal({ onClose, onSubmit }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-black border border-white/[0.06] rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-black border border-white/[0.08] rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-white/[0.06]">
-          <h2 className="text-2xl font-light text-white tracking-[-0.01em]">Create New Task</h2>
+        <div className="flex items-center justify-between px-6 py-5 border-b border-white/[0.08]">
+          <h2 className="text-xl font-light text-white tracking-[-0.01em]">Create New Task</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition-all duration-200 p-1.5 hover:bg-white/[0.06] rounded-xl"
+            className="p-1 -mr-1 text-gray-500 hover:text-white transition-colors duration-200"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          <div>
-            <label htmlFor="title" className="block text-sm font-normal text-white mb-2">
-              Task Title
-            </label>
-            <input
-              id="title"
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-              className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white placeholder-gray-500 font-light focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/[0.12] focus:border-transparent transition-all"
-              placeholder="Enter a clear task title..."
-            />
-          </div>
+        <form onSubmit={handleSubmit} className="p-6">
+          <div className="grid md:grid-cols-2 gap-x-8 gap-y-6">
+            {/* Left column: what the task is */}
+            <div className="flex flex-col gap-6">
+              <div>
+                <label htmlFor="title" className="block text-[13px] font-normal text-gray-300 mb-2">
+                  Task Title
+                </label>
+                <input
+                  id="title"
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  required
+                  className="w-full px-4 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[15px] text-white font-light placeholder-gray-600 focus:outline-none focus:border-white/[0.25] transition-colors duration-200"
+                  placeholder="Enter a clear task title..."
+                />
+              </div>
 
-          <div>
-            <label htmlFor="description" className="block text-sm font-normal text-white mb-2">
-              Task Description
-            </label>
-            <textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              required
-              rows={4}
-              className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white placeholder-gray-500 font-light focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/[0.12] focus:border-transparent transition-all"
-              placeholder="Describe the task you want to complete..."
-            />
-          </div>
-
-          <div>
-            <label htmlFor="deadline" className="block text-sm font-normal text-white mb-2">
-              {recurrenceType !== 'does-not-repeat' ? 'First Due Date' : 'Deadline'}
-            </label>
-            <input
-              id="deadline"
-              type="datetime-local"
-              value={deadline}
-              onChange={(e) => setDeadline(e.target.value)}
-              required
-              className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/[0.12] focus:border-transparent transition-all [color-scheme:dark]"
-            />
-          </div>
-
-          {recurrenceType !== 'does-not-repeat' && (
-            <div>
-              <label htmlFor="repeatsUntil" className="block text-sm font-normal text-white mb-2">
-                Repeats Until
-              </label>
-              <input
-                id="repeatsUntil"
-                type="datetime-local"
-                value={repeatsUntil}
-                onChange={(e) => setRepeatsUntil(e.target.value)}
-                required
-                className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/[0.12] focus:border-transparent transition-all [color-scheme:dark]"
-              />
-              <p className="text-gray-500 text-xs mt-2">
-                The task will repeat until this date. Make sure this is after the first due date.
-              </p>
+              <div className="flex flex-col flex-1">
+                <label htmlFor="description" className="block text-[13px] font-normal text-gray-300 mb-2">
+                  Task Description
+                </label>
+                <textarea
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  required
+                  rows={4}
+                  className="flex-1 w-full px-4 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[15px] text-white font-light placeholder-gray-600 focus:outline-none focus:border-white/[0.25] transition-colors duration-200 resize-none"
+                  placeholder="Describe the task you want to complete..."
+                />
+              </div>
             </div>
-          )}
 
-          <div>
-            <label htmlFor="stakeAmount" className="block text-sm font-normal text-white mb-2">
-              Stake Amount ($)
-            </label>
-            <input
-              id="stakeAmount"
-              type="number"
-              step="0.01"
-              min="0"
-              value={stakeAmount}
-              onChange={(e) => setStakeAmount(e.target.value)}
-              required
-              className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white placeholder-gray-500 font-light focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/[0.12] focus:border-transparent transition-all"
-              placeholder="0.00"
-            />
-            <p className="text-gray-500 text-xs mt-2">
-              If you fail to complete this task, you'll be charged this amount.
-            </p>
-          </div>
+            {/* Right column: when it's due and what's at stake */}
+            <div className="space-y-6">
+              <div>
+                <label htmlFor="deadline" className="block text-[13px] font-normal text-gray-300 mb-2">
+                  {recurrenceType !== 'does-not-repeat' ? 'First Due Date' : 'Deadline'}
+                </label>
+                <input
+                  id="deadline"
+                  type="datetime-local"
+                  value={deadline}
+                  onChange={(e) => setDeadline(e.target.value)}
+                  required
+                  className="w-full px-4 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[15px] text-white font-light placeholder-gray-600 focus:outline-none focus:border-white/[0.25] transition-colors duration-200 [color-scheme:dark]"
+                />
+              </div>
 
-          <div>
-            <label htmlFor="recurrence" className="block text-sm font-normal text-white mb-2">
-              Recurrence
-            </label>
-            <select
-              id="recurrence"
-              value={recurrenceType}
-              onChange={(e) => handleRecurrenceChange(e.target.value)}
-              className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/[0.12] focus:border-transparent transition-all"
-            >
-              <option value="does-not-repeat">Does not repeat</option>
-              <option value="daily">Daily</option>
-              <option value="weekly">
-                Weekly on {deadline ? new Date(deadline).toLocaleDateString('en-US', { weekday: 'long' }) : '...'}
-              </option>
-              <option value="weekdays">Every weekday (Monday to Friday)</option>
-              <option value="custom">Custom...</option>
-            </select>
+              <div>
+                <label htmlFor="recurrence" className="block text-[13px] font-normal text-gray-300 mb-2">
+                  Recurrence
+                </label>
+                <Select
+                  id="recurrence"
+                  value={recurrenceType}
+                  onChange={handleRecurrenceChange}
+                  options={[
+                    { value: 'does-not-repeat', label: 'Does not repeat' },
+                    { value: 'daily', label: 'Daily' },
+                    {
+                      value: 'weekly',
+                      label: `Weekly on ${deadline ? new Date(deadline).toLocaleDateString('en-US', { weekday: 'long' }) : '...'}`,
+                    },
+                    { value: 'weekdays', label: 'Every weekday (Monday to Friday)' },
+                    { value: 'custom', label: 'Custom...' },
+                  ]}
+                  className="w-full px-4 py-2.5 text-[15px]"
+                />
+              </div>
+
+              {recurrenceType !== 'does-not-repeat' && (
+                <div>
+                  <label htmlFor="repeatsUntil" className="block text-[13px] font-normal text-gray-300 mb-2">
+                    Repeats Until
+                  </label>
+                  <input
+                    id="repeatsUntil"
+                    type="datetime-local"
+                    value={repeatsUntil}
+                    onChange={(e) => setRepeatsUntil(e.target.value)}
+                    required
+                    className="w-full px-4 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[15px] text-white font-light placeholder-gray-600 focus:outline-none focus:border-white/[0.25] transition-colors duration-200 [color-scheme:dark]"
+                  />
+                  <p className="mt-2 text-[12px] text-gray-500 font-light">
+                    The task will repeat until this date. Make sure this is after the first due date.
+                  </p>
+                </div>
+              )}
+
+              <div>
+                <label htmlFor="stakeAmount" className="block text-[13px] font-normal text-gray-300 mb-2">
+                  Stake Amount ($)
+                </label>
+                <input
+                  id="stakeAmount"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={stakeAmount}
+                  onChange={(e) => setStakeAmount(e.target.value)}
+                  required
+                  className="w-full px-4 py-2.5 bg-white/[0.03] border border-white/[0.08] rounded-lg text-[15px] text-white font-light placeholder-gray-600 focus:outline-none focus:border-white/[0.25] transition-colors duration-200 tabular-nums"
+                  placeholder="0.00"
+                />
+                <p className="mt-2 text-[12px] text-gray-500 font-light">
+                  If you fail to complete this task, you'll be charged this amount.
+                </p>
+              </div>
+            </div>
           </div>
 
           {error && (
-            <div className="p-4 bg-red-500/10 border border-red-500/50 rounded-xl">
-              <p className="text-red-400 text-sm">{error}</p>
-            </div>
+            <p className="mt-6 border-l border-red-400/60 pl-4 text-[13px] text-red-400 font-light leading-relaxed">{error}</p>
           )}
 
-          {/* Agreement Checkbox */}
-          <div className="flex items-start gap-3 p-4 bg-white/[0.02] border border-white/[0.06] rounded-xl">
-            <input
-              type="checkbox"
-              id="agreement"
-              checked={agreementAccepted}
-              onChange={(e) => setAgreementAccepted(e.target.checked)}
-              className="mt-1 w-4 h-4 rounded border-white/[0.2] bg-white/[0.03] text-white focus:ring-2 focus:ring-white/20"
-            />
-            <label htmlFor="agreement" className="text-sm text-gray-300 leading-relaxed">
-              I agree to the{' '}
-              <a
-                href="/agreement"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-white underline hover:text-gray-200 transition-colors"
-              >
-                Enfora Task Commitment, Evidence Submission & Verification Agreement
-              </a>
-              .
-            </label>
-          </div>
+          {/* Agreement + Actions */}
+          <div className="mt-8 flex flex-col md:flex-row md:items-center gap-6 border-t border-white/[0.08] pt-6">
+            <div className="flex items-start gap-3 flex-1">
+              <input
+                type="checkbox"
+                id="agreement"
+                checked={agreementAccepted}
+                onChange={(e) => setAgreementAccepted(e.target.checked)}
+                className="mt-0.5 w-4 h-4 flex-shrink-0 accent-white cursor-pointer"
+              />
+              <label htmlFor="agreement" className="text-[13px] text-gray-400 font-light leading-relaxed cursor-pointer">
+                I agree to the{' '}
+                <a
+                  href="/agreement"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-white underline underline-offset-4 decoration-white/30 hover:decoration-white transition-colors duration-200"
+                >
+                  Enfora Task Commitment, Evidence Submission & Verification Agreement
+                </a>
+                .
+              </label>
+            </div>
 
-          {/* Actions */}
-          <div className="flex gap-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-medium rounded-xl transition-colors border border-zinc-700"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading || !agreementAccepted}
-              className="flex-1 px-4 py-3 bg-white disabled:bg-zinc-800 disabled:cursor-not-allowed text-black disabled:text-gray-500 font-medium rounded-xl"
-            >
-              {loading ? 'Creating...' : 'Create Task'}
-            </button>
+            <div className="flex gap-3 flex-shrink-0">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 md:flex-none px-5 py-2.5 bg-white/[0.03] text-white text-sm font-normal rounded-lg border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={loading || !agreementAccepted}
+                className="flex-1 md:flex-none px-5 py-2.5 bg-white text-black text-sm font-medium rounded-lg hover:bg-gray-100 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {loading ? 'Creating...' : 'Create Task'}
+              </button>
+            </div>
           </div>
         </form>
       </div>

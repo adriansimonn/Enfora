@@ -53,62 +53,63 @@ export default function EvidenceModal({ task, onClose, onSubmit }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4">
-      <div className="bg-black border border-white/[0.06] rounded-2xl shadow-2xl p-6 w-full max-w-md">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-black border border-white/[0.08] rounded-xl w-full max-w-md">
         {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-light text-white tracking-[-0.01em]">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-white/[0.08]">
+          <h2 className="text-xl font-light text-white tracking-[-0.01em]">
             Submit Evidence
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition-all duration-200 p-1.5 hover:bg-white/[0.06] rounded-xl"
+            className="p-1 -mr-1 text-gray-500 hover:text-white transition-colors duration-200"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
-        <p className="text-sm text-gray-400 font-light mb-6">
-          Task: <span className="font-medium text-gray-300">{task.title}</span>
-        </p>
+        <div className="p-6 space-y-6">
+          <div>
+            <p className="text-[13px] text-gray-500 font-light mb-1">Task</p>
+            <p className="text-[15px] font-normal text-white">{task.title}</p>
+          </div>
 
-        {/* File Input */}
-        <div className="mb-6">
-          <label className="block text-sm font-normal text-white mb-2">
-            Upload Evidence
-          </label>
-          <input
-            type="file"
-            accept=".png,.jpg,.jpeg,.pdf,.docx,.txt,.md"
-            disabled={loading}
-            onChange={(e) => setFile(e.target.files[0])}
-            className="w-full text-sm text-gray-400 font-light file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-white file:text-black file:cursor-pointer cursor-pointer"
-          />
-          <p className="text-xs text-gray-500 font-light mt-2">
-            Accepted formats: PNG, JPEG, JPG, PDF, DOCX, TXT, MD (Max 10MB)
-          </p>
+          {/* File Input */}
+          <div>
+            <label className="block text-[13px] font-normal text-gray-300 mb-2">
+              Upload Evidence
+            </label>
+            <input
+              type="file"
+              accept=".png,.jpg,.jpeg,.pdf,.docx,.txt,.md"
+              disabled={loading}
+              onChange={(e) => setFile(e.target.files[0])}
+              className="w-full text-[13px] text-gray-400 font-light file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border file:border-solid file:border-white/[0.08] file:bg-white/[0.03] file:text-white file:text-sm file:font-normal hover:file:bg-white/[0.06] file:transition-colors file:cursor-pointer cursor-pointer"
+            />
+            <p className="mt-2 text-[12px] text-gray-500 font-light">
+              Accepted formats: PNG, JPEG, JPG, PDF, DOCX, TXT, MD (Max 10MB)
+            </p>
+          </div>
+
+          {file && (
+            <p className="border-l border-white/[0.15] pl-4 text-[13px] text-gray-400 font-light leading-relaxed">
+              Selected: <span className="text-gray-200">{file.name}</span>
+            </p>
+          )}
+
+          {error && (
+            <p className="border-l border-red-400/60 pl-4 text-[13px] text-red-400 font-light leading-relaxed">{error}</p>
+          )}
         </div>
 
-        {file && (
-          <p className="text-sm text-gray-300 font-light mb-4 p-3 bg-zinc-800 rounded-xl border border-zinc-700">
-            Selected: {file.name}
-          </p>
-        )}
-
-        {error && (
-          <div className="mb-4 p-4 bg-red-500/10 border border-red-500/50 rounded-xl">
-            <p className="text-sm text-red-400">{error}</p>
-          </div>
-        )}
-
         {/* Actions */}
-        <div className="flex justify-end gap-3 mt-6">
+        <div className="flex justify-end gap-3 px-6 pb-6">
           <button
             onClick={onClose}
             disabled={loading}
-            className="px-4 py-2.5 text-sm font-medium rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-5 py-2.5 bg-white/[0.03] text-white text-sm font-normal rounded-lg border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Cancel
           </button>
@@ -116,7 +117,7 @@ export default function EvidenceModal({ task, onClose, onSubmit }) {
           <button
             onClick={handleSubmit}
             disabled={!file || loading}
-            className="px-4 py-2.5 text-sm font-semibold rounded-xl bg-white text-black disabled:bg-zinc-800 disabled:text-gray-500 disabled:cursor-not-allowed"
+            className="px-5 py-2.5 bg-white text-black text-sm font-medium rounded-lg hover:bg-gray-100 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {loading ? "Uploading..." : "Submit"}
           </button>
