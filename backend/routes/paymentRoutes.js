@@ -50,13 +50,18 @@ router.get("/methods", async (req, res) => {
  * POST /api/payments/setup-intent
  * Create SetupIntent for collecting payment method
  */
-router.post("/setup-intent", async (req, res) => {
+router.post("/setup-intent", async (req, res, next) => {
   if (!requireAuth || !paymentLimiter) {
     return res.status(500).json({ error: "Server initializing" });
   }
 
-  paymentLimiter(req, res, () => {
-    requireAuth(req, res, async () => {
+  // Sign-in is checked before the limiter. The limit is per user, so the limiter has to
+  // know who is asking, and a request with no sign-in must not count against anyone.
+  requireAuth(req, res, () => {
+    paymentLimiter(req, res, async (limiterError) => {
+      if (limiterError) {
+        return next(limiterError);
+      }
     try {
       const { getStripeCustomerId } = await import("../src/db/users.repo.js");
       const { findUserById } = await import("../src/db/users.repo.js");
@@ -96,13 +101,17 @@ router.post("/setup-intent", async (req, res) => {
  * POST /api/payments/methods
  * Save payment method to user account
  */
-router.post("/methods", async (req, res) => {
+router.post("/methods", async (req, res, next) => {
   if (!requireAuth || !paymentLimiter) {
     return res.status(500).json({ error: "Server initializing" });
   }
 
-  paymentLimiter(req, res, () => {
-    requireAuth(req, res, async () => {
+  // Sign-in first, then the per-user limit (see /setup-intent)
+  requireAuth(req, res, () => {
+    paymentLimiter(req, res, async (limiterError) => {
+      if (limiterError) {
+        return next(limiterError);
+      }
     try {
       const { paymentMethodId } = req.body;
 
@@ -145,13 +154,17 @@ router.post("/methods", async (req, res) => {
  * DELETE /api/payments/methods
  * Remove user's payment method
  */
-router.delete("/methods", async (req, res) => {
+router.delete("/methods", async (req, res, next) => {
   if (!requireAuth || !paymentLimiter) {
     return res.status(500).json({ error: "Server initializing" });
   }
 
-  paymentLimiter(req, res, () => {
-    requireAuth(req, res, async () => {
+  // Sign-in first, then the per-user limit (see /setup-intent)
+  requireAuth(req, res, () => {
+    paymentLimiter(req, res, async (limiterError) => {
+      if (limiterError) {
+        return next(limiterError);
+      }
       try {
         await paymentService.removePaymentMethod(req.user.userId);
 
