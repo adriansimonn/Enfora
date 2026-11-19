@@ -13,6 +13,8 @@ const { validateEvidence } = require("../services/aiValidator");
 const { extractText } = require("../utils/extractText");
 const { extractMetadataDates } = require("../utils/extractMetadata");
 const taskService = require("../services/taskService");
+const { requireAuth } = require("../src/auth/auth.middleware.js");
+const { evidenceUploadLimiter } = require("../middleware/rateLimiters.js");
 
 const router = express.Router();
 const TABLE_NAME = "Tasks";
@@ -60,8 +62,11 @@ const upload = multer({
 
 /**
  * POST /api/evidence/upload
+ *
+ * requireAuth and the rate limiter run before multer, so an unauthenticated or
+ * throttled request is rejected before its body is read.
  */
-router.post("/upload", (req, res, next) => {
+router.post("/upload", requireAuth, evidenceUploadLimiter, (req, res, next) => {
   upload.single("evidence")(req, res, (err) => {
     if (err instanceof multer.MulterError) {
       return res.status(400).json({ error: `Upload error: ${err.message}` });
@@ -72,29 +77,16 @@ router.post("/upload", (req, res, next) => {
   });
 }, async (req, res) => {
   try {
-    const { taskId, userId, taskTitle, taskDescription, isExpiredCheck } = req.body;
+    // The caller is whoever the access token says it is. The only thing taken from
+    // the form body is which of that user's tasks the evidence is for; the task is
+    // looked up under this userId, so someone else's task is simply not found.
+    const userId = req.user.userId;
+    const { taskId } = req.body;
     const file = req.file;
 
-    if (!taskId || !userId || !taskDescription) {
+    if (!taskId || typeof taskId !== "string") {
       return res.status(400).json({
-        error: "Missing required fields (taskId, userId, taskDescription)",
-      });
-    }
-
-    // If this is an expired check request (frontend detected expiry)
-    if (isExpiredCheck === 'true') {
-      const currentTimestamp = new Date().toISOString();
-
-      // Use taskService.updateTask to handle recurring tasks properly
-      await taskService.updateTask(taskId, userId, {
-        status: "failed",
-        failedAt: currentTimestamp,
-      });
-
-      return res.status(200).json({
-        message: "Task marked as failed due to expiration",
-        status: "failed",
-        isExpired: true,
+        error: "Missing required field (taskId)",
       });
     }
 
@@ -130,18 +122,12 @@ router.post("/upload", (req, res, next) => {
     const deadline = new Date(effectiveDeadline).toISOString();
 
     if (now > deadline) {
-      // Task has expired, update status to failed
-      const currentTimestamp = new Date().toISOString();
-
-      // Use taskService.updateTask to handle recurring tasks properly
-      await taskService.updateTask(taskId, userId, {
-        status: "failed",
-        failedAt: currentTimestamp,
-      });
-
+      // Refuse the evidence but leave the task alone. The expireTask Lambda is what
+      // fails an expired task and charges its stake; marking it failed here deletes
+      // that schedule (and makes the Lambda skip the task), so the stake is never
+      // charged.
       return res.status(400).json({
         error: "Task deadline has passed. Evidence cannot be submitted.",
-        status: "failed",
         isExpired: true,
       });
     }
@@ -204,10 +190,11 @@ router.post("/upload", (req, res, next) => {
 
     /**
      * 5. AI VALIDATION
+     * Judge the evidence against the task as stored, not a description sent with the upload.
      */
     const validationResult = await validateEvidence({
-      taskTitle,
-      taskDescription,
+      taskTitle: task.title,
+      taskDescription: task.description,
       fileBuffer: file.buffer,
       fileName: file.originalname,
       extractedText,

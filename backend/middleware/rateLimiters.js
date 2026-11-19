@@ -80,6 +80,22 @@ export const paymentLimiter = baseLimiter({
   },
 });
 
+// EVIDENCE UPLOAD: Per-user limiting. Each upload is buffered in memory, written to S3,
+// parsed and sent to OpenAI, so one request is expensive.
+// Mount after requireAuth so the limit is keyed on the authenticated user.
+export const evidenceUploadLimiter = baseLimiter({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 10, // 10 uploads per hour per user
+  message: "Too many evidence uploads. Please try again later.",
+  keyGenerator: (req) => {
+    const userId = req.user?.userId;
+    if (userId) {
+      return `evidence:${userId}`;
+    }
+    return `evidence:${ipKeyGenerator(req)}`;
+  },
+});
+
 // PAYMENT CHARGE (Internal API): Stricter rate limiting
 export const paymentChargeLimiter = baseLimiter({
   windowMs: 60 * 60 * 1000, // 1 hour

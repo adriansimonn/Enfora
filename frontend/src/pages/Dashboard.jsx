@@ -14,7 +14,7 @@ import ConfirmationModal from "../components/ConfirmationModal";
 import TwoFactorEncouragementBanner from "../components/TwoFactorEncouragementBanner";
 import ReliabilityScoreModal from "../components/ReliabilityScoreModal";
 import Select from "../components/Select";
-import { fetchTasks, createTask, updateTask, deleteTask, submitDispute } from "../services/api";
+import { fetchTasks, createTask, updateTask, deleteTask, submitDispute, getAccessToken } from "../services/api";
 import { get2FAStatus } from "../services/twoFactor";
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
@@ -103,55 +103,41 @@ export default function Dashboard() {
     }
   };
 
+  // The server fails an expired task and charges its stake at the deadline, so the
+  // client has nothing to send. It only shows the task as failed.
+  const showTaskExpired = (task) => {
+    setSelectedTask(null);
+    setTasks(prev =>
+      prev.map(t =>
+        t.id === task.id
+          ? {
+              ...t,
+              status: "FAILED",
+            }
+          : t
+      )
+    );
+    setModalMessage("Task deadline has passed. Evidence cannot be submitted.");
+    setShowErrorModal(true);
+  };
+
   const handleSubmitEvidence = async (task, file, isExpired = false) => {
-    // If task is expired, update it to failed state
     if (isExpired) {
-      // Close evidence modal first
-      setSelectedTask(null);
-
-      try {
-        const formData = new FormData();
-        formData.append("taskId", task.taskId || task.id);
-        formData.append("userId", task.userId);
-        formData.append("taskTitle", task.title);
-        formData.append("taskDescription", task.description);
-        formData.append("isExpiredCheck", "true");
-
-        const response = await fetch(`${API_BASE}/evidence/upload`, {
-          method: "POST",
-          body: formData,
-          credentials: 'include'
-        });
-
-        await response.json();
-
-        // Update task to failed status
-        setTasks(prev =>
-          prev.map(t =>
-            t.id === task.id
-              ? {
-                  ...t,
-                  status: "FAILED",
-                }
-              : t
-          )
-        );
-      } catch (err) {
-        console.error("Failed to update expired task:", err);
-      }
+      showTaskExpired(task);
       return;
     }
 
     try {
+      // The server identifies the user from the access token and reads the task's
+      // title and description from its own record.
       const formData = new FormData();
       formData.append("taskId", task.taskId || task.id);
-      formData.append("userId", task.userId);
-      formData.append("taskTitle", task.title);
-      formData.append("taskDescription", task.description);
       formData.append("evidence", file);
 
+      const accessToken = getAccessToken();
       const response = await fetch(`${API_BASE}/evidence/upload`, {
         method: "POST",
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
         body: formData,
         credentials: 'include'
       });
@@ -160,26 +146,16 @@ export default function Dashboard() {
 
       // Check if backend detected task expiration
       if (data.isExpired) {
-        setSelectedTask(null);
-        setTasks(prev =>
-          prev.map(t =>
-            t.id === task.id
-              ? {
-                  ...t,
-                  status: "FAILED",
-                }
-              : t
-          )
-        );
-        setModalMessage("Task deadline has passed. Evidence cannot be submitted.");
-        setShowErrorModal(true);
+        showTaskExpired(task);
         return;
       }
 
-      // Check if backend rejected due to metadata validation (outdated evidence)
+      // Check if backend rejected the upload (e.g. outdated evidence, rate limit)
       if (!response.ok) {
         // Throw error with the backend message so EvidenceModal can catch it
-        throw new Error(data.error || "Upload failed");
+        const uploadError = new Error(data.error || "Upload failed");
+        uploadError.status = response.status;
+        throw uploadError;
       }
 
       // Close evidence modal and show loading modal only after validation passes
