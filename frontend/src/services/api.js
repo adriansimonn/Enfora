@@ -98,7 +98,12 @@ export async function updateTask(taskId, taskData) {
     body: JSON.stringify(taskData)
   })
   if (!res.ok) {
-    throw new Error('Failed to update task')
+    const errorData = await res.json().catch(() => ({}))
+    // Check for 2FA stake limit error
+    if (errorData.error === '2FA_REQUIRED_FOR_STAKE_LIMIT') {
+      throw new Error('Limit of $20 total stake at risk exceeded. Enable 2FA to remove this limit.')
+    }
+    throw new Error(errorData.message || errorData.error || 'Failed to update task')
   }
   return res.json()
 }

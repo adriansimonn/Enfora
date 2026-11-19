@@ -233,6 +233,11 @@ exports.getTasksByUser = async (userId) => {
   return result.Items;
 };
 
+/**
+ * Internal: writes every key in `updates`, including status. Only pass values the
+ * server built. An edit requested by a user goes through validateTaskEdit and
+ * applyTaskEdit below.
+ */
 exports.updateTask = async (taskId, userId, updates) => {
   // First verify the task belongs to the user
   const getParams = {
@@ -300,6 +305,254 @@ exports.updateTask = async (taskId, userId, updates) => {
   }
 
   return result.Attributes;
+};
+
+/**
+ * USER EDITS
+ *
+ * A user may change the fields handled in validateTaskEdit and nothing else.
+ * Status, timestamps, evidence and validation results are only written by the server.
+ */
+const EDITABLE_STATUSES = ["pending", "rejected"];
+const RECURRENCE_FREQUENCIES = ["days", "weeks"];
+const WEEKDAYS = ["SU", "MO", "TU", "WE", "TH", "FR", "SA"];
+
+/**
+ * A refused edit. `status` is the HTTP status to answer with and `message` is safe
+ * to show to the user.
+ */
+class TaskEditError extends Error {
+  constructor(status, message) {
+    super(message);
+    this.name = "TaskEditError";
+    this.status = status;
+  }
+}
+exports.TaskEditError = TaskEditError;
+
+exports.getTask = async (taskId, userId) => {
+  const result = await dynamoDB.send(
+    new GetCommand({
+      TableName: TABLE_NAME,
+      Key: { userId, taskId },
+    })
+  );
+  return result.Item;
+};
+
+function parseDate(value) {
+  if (typeof value !== "string") {
+    return null;
+  }
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function parseRecurrenceRule(rule) {
+  if (rule === null) {
+    return null;
+  }
+
+  const invalid = (problem) => new TaskEditError(400, `recurrenceRule ${problem}`);
+
+  if (typeof rule !== "object" || Array.isArray(rule)) {
+    throw invalid("must be an object or null");
+  }
+
+  const { frequency, interval, byWeekday, until, count } = rule;
+
+  if (!RECURRENCE_FREQUENCIES.includes(frequency)) {
+    throw invalid("frequency must be days or weeks");
+  }
+  if (!Number.isInteger(interval) || interval < 1) {
+    throw invalid("interval must be a whole number of 1 or more");
+  }
+
+  const parsed = { frequency, interval };
+
+  if (byWeekday != null) {
+    if (!Array.isArray(byWeekday) || !byWeekday.every((day) => WEEKDAYS.includes(day))) {
+      throw invalid("byWeekday must be a list of weekdays");
+    }
+    if (byWeekday.length > 0) {
+      parsed.byWeekday = byWeekday;
+    }
+  }
+  if (until != null && until !== "") {
+    if (!parseDate(until)) {
+      throw invalid("until must be a date");
+    }
+    parsed.until = until;
+  }
+  if (count != null) {
+    if (!Number.isInteger(count) || count < 1) {
+      throw invalid("count must be a whole number of 1 or more");
+    }
+    parsed.count = count;
+  }
+
+  return parsed;
+}
+
+/**
+ * Check that `task` may be edited and reduce a request body to the edits it is
+ * allowed to make. Fields that are not editable are ignored.
+ * Throws TaskEditError if the task is not editable or a value is invalid.
+ */
+exports.validateTaskEdit = (task, body, now = new Date()) => {
+  // Compared case-insensitively because rows edited before this check existed can
+  // hold an upper-cased status.
+  if (!EDITABLE_STATUSES.includes(String(task.status).toLowerCase())) {
+    throw new TaskEditError(409, "This task can no longer be edited");
+  }
+
+  // Once the deadline has passed the stake is owed, even if the expiry Lambda has
+  // not marked the task failed yet.
+  if (new Date(task.dueDate || task.deadline) <= now) {
+    throw new TaskEditError(409, "This task's deadline has passed, so it can no longer be edited");
+  }
+
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    throw new TaskEditError(400, "Request body must be an object");
+  }
+
+  const edits = {};
+
+  for (const field of ["title", "description"]) {
+    if (body[field] === undefined) {
+      continue;
+    }
+    if (typeof body[field] !== "string" || !body[field].trim()) {
+      throw new TaskEditError(400, `${field} must be a non-empty string`);
+    }
+    edits[field] = body[field];
+  }
+
+  if (body.stakeAmount !== undefined) {
+    // Must be a real number. The expiry Lambda reads the stored stake as a DynamoDB
+    // number, so any other type would be treated as no stake and never charged.
+    if (typeof body.stakeAmount !== "number" || !Number.isFinite(body.stakeAmount) || body.stakeAmount < 0) {
+      throw new TaskEditError(400, "stakeAmount must be a number of 0 or more");
+    }
+    edits.stakeAmount = body.stakeAmount;
+  }
+
+  if (body.deadline !== undefined) {
+    const deadline = parseDate(body.deadline);
+    if (!deadline) {
+      throw new TaskEditError(400, "deadline must be a valid date");
+    }
+    if (deadline <= now) {
+      throw new TaskEditError(400, "deadline must be in the future");
+    }
+    edits.deadline = deadline.toISOString();
+  }
+
+  if (body.recurrenceRule !== undefined) {
+    edits.recurrenceRule = parseRecurrenceRule(body.recurrenceRule);
+    edits.isRecurring = edits.recurrenceRule !== null;
+  }
+
+  if (body.repeatsUntil != null) {
+    const repeatsUntil = parseDate(body.repeatsUntil);
+    if (!repeatsUntil) {
+      throw new TaskEditError(400, "repeatsUntil must be a valid date");
+    }
+    edits.repeatsUntil = repeatsUntil.toISOString();
+  }
+
+  if (edits.recurrenceRule && !edits.repeatsUntil && !task.repeatsUntil) {
+    throw new TaskEditError(400, "repeatsUntil is required for a recurring task");
+  }
+
+  if (Object.keys(edits).length === 0) {
+    throw new TaskEditError(400, "No editable fields provided");
+  }
+
+  return edits;
+};
+
+/**
+ * Save edits returned by validateTaskEdit for the `task` they were validated against.
+ * Returns the updated task. Throws TaskEditError if the task's status changed since
+ * `task` was read.
+ */
+exports.applyTaskEdit = async (task, edits) => {
+  const { userId, taskId } = task;
+  const updates = { ...edits };
+
+  // The deadline is stored twice. dueDate is the copy the evidence deadline check
+  // and the expiry schedule follow, so the two must move together.
+  const previousDeadline = task.dueDate || task.deadline;
+  if (edits.deadline !== undefined) {
+    updates.dueDate = edits.deadline;
+  }
+  const deadlineMoved =
+    edits.deadline !== undefined &&
+    new Date(edits.deadline).getTime() !== new Date(previousDeadline).getTime();
+
+  // Rows edited before validateTaskEdit existed can hold "PENDING", which the expiry
+  // Lambda and analytics do not recognise. Put the lowercase value back.
+  const canonicalStatus = task.status.toLowerCase();
+  if (task.status !== canonicalStatus) {
+    updates.status = canonicalStatus;
+  }
+
+  const moveSchedule = async (deadline) => {
+    await deleteTaskExpirationSchedule(userId, taskId);
+    await createTaskExpirationSchedule(userId, taskId, deadline);
+  };
+  const restoreSchedule = async () => {
+    try {
+      await moveSchedule(previousDeadline);
+    } catch (restoreError) {
+      console.error("Failed to restore EventBridge schedule after a failed edit:", restoreError);
+    }
+  };
+
+  // Move the schedule first and save second. A deadline saved without its schedule
+  // would be charged at the old time, or never. If either step fails the schedule
+  // is put back and the edit is not saved.
+  if (deadlineMoved) {
+    try {
+      await moveSchedule(edits.deadline);
+    } catch (scheduleError) {
+      await restoreSchedule();
+      throw scheduleError;
+    }
+  }
+
+  const expressionAttributeNames = { "#st": "status" };
+  const expressionAttributeValues = { ":expectedStatus": task.status };
+  const assignments = Object.keys(updates).map((key, index) => {
+    expressionAttributeNames[`#field${index}`] = key;
+    expressionAttributeValues[`:value${index}`] = updates[key];
+    return `#field${index} = :value${index}`;
+  });
+
+  try {
+    const result = await dynamoDB.send(
+      new UpdateCommand({
+        TableName: TABLE_NAME,
+        Key: { userId, taskId },
+        UpdateExpression: `SET ${assignments.join(", ")}`,
+        // Refuse the write if the task was completed, failed or deleted after it was read
+        ConditionExpression: "#st = :expectedStatus",
+        ExpressionAttributeNames: expressionAttributeNames,
+        ExpressionAttributeValues: expressionAttributeValues,
+        ReturnValues: "ALL_NEW",
+      })
+    );
+    return result.Attributes;
+  } catch (error) {
+    if (deadlineMoved) {
+      await restoreSchedule();
+    }
+    if (error.name === "ConditionalCheckFailedException") {
+      throw new TaskEditError(409, "This task changed while it was being edited. Reload and try again.");
+    }
+    throw error;
+  }
 };
 
 exports.deleteTask = async (taskId, userId) => {

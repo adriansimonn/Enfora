@@ -11,6 +11,53 @@ import("../src/auth/auth.middleware.js").then(({ requireAuth: auth }) => {
   requireAuth = auth;
 });
 
+/**
+ * The rules for putting money at stake, shared by create and edit.
+ * `replacedStake` is the part of the user's at-risk total that this stake replaces
+ * (the current stake of a task being edited).
+ * Returns null if the stake is allowed, otherwise the body of the 400 response.
+ */
+async function checkStakeAllowed(userId, stakeAmount, replacedStake = 0) {
+  // Check if payment method is required
+  if (stakeAmount && stakeAmount > 0) {
+    const paymentService = require("../services/paymentService");
+    const hasPayment = await paymentService.hasPaymentMethod(userId);
+
+    if (!hasPayment) {
+      return {
+        error: "PAYMENT_METHOD_REQUIRED",
+        message: "Please add a payment method before setting a stake amount"
+      };
+    }
+  }
+
+  // Check 2FA requirement for $20 stake limit
+  const { get2FASettings } = await import("../src/db/users.repo.js");
+  const twoFactorSettings = await get2FASettings(userId);
+
+  if (!twoFactorSettings.twoFactorEnabled) {
+    // User doesn't have 2FA enabled - check stake limit
+    const analyticsService = require("../services/analyticsService");
+    const analytics = await analyticsService.getUserAnalytics(userId);
+
+    const currentStakeAtRisk = (analytics.totalStakeAtRisk || 0) - replacedStake;
+    const newStakeAmount = parseFloat(stakeAmount) || 0;
+    const totalStakeAfterChange = currentStakeAtRisk + newStakeAmount;
+
+    if (totalStakeAfterChange > 20) {
+      return {
+        error: "2FA_REQUIRED_FOR_STAKE_LIMIT",
+        message: "Enable 2FA to remove the $20 stake limit",
+        currentStakeAtRisk: currentStakeAtRisk,
+        attemptedStake: newStakeAmount,
+        stakeLimit: 20
+      };
+    }
+  }
+
+  return null;
+}
+
 // Create new task (protected)
 router.post("/", async (req, res) => {
   // Wait for middleware to load
@@ -22,41 +69,9 @@ router.post("/", async (req, res) => {
     try {
       const { stakeAmount } = req.body;
 
-      // Check if payment method is required
-      if (stakeAmount && stakeAmount > 0) {
-        const paymentService = require("../services/paymentService");
-        const hasPayment = await paymentService.hasPaymentMethod(req.user.userId);
-
-        if (!hasPayment) {
-          return res.status(400).json({
-            error: "PAYMENT_METHOD_REQUIRED",
-            message: "Please add a payment method before creating tasks with stake amounts"
-          });
-        }
-      }
-
-      // Check 2FA requirement for $20 stake limit
-      const { get2FASettings } = await import("../src/db/users.repo.js");
-      const twoFactorSettings = await get2FASettings(req.user.userId);
-
-      if (!twoFactorSettings.twoFactorEnabled) {
-        // User doesn't have 2FA enabled - check stake limit
-        const analyticsService = require("../services/analyticsService");
-        const analytics = await analyticsService.getUserAnalytics(req.user.userId);
-
-        const currentStakeAtRisk = analytics.totalStakeAtRisk || 0;
-        const newStakeAmount = parseFloat(stakeAmount) || 0;
-        const totalStakeAfterCreation = currentStakeAtRisk + newStakeAmount;
-
-        if (totalStakeAfterCreation > 20) {
-          return res.status(400).json({
-            error: "2FA_REQUIRED_FOR_STAKE_LIMIT",
-            message: "Enable 2FA to remove the $20 stake limit",
-            currentStakeAtRisk: currentStakeAtRisk,
-            attemptedStake: newStakeAmount,
-            stakeLimit: 20
-          });
-        }
+      const stakeDenied = await checkStakeAllowed(req.user.userId, stakeAmount);
+      if (stakeDenied) {
+        return res.status(400).json(stakeDenied);
       }
 
       const taskData = {
@@ -99,9 +114,34 @@ router.put("/:taskId", async (req, res) => {
   requireAuth(req, res, async () => {
     try {
       const { taskId } = req.params;
-      const updatedTask = await taskService.updateTask(taskId, req.user.userId, req.body);
+      const userId = req.user.userId;
+
+      const task = await taskService.getTask(taskId, userId);
+      if (!task) {
+        return res.status(404).json({ error: "Task not found" });
+      }
+
+      // Only the fields a user may edit come out of this. Status, timestamps and
+      // evidence are never taken from the request.
+      const edits = taskService.validateTaskEdit(task, req.body);
+
+      // Raising a stake is held to the same rules as creating a task with it
+      const currentStake = Number(task.stakeAmount) || 0;
+      if (edits.stakeAmount > currentStake) {
+        // Analytics counts this task's stake as at risk only under a lowercase status
+        const countedAtRisk = task.status === "pending" || task.status === "rejected";
+        const stakeDenied = await checkStakeAllowed(userId, edits.stakeAmount, countedAtRisk ? currentStake : 0);
+        if (stakeDenied) {
+          return res.status(400).json(stakeDenied);
+        }
+      }
+
+      const updatedTask = await taskService.applyTaskEdit(task, edits);
       res.json(updatedTask);
     } catch (error) {
+      if (error instanceof taskService.TaskEditError) {
+        return res.status(error.status).json({ error: error.message });
+      }
       console.error("Error updating task:", error);
       res.status(500).json({ error: "Failed to update task" });
     }

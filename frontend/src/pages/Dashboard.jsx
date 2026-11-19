@@ -193,16 +193,21 @@ export default function Dashboard() {
     }
   };
 
-  const handleEditTask = async (updatedTask) => {
+  const handleEditTask = async (task, edits) => {
     try {
-      const taskId = updatedTask.taskId || updatedTask.id;
-      await updateTask(taskId, updatedTask);
+      const taskId = task.taskId || task.id;
+      const savedTask = await updateTask(taskId, edits);
 
-      // Update local state
+      // Show the task as the server stored it, mapped the same way as in loadTasks
       setTasks(prev =>
         prev.map(t =>
-          t.id === updatedTask.id || t.taskId === updatedTask.taskId
-            ? { ...t, ...updatedTask }
+          t.id === task.id || t.taskId === task.taskId
+            ? {
+                ...t,
+                ...savedTask,
+                id: savedTask.taskId,
+                status: savedTask.status.toUpperCase()
+              }
             : t
         )
       );

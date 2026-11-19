@@ -86,23 +86,23 @@ export default function EditTaskModal({ task, onClose, onSave, onDelete }) {
       const deadlineDate = new Date(deadline);
       const deadlineISO = deadlineDate.toISOString();
 
-      const taskData = {
-        ...task,
+      // Send only the fields this form edits. Everything else on the task (status,
+      // dueDate, evidence, timestamps) belongs to the server.
+      const edits = {
         title,
         description,
         deadline: deadlineISO,
         stakeAmount: parseFloat(stakeAmount),
-        recurrenceRule,
-        isRecurring: recurrenceRule !== null
+        recurrenceRule
       };
 
       // For recurring tasks, add repeatsUntil
       if (recurrenceRule !== null && repeatsUntil) {
         const repeatsUntilDate = new Date(repeatsUntil);
-        taskData.repeatsUntil = repeatsUntilDate.toISOString();
+        edits.repeatsUntil = repeatsUntilDate.toISOString();
       }
 
-      await onSave(taskData);
+      await onSave(task, edits);
       onClose();
     } catch (err) {
       setError(err.message || 'Failed to update task');
