@@ -144,6 +144,7 @@ Enfora is a web-based accountability platform that helps you achieve your goals 
 - Different limits per endpoint type:
   - Login: 100 attempts per 15 minutes (IP-based)
   - Registration: 5 per 5 minutes
+  - Verification and 2FA codes: 5 failed attempts per 15 minutes (per account, or per email before sign-in), and 5 checks per emailed code
   - Evidence upload: 10 per hour (user-based)
   - Payments: 10 per hour (user-based)
 - Redis-backed for distributed rate limiting across multiple servers

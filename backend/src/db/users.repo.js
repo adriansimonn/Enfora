@@ -7,6 +7,7 @@ import {
 } from "@aws-sdk/lib-dynamodb";
 
 import dynamoDB from "../../config/dynamoClient.js";
+import { normalizeEmail } from "../utils/email.js";
 
 const USERS_TABLE = "Users";
 const EMAIL_INDEX = "email-index";
@@ -21,7 +22,7 @@ export async function findUserByEmail(email) {
       IndexName: EMAIL_INDEX,
       KeyConditionExpression: "email = :email",
       ExpressionAttributeValues: {
-        ":email": email.toLowerCase(),
+        ":email": normalizeEmail(email),
       },
       Limit: 1,
     })
@@ -52,7 +53,7 @@ export async function createUser(user) {
 
   const item = {
     ...user,
-    email: user.email.toLowerCase(),
+    email: normalizeEmail(user.email),
     createdAt: now,
     tokenVersion: 0,
   };

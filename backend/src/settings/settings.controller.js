@@ -213,7 +213,8 @@ export async function deleteAccount(req, res) {
     }
 
     // Verify the email verification code
-    const verification = await verifyCode(user.email, verificationCode);
+    // Only a code that was issued for account deletion can match
+    const verification = await verifyCode(user.email, verificationCode, "account_deletion");
 
     if (!verification.valid) {
       let errorMessage = "Invalid verification code";
@@ -224,14 +225,11 @@ export async function deleteAccount(req, res) {
         errorMessage = "No verification code found";
       } else if (verification.reason === "CODE_MISMATCH") {
         errorMessage = "Incorrect verification code";
+      } else if (verification.reason === "TOO_MANY_ATTEMPTS") {
+        errorMessage = "Too many incorrect attempts. Request a new code.";
       }
 
       return res.status(400).json({ error: errorMessage });
-    }
-
-    // Verify the code was for account deletion
-    if (verification.userData.purpose !== "account_deletion") {
-      return res.status(400).json({ error: "Invalid verification code" });
     }
 
     // Verify the userId matches

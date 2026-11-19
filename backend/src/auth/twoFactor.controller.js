@@ -7,7 +7,6 @@ import * as usersRepo from "../db/users.repo.js";
 import {
   generateVerificationCode,
   storeVerificationCode,
-  verifyCode,
   deleteVerificationCode,
 } from "../db/verificationCodes.repo.js";
 import { send2FACode } from "../../services/emailService.js";
@@ -32,25 +31,6 @@ async function generateBackupCodes(count = 10) {
     plaintextCodes, // Show to user once
     hashedCodes,    // Store in database
   };
-}
-
-/**
- * Verify a backup code against hashed codes
- */
-async function verifyBackupCode(code, hashedCodes) {
-  if (!hashedCodes || !Array.isArray(hashedCodes)) {
-    return { valid: false, matchedHash: null };
-  }
-
-  // Check each hashed code
-  for (const hashedCode of hashedCodes) {
-    const isMatch = await bcrypt.compare(code, hashedCode);
-    if (isMatch) {
-      return { valid: true, matchedHash: hashedCode };
-    }
-  }
-
-  return { valid: false, matchedHash: null };
 }
 
 /**
@@ -242,70 +222,6 @@ export async function get2FAStatus(req, res) {
     });
   } catch (error) {
     console.error("Error getting 2FA status:", error);
-    res.status(500).json({ error: "Server error" });
-  }
-}
-
-/**
- * Verify 2FA code during login
- */
-export async function verify2FACode(req, res) {
-  try {
-    const { email, code, isBackupCode } = req.body;
-
-    if (!email || !code) {
-      return res.status(400).json({ error: "Missing required fields" });
-    }
-
-    // Get user by email
-    const user = await usersRepo.findUserByEmail(email);
-    if (!user) {
-      return res.status(401).json({ error: "Invalid credentials" });
-    }
-
-    const twoFactorSettings = await usersRepo.get2FASettings(user.userId);
-
-    if (!twoFactorSettings.twoFactorEnabled) {
-      return res.status(400).json({ error: "2FA is not enabled for this account" });
-    }
-
-    let verified = false;
-
-    // Check if it's a backup code (verify against hashed codes)
-    if (isBackupCode) {
-      const backupCodeResult = await verifyBackupCode(code, twoFactorSettings.twoFactorBackupCodes);
-      if (backupCodeResult.valid) {
-        verified = true;
-        // Remove the used backup code (by its hash)
-        await usersRepo.useBackupCode(user.userId, backupCodeResult.matchedHash);
-      }
-    } else if (twoFactorSettings.twoFactorMethod === "authenticator") {
-      // Verify TOTP code
-      verified = speakeasy.totp.verify({
-        secret: twoFactorSettings.twoFactorSecret,
-        encoding: "base32",
-        token: code,
-        window: 2,
-      });
-    } else if (twoFactorSettings.twoFactorMethod === "email") {
-      // Verify email code
-      const verification = await verifyCode(email, code);
-      verified = verification.valid && verification.userData?.purpose === "2FA_LOGIN";
-
-      if (verified) {
-        // Delete the used code
-        await deleteVerificationCode(email);
-      }
-    }
-
-    if (!verified) {
-      return res.status(401).json({ error: "Invalid verification code" });
-    }
-
-    // Return success - the login controller will handle token generation
-    res.json({ verified: true });
-  } catch (error) {
-    console.error("Error verifying 2FA code:", error);
     res.status(500).json({ error: "Server error" });
   }
 }

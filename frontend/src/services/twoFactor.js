@@ -114,31 +114,6 @@ export async function send2FAEmailCode(email) {
 }
 
 /**
- * Verify 2FA code during login
- */
-export async function verify2FACode(email, code, isBackupCode = false) {
-  const headers = {
-    'Content-Type': 'application/json'
-  }
-  const csrfToken = getCsrfToken()
-  if (csrfToken) {
-    headers['X-XSRF-Token'] = csrfToken
-  }
-
-  const response = await fetch(`${API_BASE}/2fa/verify`, {
-    method: 'POST',
-    headers,
-    credentials: 'include',
-    body: JSON.stringify({ email, code, isBackupCode })
-  })
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.error || 'Failed to verify 2FA code')
-  }
-  return response.json()
-}
-
-/**
  * Regenerate backup codes
  */
 export async function regenerateBackupCodes(password) {

@@ -15,6 +15,7 @@ import {
 import { sendVerificationCode } from "../../services/emailService.js";
 import * as usersRepo from "../db/users.repo.js";
 import * as profilesRepo from "../db/profiles.repo.js";
+import { twoFactorLoginLimiter, passesLimiter } from "../../middleware/rateLimiters.js";
 
 export async function refresh(req, res) {
   try {
@@ -116,11 +117,11 @@ export async function verifyEmailCode(req, res) {
   try {
     const { email, code } = req.body;
 
-    if (!email || !code) {
+    if (!email || !code || typeof email !== "string" || typeof code !== "string") {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
-    // Verify the code
+    // Verify the code. No purpose is given, so only a sign-up code can match.
     const verification = await verifyCode(email, code);
 
     if (!verification.valid) {
@@ -130,6 +131,8 @@ export async function verifyEmailCode(req, res) {
         errorMessage = "Verification code has expired";
       } else if (verification.reason === "CODE_NOT_FOUND") {
         errorMessage = "No verification code found for this email";
+      } else if (verification.reason === "TOO_MANY_ATTEMPTS") {
+        errorMessage = "Too many incorrect attempts. Request a new code.";
       }
 
       return res.status(400).json({ error: errorMessage });
@@ -184,7 +187,9 @@ export async function resendVerificationCode(req, res) {
     const { getVerificationCode } = await import("../db/verificationCodes.repo.js");
     const existingData = await getVerificationCode(email);
 
-    if (!existingData) {
+    // Only a pending sign-up can be resent. Codes issued for anything else live in the
+    // same table and carry a purpose.
+    if (!existingData || existingData.purpose) {
       return res.status(404).json({ error: "No pending verification found for this email" });
     }
 
@@ -243,6 +248,14 @@ export async function login(req, res) {
         });
       }
 
+      // The password was right, so the code is all that stands between this caller and
+      // the account. Wrong codes are limited per account, whatever IP address or spelling
+      // of the email they arrive with.
+      req.passwordVerifiedUserId = user.userId;
+      if (!(await passesLimiter(twoFactorLoginLimiter, req, res))) {
+        return;
+      }
+
       // Verify the 2FA code
       const speakeasy = await import("speakeasy");
       const { verifyCode, deleteVerificationCode } = await import("../db/verificationCodes.repo.js");
@@ -275,8 +288,8 @@ export async function login(req, res) {
         });
       } else if (twoFactorSettings.twoFactorMethod === "email") {
         // Verify email code
-        const verification = await verifyCode(email, twoFactorCode);
-        verified = verification.valid && verification.userData?.purpose === "2FA_LOGIN";
+        const verification = await verifyCode(email, twoFactorCode, "2FA_LOGIN");
+        verified = verification.valid;
 
         if (verified) {
           // Delete the used code

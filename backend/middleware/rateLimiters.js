@@ -1,6 +1,7 @@
 import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import RedisStore from "rate-limit-redis";
 import { createClient } from "redis";
+import { normalizeEmail } from "../src/utils/email.js";
 
 const redisClient = createClient({
   url: process.env.REDIS_URL || "redis://localhost:6379",
@@ -48,22 +49,67 @@ export const refreshLimiter = baseLimiter({
   message: "Too many refresh attempts.",
 });
 
-// VERIFICATION CODE: Per-email limiting to prevent brute force attacks on 6-digit codes
+// VERIFICATION CODE: 5 failed attempts per 15 minutes at a code (or at the password on the
+// signed-in routes that use this), to prevent brute force.
+// The bucket is whoever the attempt is against, never text the caller can vary:
+// the signed-in user where there is one (so mount this after requireAuth), otherwise the
+// email in the form the database looks it up by.
 export const verificationCodeLimiter = baseLimiter({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 attempts per email per 15 minutes
+  max: 5, // 5 failed attempts per user or email per 15 minutes
   message: "Too many verification attempts. Please try again in 15 minutes.",
   keyGenerator: (req) => {
-    // Use email from body for rate limiting (per-email instead of per-IP)
-    const email = req.body.email || req.body.username;
-    if (email) {
-      return `verify:${email}`;
+    if (req.user?.userId) {
+      return `verify:user:${req.user.userId}`;
+    }
+    const email = req.body?.email;
+    if (typeof email === "string" && email) {
+      return `verify:email:${normalizeEmail(email)}`;
     }
     // Fall back to IP with proper IPv6 handling
-    return `verify:${ipKeyGenerator(req)}`;
+    return `verify:ip:${ipKeyGenerator(req.ip)}`;
   },
   skipSuccessfulRequests: true, // Only count failed attempts
 });
+
+// 2FA AT LOGIN: 5 wrong codes per account per 15 minutes, counted across every IP address
+// and every spelling of the email.
+// The account is only known once the password has been checked, so this is not mounted on
+// the route: the login handler sets req.passwordVerifiedUserId and runs it with
+// passesLimiter. Only someone who has the password can use up an account's attempts.
+export const twoFactorLoginLimiter = baseLimiter({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // 5 wrong codes per account per 15 minutes
+  message: "Too many incorrect codes. Please try again in 15 minutes.",
+  keyGenerator: (req) => {
+    if (!req.passwordVerifiedUserId) {
+      throw new Error("twoFactorLoginLimiter needs req.passwordVerifiedUserId");
+    }
+    return `2fa-login:${req.passwordVerifiedUserId}`;
+  },
+  skipSuccessfulRequests: true, // Only count wrong codes
+});
+
+/**
+ * Runs a limiter from inside a handler, for a limit that depends on something the handler
+ * has to work out first. Resolves true if the request may go on, false if the limiter has
+ * already answered it with a 429. Rejects if the limiter could not count the request.
+ */
+export async function passesLimiter(limiter, req, res) {
+  let passed = false;
+  let failure = null;
+  await limiter(req, res, (error) => {
+    if (error) {
+      failure = error;
+    } else {
+      passed = true;
+    }
+  });
+  if (failure) {
+    throw failure;
+  }
+  return passed;
+}
 
 // PAYMENT ENDPOINTS: Strict rate limiting to prevent abuse and fraudulent charges
 export const paymentLimiter = baseLimiter({
@@ -92,7 +138,7 @@ export const evidenceUploadLimiter = baseLimiter({
     if (userId) {
       return `evidence:${userId}`;
     }
-    return `evidence:${ipKeyGenerator(req)}`;
+    return `evidence:${ipKeyGenerator(req.ip)}`;
   },
 });
 
